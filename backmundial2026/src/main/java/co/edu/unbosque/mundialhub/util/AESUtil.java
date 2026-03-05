@@ -113,7 +113,7 @@ public class AESUtil {
 	 * @return El texto plano desencriptado.
 	 */
 	public static String decrypt(String encrypted) {
-		String iv = "veltrixpass";
+		String iv = "worldcup2026hub";
 		String key = "keywhitsecuredlk";
 		return decrypt(key, iv, encrypted);
 	}
@@ -125,7 +125,7 @@ public class AESUtil {
 	 * @return El texto encriptado en formato Base64.
 	 */
 	public static String encrypt(String plainText) {
-		String iv = "veltrixpass";
+		String iv = "worldcup2026hub";
 		String key = "keywhitsecuredlk";
 		return encrypt(key, iv, plainText);
 	}
@@ -178,7 +178,9 @@ public class AESUtil {
 	
 	public static void main(String[] args) {
 		
-		System.out.println(decrypt("TwTlDcSgYQpQGZtgf3zGR9MhnhYllMxizoC55OXyfw51SC7ff1t5V+FSavuZrera2m9+fg=="));
+		
+		
+		System.out.println(decrypt("EWflIzYhtEnptLYvZRRDx3+F8WH1C0wbqfY="));
 	}
 
 }

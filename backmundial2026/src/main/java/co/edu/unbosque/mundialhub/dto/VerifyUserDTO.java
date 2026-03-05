@@ -6,6 +6,13 @@ public class VerifyUserDTO {
 
 	private String code;
 	
+	
+	public VerifyUserDTO(String email, String code) {
+		super();
+		this.email = email;
+		this.code = code;
+	}
+
 	public VerifyUserDTO() {
 		// TODO Auto-generated constructor stub
 	}

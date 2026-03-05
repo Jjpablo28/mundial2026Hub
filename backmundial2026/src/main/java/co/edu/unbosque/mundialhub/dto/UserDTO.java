@@ -21,6 +21,10 @@ public class UserDTO {
     private LocalDateTime verificationExpires;
     private String password;
     private Role role; 
+    private String favoriteTeam;
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
+	private LocalDateTime lastLogin;
 
     public UserDTO() {
     }
@@ -35,20 +39,24 @@ public class UserDTO {
 		this.password = password;
 	}
 
-	public UserDTO( String userName, String name, String email, String identification,String code,LocalDateTime time, String password,
-			Role role) {
+
+	public UserDTO(String userName, String name, String email, String identification, String code,
+			LocalDateTime verificationExpires, String password, Role role, String favoriteTeam, LocalDateTime createdAt,
+			LocalDateTime updatedAt, LocalDateTime lastLogin) {
 		super();
 		this.userName = userName;
 		this.name = name;
 		this.email = email;
 		this.identification = identification;
-		this.verificationExpires=time;
-		this.code=code;
+		this.code = code;
+		this.verificationExpires = verificationExpires;
 		this.password = password;
 		this.role = role;
+		this.favoriteTeam = favoriteTeam;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
+		this.lastLogin = lastLogin;
 	}
-
-
 
 
 	public Long getId() {
@@ -125,6 +133,46 @@ public class UserDTO {
 
 	public void setVerificationExpires(LocalDateTime verificationExpires) {
 		this.verificationExpires = verificationExpires;
+	}
+
+
+	public String getFavoriteTeam() {
+		return favoriteTeam;
+	}
+
+
+	public void setFavoriteTeam(String favoriteTeam) {
+		this.favoriteTeam = favoriteTeam;
+	}
+
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+
+	public LocalDateTime getLastLogin() {
+		return lastLogin;
+	}
+
+
+	public void setLastLogin(LocalDateTime lastLogin) {
+		this.lastLogin = lastLogin;
 	}
     
     

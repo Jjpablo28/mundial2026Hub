@@ -46,6 +46,12 @@ public class User implements UserDetails{
 	
 	private LocalDateTime verificationExpires;
 	
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
+	private LocalDateTime lastLogin;
+	
+	private String favoriteTeam;
+	
 
 	
 	@Enumerated(EnumType.STRING)
@@ -81,16 +87,29 @@ public class User implements UserDetails{
 		this.password = password;
 	}
 
-	public User(Long id, String userName,  String email, String password, String identification,String code,LocalDateTime time, String name) {
+
+	public User(Long id, String userName, String name, String email, String password, String identification,
+			String code, LocalDateTime verificationExpires, LocalDateTime createdAt, LocalDateTime updatedAt,
+			LocalDateTime lastLogin, String favoriteTeam, Role role, boolean accountNonExpired,
+			boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled) {
 		super();
 		this.id = id;
 		this.userName = userName;
+		this.name = name;
 		this.email = email;
 		this.password = password;
 		this.identification = identification;
-		this.code=code;
-		this.verificationExpires=time;
-		this.name=name;
+		this.code = code;
+		this.verificationExpires = verificationExpires;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
+		this.lastLogin = lastLogin;
+		this.favoriteTeam = favoriteTeam;
+		this.role = role;
+		this.accountNonExpired = accountNonExpired;
+		this.accountNonLocked = accountNonLocked;
+		this.credentialsNonExpired = credentialsNonExpired;
+		this.enabled = enabled;
 	}
 
 	@Override
@@ -198,6 +217,40 @@ public class User implements UserDetails{
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;
+	}
+	
+	
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	public LocalDateTime getLastLogin() {
+		return lastLogin;
+	}
+
+	public void setLastLogin(LocalDateTime lastLogin) {
+		this.lastLogin = lastLogin;
+	}
+
+	public String getFavoriteTeam() {
+		return favoriteTeam;
+	}
+
+	public void setFavoriteTeam(String favoriteTeam) {
+		this.favoriteTeam = favoriteTeam;
 	}
 
 	@Override
