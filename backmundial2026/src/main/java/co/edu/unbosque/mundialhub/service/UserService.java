@@ -1,8 +1,5 @@
 package co.edu.unbosque.mundialhub.service;
 
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,7 +19,7 @@ import co.edu.unbosque.mundialhub.model.User.Role;
 import co.edu.unbosque.mundialhub.repository.UserRepository;
 import co.edu.unbosque.mundialhub.util.AESUtil;
 
-import jakarta.mail.MessagingException;
+//import jakarta.mail.MessagingException;
 
 /**
  * Servicio encargado de la lógica de negocio relacionada con la entidad
@@ -45,8 +42,6 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	@Autowired
 	private ModelMapper modelMapper;
 
-
-
 	// --- Métodos de la Interfaz CRUDOperation ---
 
 	/**
@@ -60,19 +55,15 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	 */
 
 	String code = "";
-/*
-	public UserDTO createU(UserDTO newUserDto) throws IllegalArgumentException {
 
-		if (findUsernameAlreadyTaken(newUserDto.getUserName())) {
-			System.err.println("El nombre de usuario ya está registrado.");
-			throw new IllegalArgumentException("El nombre de usuario ya está registrado.");
-		}
-		if (findEmailAlreadyTaken(newUserDto.getEmail())) {
-			System.err.println("El email ya está registrado.");
-			throw new IllegalArgumentException("El email ya está registrado.");
-		}
+	public UserDTO createU(UserDTO newUserDto) {
+
+		validateUser(newUserDto);
+		findUsernameAlreadyTaken(newUserDto.getUserName());
+		findUsernameAlreadyTaken(newUserDto.getEmail());
 
 		try {
+
 			User entity = modelMapper.map(newUserDto, User.class);
 			entity.setId(null);
 
@@ -80,66 +71,93 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 			entity.setName(AESUtil.encrypt(entity.getName()));
 			entity.setEmail(AESUtil.encrypt(entity.getEmail()));
+			entity.setUserName(AESUtil.encrypt(entity.getUserName()));
+			entity.setIdentification(AESUtil.encrypt(entity.getIdentification()));
 
 			entity.setEnabled(false);
 
-			code = generateCode();
+			String code = generateCode();
 
 			entity.setCode(code);
 			entity.setVerificationExpires(LocalDateTime.now().plusMinutes(10));
 
-			entity.setUserName(AESUtil.encrypt(entity.getUsername()));
-
-			String identificationStr = entity.getIdentification();
-			entity.setIdentification(AESUtil.encrypt(identificationStr));
+			entity.setCreatedAt(LocalDateTime.now());
+			entity.setUpdatedAt(LocalDateTime.now());
 
 			if (entity.getRole() == null) {
 				entity.setRole(Role.USER);
 			}
+
 			entity.setAccountNonExpired(true);
 			entity.setAccountNonLocked(true);
 			entity.setCredentialsNonExpired(true);
 
-			// 4. Persistir la entidad
 			userRepo.save(entity);
+
+			// sendConfirmationCode(newUserDto.getEmail(), code);
 
 			UserDTO createdDto = modelMapper.map(entity, UserDTO.class);
 			decryptSensitiveFields(createdDto);
 
-			sendConfirmationCode(newUserDto.getEmail(), code);
-
 			return createdDto;
 
-		} catch (IllegalArgumentException e) {
-			System.err.println(e);
-			throw e;
 		} catch (Exception e) {
-
 			throw new IllegalArgumentException("Error al crear el usuario: " + e.getMessage());
 		}
 	}
 
-	public void sendConfirmationCode(String destinationEmail, String code) throws IOException, MessagingException {
+	/*
+	 * public void sendConfirmationCode(String destinationEmail, String code) throws
+	 * IOException, MessagingException {
+	 * 
+	 * if (code == null || code.length() != 6) { throw new
+	 * IllegalArgumentException("El código debe tener 6 dígitos"); }
+	 * 
+	 * String subject = "Código de verificación - Veltrix Pass";
+	 * 
+	 * char[] d = code.toCharArray();
+	 * 
+	 * String htmlTemplate = loadTemplate("/templates/code-email.html");
+	 * 
+	 * String body = htmlTemplate.replace("{{D1}}",
+	 * String.valueOf(d[0])).replace("{{D2}}", String.valueOf(d[1]))
+	 * .replace("{{D3}}", String.valueOf(d[2])).replace("{{D4}}",
+	 * String.valueOf(d[3])) .replace("{{D5}}",
+	 * String.valueOf(d[4])).replace("{{D6}}", String.valueOf(d[5]));
+	 * 
+	 * }
+	 */
 
-		if (code == null || code.length() != 6) {
-			throw new IllegalArgumentException("El código debe tener 6 dígitos");
+	/*
+	 * private String loadTemplate(String path) throws IOException { return new
+	 * String(getClass().getResourceAsStream(path).readAllBytes(),
+	 * StandardCharsets.UTF_8); }
+	 */
+	private void validateUser(UserDTO userDto) {
+
+		if (userDto == null) {
+			throw new IllegalArgumentException("User data cannot be null");
 		}
 
-		String subject = "Código de verificación - Veltrix Pass";
+		if (userDto.getUserName() == null || userDto.getUserName().isBlank()) {
+			throw new IllegalArgumentException("Username is required");
+		}
 
-		char[] d = code.toCharArray();
+		if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
+			throw new IllegalArgumentException("Email is required");
+		}
 
-		String htmlTemplate = loadTemplate("/templates/code-email.html");
+		if (userDto.getPassword() == null || userDto.getPassword().isBlank()) {
+			throw new IllegalArgumentException("Password is required");
+		}
 
-		String body = htmlTemplate.replace("{{D1}}", String.valueOf(d[0])).replace("{{D2}}", String.valueOf(d[1]))
-				.replace("{{D3}}", String.valueOf(d[2])).replace("{{D4}}", String.valueOf(d[3]))
-				.replace("{{D5}}", String.valueOf(d[4])).replace("{{D6}}", String.valueOf(d[5]));
+		if (findUsernameAlreadyTaken(userDto.getUserName())) {
+			throw new IllegalArgumentException("Username already taken");
+		}
 
-		emailService.sendEmailDefault(destinationEmail, subject, body);
-	}
-*/
-	private String loadTemplate(String path) throws IOException {
-		return new String(getClass().getResourceAsStream(path).readAllBytes(), StandardCharsets.UTF_8);
+		if (findEmailAlreadyTaken(userDto.getEmail())) {
+			throw new IllegalArgumentException("Email already registered");
+		}
 	}
 
 	public String getCode() {
@@ -160,8 +178,8 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	 * Obtiene un usuario por su ID. Usa el método findById(Integer userId) de
 	 * UserRepository.
 	 */
-	public UserDTO findById(Integer id) throws IllegalArgumentException {
-		// Sintaxis de lambda corregida: .orElseThrow(() -> new Exceptions(...))
+	public UserDTO findById(Integer id) {
+
 		User entity = userRepo.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + id));
 
@@ -169,7 +187,6 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		decryptSensitiveFields(dto);
 		return dto;
 	}
-
 	/**
 	 * Obtiene todos los usuarios.
 	 */
@@ -189,46 +206,55 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	/**
 	 * Actualiza la información de un usuario.
 	 */
-	public UserDTO update(UserDTO data) throws IllegalArgumentException {
-		// Sintaxis de lambda corregida: .orElseThrow(() -> new Exceptions(...))
+	public UserDTO update(UserDTO data) {
+
+		if (data == null || data.getId() == null) {
+			throw new IllegalArgumentException("User ID is required for update");
+		}
+
 		User existingUser = userRepo.findById(data.getId()).orElseThrow(
 				() -> new IllegalArgumentException("Usuario no encontrado para actualizar con ID: " + data.getId()));
 
-		try {
-			// Actualizaciones (solo ejemplo para campos en el DTO)
-			if (data.getUserName() != null) {
-				existingUser.setUserName(data.getUserName());
-			}
-
-			// Encriptar y actualizar si los datos cambian
-			if (data.getName() != null) {
-				existingUser.setName(AESUtil.encrypt(data.getName()));
-			}
-			if (data.getEmail() != null) {
-				existingUser.setEmail(AESUtil.encrypt(data.getEmail()));
-			}
-			if (data.getIdentification() != null) {
-				String identificationStr = String.valueOf(data.getIdentification());
-				existingUser.setIdentification(AESUtil.encrypt(identificationStr));
-			}
-
-			if (data.getRole() != null) {
-				existingUser.setRole(data.getRole());
-			}
-
-			// Guardar y mapear
-			User updatedEntity = userRepo.save(existingUser);
-			UserDTO updatedDto = modelMapper.map(updatedEntity, UserDTO.class);
-			decryptSensitiveFields(updatedDto);
-			return updatedDto;
-
-		} catch (Exception e) {
-			throw new IllegalArgumentException("Error al actualizar el usuario: " + e.getMessage());
+		if (data.getUserName() != null) {
+			existingUser.setUserName(AESUtil.encrypt(data.getUserName()));
 		}
+
+		if (data.getName() != null) {
+			existingUser.setName(AESUtil.encrypt(data.getName()));
+		}
+
+		if (data.getEmail() != null) {
+			existingUser.setEmail(AESUtil.encrypt(data.getEmail()));
+		}
+
+		if (data.getIdentification() != null) {
+			existingUser.setIdentification(AESUtil.encrypt(data.getIdentification()));
+		}
+
+		if (data.getPassword() != null) {
+			existingUser.setPassword(passwordEncoder.encode(data.getPassword()));
+		}
+
+		if (data.getRole() != null) {
+			existingUser.setRole(data.getRole());
+		}
+
+		existingUser.setUpdatedAt(LocalDateTime.now());
+
+		User updatedEntity = userRepo.save(existingUser);
+
+		UserDTO updatedDto = modelMapper.map(updatedEntity, UserDTO.class);
+		decryptSensitiveFields(updatedDto);
+
+		return updatedDto;
 	}
 
-	public void deleteById(Integer id) throws IllegalArgumentException {
-		// Sintaxis de lambda corregida: .orElseThrow(() -> new Exceptions(...))
+	public void deleteById(Integer id) {
+
+		if (id == null) {
+			throw new IllegalArgumentException("User ID cannot be null");
+		}
+
 		User userToDelete = userRepo.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado para eliminar con ID: " + id));
 
@@ -237,20 +263,21 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 	private void decryptSensitiveFields(UserDTO dto) {
 		try {
+
 			if (dto.getName() != null) {
 				dto.setName(AESUtil.decrypt(dto.getName()));
 			}
+
 			if (dto.getEmail() != null) {
 				dto.setEmail(AESUtil.decrypt(dto.getEmail()));
 			}
 
-			// Desencriptar 'identification' (String a int)
-			String encryptedIdentification = String.valueOf(dto.getIdentification());
-			String decryptedIdentificationStr = AESUtil.decrypt(encryptedIdentification);
-			dto.setIdentification(decryptedIdentificationStr);
+			if (dto.getIdentification() != null) {
+				dto.setIdentification(AESUtil.decrypt(dto.getIdentification()));
+			}
 
 		} catch (Exception e) {
-			throw new IllegalArgumentException("Error al desencriptar campos del usuario: " + e.getMessage());
+			throw new IllegalArgumentException("Error decrypting user fields", e);
 		}
 	}
 
@@ -266,8 +293,18 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	 * Verifica si un nombre de usuario ya está registrado en la base de datos.
 	 */
 	public boolean findUsernameAlreadyTaken(String username) {
-		// CORREGIDO: Uso de findByUserName (según tu UserRepository)
-		Optional<User> found = userRepo.findByUserName(username);
+
+		if (username == null) {
+			throw new IllegalArgumentException("Username cannot be null");
+		}
+
+		String encryptedUsername = AESUtil.encrypt(username);
+
+		Optional<User> found = userRepo.findByUserName(encryptedUsername);
+		if (found.isPresent()) {
+			throw new IllegalArgumentException("Username already exist");
+		}
+
 		return found.isPresent();
 	}
 
@@ -276,49 +313,41 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	 * encriptado).
 	 */
 	public boolean findEmailAlreadyTaken(String email) {
-		try {
-			// Encriptar el email de entrada para la búsqueda
-			String encryptedEmail = AESUtil.encrypt(email);
-			// CORREGIDO: Uso de findByEmail (según tu UserRepository)
-			Optional<User> found = userRepo.findByEmail(encryptedEmail);
-			return found.isPresent();
-		} catch (Exception e) {
-			// En caso de error de encriptación, asumimos que no se encontró
-			return false;
+		if (email == null) {
+			throw new IllegalArgumentException("Email cannot be null");
 		}
+
+		String encryptedEmail = AESUtil.encrypt(email);
+		Optional<User> found = userRepo.findByEmail(encryptedEmail);
+		if (found.isPresent()) {
+			throw new IllegalArgumentException("Email already exist");
+		}
+
+		return found.isPresent();
 	}
 
 	/**
 	 * Valida las credenciales de un usuario.
 	 */
 	public int validateCredentials(String username, String password) {
-		// CORREGIDO: Uso de findByUserName
 		Optional<User> userOptional = userRepo.findByUserName(username);
 
 		if (userOptional.isPresent()) {
 			User user = userOptional.get();
-			// Comparar la contraseña ingresada con la codificada de la BD
 			if (passwordEncoder.matches(password, user.getPassword())) {
-				return 0; // Credenciales válidas
+				return 0; 
 			}
 		}
-		return 1; // Credenciales inválidas
+		return 1;
 	}
 
-	@SuppressWarnings("unused")
-	private boolean areRequiredFieldsPresent(UserDTO data) {
 
-		return data.getEmail() != null && !data.getEmail().isEmpty() && data.getUserName() != null
-				&& !data.getUserName().isEmpty() && data.getPassword() != null && !data.getPassword().isEmpty()
-				&& data.getName() != null && !data.getName().isEmpty();
-
-	}
 
 	@Override
 	public int createWithRol(UserDTO data, String rol) {
 		try {
 			data.setRole(Role.valueOf(rol));
-		//	createU(data); 
+			createU(data);
 			return 0;
 		} catch (IllegalArgumentException e) {
 			System.err.println(e);
@@ -326,45 +355,9 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		}
 	}
 
-	@SuppressWarnings("unused")
-	private boolean isAnyUserDetailAlreadyTaken(User entity) {
-		if (entity.getUserName() != null && userRepo.findByUserName(entity.getUserName()).isPresent()) {
-			return true;
-		}
-		if (entity.getName() != null && userRepo.findByName(entity.getName()).isPresent()) {
-			return true;
-		}
-		if (entity.getEmail() != null && userRepo.findByEmail(entity.getEmail()).isPresent()) {
-			return true;
-		}
-		return false;
-	}
 
-	@SuppressWarnings("unused")
-	private int validateUserDataContent(User userEntity, Exceptions exceptionHandler) {
-		if (userEntity.getName() != null && exceptionHandler.containsHtmlSymbols(userEntity.getName())) {
-			return 4;
-		}
-		if (userEntity.getUserName() != null && exceptionHandler.containsHtmlSymbols(userEntity.getUserName())) {
-			return 5;
-		}
 
-		if (userEntity.getPassword() != null && !exceptionHandler.isValidPassword(userEntity.getPassword())) {
 
-		}
-		if (userEntity.getEmail() != null && !exceptionHandler.isGmailValid(userEntity.getEmail())) {
-			return 7;
-		}
-		return 3;
-	}
-
-	@SuppressWarnings("unused")
-	private void validateRole(String rol, Exceptions exceptionHandler) {
-		if (exceptionHandler.containsRole(rol)) { // Asumiendo que `containsRole` lanza o retorna false para rol
-													// incorrecto.
-			throw new IllegalArgumentException("El rol es incorrecto");
-		}
-	}
 
 	@Override
 	public List<UserDTO> getAll() {
@@ -515,28 +508,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		return userRepo.existsById(id);
 	}
 
-	@Override
-	public User encrypt(UserDTO data) {
-		User entity = modelMapper.map(data, User.class);
-
-		if (entity.getUserName() != null) {
-			entity.setUserName(AESUtil.encrypt(entity.getUserName()));
-
-		}
-		if (entity.getName() != null) {
-			entity.setName(AESUtil.encrypt(entity.getName()));
-
-		}
-		if (entity.getEmail() != null) {
-			entity.setEmail(AESUtil.encrypt(entity.getEmail()));
-
-		}
-		if (entity.getName() != null) {
-			entity.setName(AESUtil.encrypt(entity.getName()));
-		}
-
-		return entity;
-	}
+	
 
 	public String encryptLoginIdentifier(LoguinRequestDTO data) {
 
@@ -624,25 +596,6 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 	}
 
-	public int updateGmail(Long id, UserDTO newData) {
-
-		Optional<User> optionalUser = userRepo.findById(id);
-
-		if (optionalUser.isEmpty()) {
-			return 0;
-		}
-
-		User user = optionalUser.get();
-
-		if (newData.getEmail() == null || newData.getEmail().isBlank()) {
-			return 0;
-		}
-
-		user.setEmail(AESUtil.encrypt(newData.getEmail()));
-		userRepo.save(user);
-
-		return 1;
-	}
 
 	public int updateRol(Long id, UserDTO newData) {
 
@@ -727,9 +680,6 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		}
 	}
 
-	public boolean existByUserName(String userName) {
-		return userRepo.findByUserName(AESUtil.encrypt(userName)).isPresent();
-	}
 
 	public int updateVerificationCodeByUserName(String userName, String code, LocalDateTime expires) {
 
@@ -749,15 +699,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 	}
 
-	/**
-	 * Desencripta una cadena de texto que representa información de un usuario.
-	 * Utiliza la utilidad {@link AESUtil} para realizar el proceso de
-	 * desencriptación.
-	 *
-	 * @param user La cadena de texto encriptada que contiene información del
-	 *             usuario.
-	 * @return La cadena de texto desencriptada con la información del usuario.
-	 */
+
 	public String decryptUser(String user) {
 		if (user != null) {
 			user = AESUtil.decrypt(user);
@@ -766,13 +708,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		return user;
 	}
 
-	/**
-	 * Encripta una cadena de usuario utilizando el algoritmo AES.
-	 *
-	 * @param user La cadena de usuario que se va a encriptar.
-	 * @return La cadena de usuario encriptada. Si la entrada {@code user} es nula,
-	 *         retorna {@code null}.
-	 */
+
 	public String encryptUser(String user) {
 		if (user != null) {
 			user = AESUtil.encrypt(user);
@@ -783,9 +719,12 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 	@Override
 	public int create(UserDTO data) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
+
+
+	public User encrypt(UserDTO data) {
+
+		return null;
 	}
-
-
+}

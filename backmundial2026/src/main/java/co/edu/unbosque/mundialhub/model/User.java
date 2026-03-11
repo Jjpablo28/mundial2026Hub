@@ -1,6 +1,5 @@
 package co.edu.unbosque.mundialhub.model;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,18 +20,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "users")
-public class User implements UserDetails{
-	
+public class User implements UserDetails {
+
 	private static final long serialVersionUID = 1L;
-	
-	
-	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-	private 
-	Long id;
-	
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
 	@Column(unique = true)
 	private String userName;
-	
+
 	private String name;
 
 	@Column(unique = true)
@@ -41,19 +39,17 @@ public class User implements UserDetails{
 	private String password;
 
 	private String identification;
-	
+
 	private String code;
-	
+
 	private LocalDateTime verificationExpires;
-	
+
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 	private LocalDateTime lastLogin;
-	
-	private String favoriteTeam;
-	
 
-	
+	private String favoriteTeam;
+
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
@@ -72,12 +68,10 @@ public class User implements UserDetails{
 		this.enabled = false;
 		this.role = null;
 	}
-	
+
 	public enum Role {
-		USER, ADMIN, TEMPORAL, CHECKER
+		USER, ADMIN, TEMPORAL, OPERATOR, SUPPORT
 	}
-
-
 
 	public String getPassword() {
 		return password;
@@ -86,7 +80,6 @@ public class User implements UserDetails{
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
 
 	public User(Long id, String userName, String name, String email, String password, String identification,
 			String code, LocalDateTime verificationExpires, LocalDateTime createdAt, LocalDateTime updatedAt,
@@ -110,6 +103,7 @@ public class User implements UserDetails{
 		this.accountNonLocked = accountNonLocked;
 		this.credentialsNonExpired = credentialsNonExpired;
 		this.enabled = enabled;
+
 	}
 
 	@Override
@@ -132,7 +126,6 @@ public class User implements UserDetails{
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
-
 
 	public String getName() {
 		return name;
@@ -163,11 +156,9 @@ public class User implements UserDetails{
 		return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
 	}
 
-
-	
 	@Override
 	public String getUsername() {
-	    return userName;
+		return userName;
 	}
 
 	@Override
@@ -218,8 +209,6 @@ public class User implements UserDetails{
 	public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
-	
-	
 
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
@@ -266,7 +255,6 @@ public class User implements UserDetails{
 				&& Objects.equals(userName, other.userName);
 	}
 
-
 	public String getCode() {
 		return code;
 	}
@@ -282,9 +270,5 @@ public class User implements UserDetails{
 	public void setVerificationExpires(LocalDateTime verificationExpires) {
 		this.verificationExpires = verificationExpires;
 	}
-
-
-	
-	
 
 }
