@@ -1,0 +1,59 @@
+<div class="container" [ngClass]="{'shake': shakeForm}">
+  <form (ngSubmit)="register()">
+
+    <h2>Registro</h2>
+
+    <!-- Inputs con floating labels -->
+    <div class="input-group" [ngClass]="{'active': form.userName}">
+      <input type="text" [(ngModel)]="form.userName" name="userName" required placeholder=" " />
+      <label>Usuario</label>
+    </div>
+
+    <div class="input-group" [ngClass]="{'active': form.name}">
+      <input type="text" [(ngModel)]="form.name" name="name" required placeholder=" " />
+      <label>Nombre</label>
+    </div>
+
+    <div class="input-group" [ngClass]="{'active': form.email}">
+      <input type="email" [(ngModel)]="form.email" name="email" required placeholder=" " />
+      <label>Email</label>
+    </div>
+
+    <div class="input-group" [ngClass]="{'active': form.identification}">
+      <input type="text" [(ngModel)]="form.identification" name="identification" required placeholder=" " />
+      <label>Identificación</label>
+    </div>
+
+    <div class="input-group" [ngClass]="{'active': form.password}">
+      <input type="password" [(ngModel)]="form.password" name="password" required placeholder=" " />
+      <label>Contraseña</label>
+    </div>
+
+    <!-- Select País -->
+    <div class="input-group select-group">
+      <select [(ngModel)]="form.country" name="country" (change)="onCountryChange()" required>
+        <option value="">Seleccione país</option>
+        <option *ngFor="let c of countries" [value]="c.country">{{ c.country }}</option>
+      </select>
+    </div>
+
+    <!-- Select Ciudad -->
+    <div class="input-group select-group">
+      <select [(ngModel)]="form.city" name="city" [disabled]="!form.country" required>
+        <option value="">Seleccione ciudad</option>
+        <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+
+    <!-- Select Equipo favorito -->
+    <div class="input-group select-group">
+      <select [(ngModel)]="form.favoriteTeam" name="favoriteTeam" [disabled]="!teams.length">
+        <option value="">Seleccione equipo</option>
+        <option *ngFor="let t of teams" [value]="t">{{ t }}</option>
+      </select>
+    </div>
+
+    <button type="submit">Registrarse</button>
+
+  </form>
+</div>

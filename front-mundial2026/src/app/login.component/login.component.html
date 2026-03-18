@@ -1,0 +1,26 @@
+<div class="container" [ngClass]="{'shake': shakeForm}">
+  <form (ngSubmit)="login()">
+
+    <h2>Iniciar Sesión</h2>
+
+    <!-- Email / Usuario -->
+    <div class="input-group" [ngClass]="{'active': form.identifier}">
+      <input type="text" [(ngModel)]="form.identifier" name="identifier" required placeholder=" " />
+      <label>Email / Usuario</label>
+    </div>
+
+    <!-- Contraseña -->
+    <div class="input-group" [ngClass]="{'active': form.password}">
+      <input type="password" [(ngModel)]="form.password" name="password" required placeholder=" " />
+      <label>Contraseña</label>
+    </div>
+
+    <button type="submit">Ingresar</button>
+
+    <p class="register-link">
+      ¿No tienes cuenta?
+      <a routerLink="/register">Registrarse</a>
+    </p>
+
+  </form>
+</div>

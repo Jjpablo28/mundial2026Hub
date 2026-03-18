@@ -1,0 +1,127 @@
+.container {
+  max-width: 450px;
+  margin: 5rem auto;
+  padding: 2rem;
+  background: #0f111a;
+  border-radius: 1rem;
+  box-shadow: 0 0 25px rgba(0,255,255,0.2), 0 0 50px rgba(255,0,255,0.15);
+  font-family: 'Poppins', sans-serif;
+  color: #e0e0e0;
+  animation: fadeIn 0.8s ease-out;
+  position: relative;
+}
+
+.shake {
+  animation: shake 0.5s;
+}
+
+h2 {
+  text-align: center;
+  font-size: 2rem;
+  color: #00fff7;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 10px #00fff7, 0 0 20px #ff00ff;
+  animation: slideDown 0.6s ease-out;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.25rem 0.75rem;
+  background: #1a1c2b;
+  color: #e0e0e0;
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+input::placeholder {
+  color: transparent;
+}
+
+label {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  color: #888;
+  font-size: 0.9rem;
+  pointer-events: none;
+  transition: 0.3s ease all;
+}
+
+.input-group.active label,
+input:focus + label {
+  top: -0.5rem;
+  left: 0.7rem;
+  font-size: 0.75rem;
+  color: #00fff7;
+  background: #0f111a;
+  padding: 0 0.25rem;
+}
+
+.input-group.active input,
+input:focus {
+  border-color: #00fff7;
+  box-shadow: 0 0 8px #00fff7, 0 0 20px #ff00ff50;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+button {
+  width: 100%;
+  padding: 0.85rem;
+  background: linear-gradient(90deg, #00fff7, #ff00ff);
+  color: #0f111a;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 12px rgba(0,255,255,0.4),0 6px 12px rgba(255,0,255,0.3);
+}
+button:hover {
+  background: linear-gradient(90deg, #ff00ff, #00fff7);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(0,255,255,0.5),0 8px 20px rgba(255,0,255,0.4);
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 1rem;
+  color: #888;
+}
+.register-link a {
+  color: #00fff7;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+.register-link a:hover {
+  text-shadow: 0 0 5px #00fff7, 0 0 10px #ff00ff;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDown {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes shake {
+  0%,100%{ transform: translateX(0); }
+  20%,60%{ transform: translateX(-10px); }
+  40%,80%{ transform: translateX(10px); }
+}
+
+@media (max-width: 500px) {
+  .container {
+    padding: 1.5rem;
+    margin: 3rem 1rem;
+  }
+}
