@@ -1,0 +1,92 @@
+<div class="auth-container">
+  <div class="auth-wrapper">
+
+    <!-- Columna izquierda: Registro -->
+    <div class="auth-left">
+      <div class="auth-card">
+        <h2>Crear cuenta</h2>
+        <p class="subtitle">Regístrate para continuar</p>
+
+        <form (ngSubmit)="register()" #registerForm="ngForm">
+
+          <div class="input-group">
+            <input
+              type="text"
+              name="user"
+              [(ngModel)]="form.user"
+              required
+              placeholder="Usuario"
+            />
+          </div>
+
+          <div class="input-group">
+            <input
+              type="email"
+              name="email"
+              [(ngModel)]="form.email"
+              required
+              placeholder="Correo electrónico"
+            />
+          </div>
+
+          <div class="input-group">
+            <select
+              name="country"
+              [(ngModel)]="form.country"
+              (ngModelChange)="onCountryChange($event)"
+              required
+            >
+              <option value="" disabled>Selecciona un país</option>
+              <option *ngFor="let c of countries" [value]="c">
+                {{ c }}
+              </option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <select
+              name="city"
+              [(ngModel)]="form.city"
+              [disabled]="cities.length === 0"
+              required
+            >
+              <option value="" disabled>Selecciona una ciudad</option>
+              <option *ngFor="let c of cities" [value]="c">
+                {{ c }}
+              </option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <select [(ngModel)]="form.team">
+              <option value="" disabled>Selecciona un equipo</option>
+              <option *ngFor="let t of teams" [value]="t">
+                {{ t }}
+              </option>
+            </select>
+
+          </div>
+
+          <button type="submit">
+            Registrarse
+          </button>
+
+        </form>
+
+        <p class="link-text">
+          ¿Ya tienes cuenta? <a routerLink="/">Inicia sesión</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Columna derecha: Información / Imagen -->
+    <div class="auth-right">
+      <div class="info-box">
+        <h3>Únete a nuestra comunidad</h3>
+        <p>Comparte tu pasión y descubre todo lo relacionado con tu equipo favorito.</p>
+        <img src="assets/register-image.png" alt="Registro Info" />
+      </div>
+    </div>
+
+  </div>
+</div>

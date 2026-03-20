@@ -1,0 +1,55 @@
+<div class="auth-container">
+  <div class="auth-wrapper">
+
+    <!-- Columna izquierda: Login / Registro -->
+    <div class="auth-left">
+      <div class="auth-card">
+        <h2>Inicia sesión</h2>
+        <p class="subtitle">Accede a tu cuenta</p>
+
+        <form (ngSubmit)="login()" #loginForm="ngForm">
+          <div class="input-group">
+            <input
+              type="text"
+              name="user"
+              [(ngModel)]="form.user"
+              required
+              placeholder="Usuario o email"
+            />
+          </div>
+
+          <div class="input-group">
+            <input
+              type="password"
+              name="password"
+              [(ngModel)]="form.password"
+              required
+              placeholder="Contraseña"
+            />
+          </div>
+
+          <!-- From Uiverse.io by zymantas-katinas -->
+          <!-- From Uiverse.io by e-coders -->
+
+          <button>Iniciar Sesión</button>
+
+        </form>
+
+        <p class="link-text">
+          ¿No tienes cuenta? <a routerLink="/register">Regístrate</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Columna derecha: Información / Imagen -->
+    <div class="auth-right">
+      <div class="info-box">
+        <h3>Bienvenido a nuestro sistema</h3>
+        <p>Bla Bla Bla.</p>
+        <!-- Ejemplo de imagen -->
+        <img src="assets/login-image.png" alt="Info Login" />
+      </div>
+    </div>
+
+  </div>
+</div>
