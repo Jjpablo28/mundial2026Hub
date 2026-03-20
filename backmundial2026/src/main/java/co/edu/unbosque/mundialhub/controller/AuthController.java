@@ -8,6 +8,9 @@ import java.util.Optional;
 import javax.security.auth.login.AccountNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,12 +19,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import co.edu.unbosque.mundialhub.dto.LoguinRequestDTO;
 import co.edu.unbosque.mundialhub.dto.UserDTO;
@@ -113,6 +118,25 @@ public class AuthController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(Map.of("message", "Error registering user", "success", false));
 		}
+	}
+	
+	@GetMapping("/teams")
+	public ResponseEntity<?> getTeams() {
+	    RestTemplate restTemplate = new RestTemplate();
+
+	    HttpHeaders headers = new HttpHeaders();
+	    headers.set("X-Auth-Token", "fa6c5ddedd8748a2ba406b03aee84411");
+
+	    HttpEntity<String> entity = new HttpEntity<>(headers);
+
+	    ResponseEntity<String> response = restTemplate.exchange(
+	        "https://api.football-data.org/v4/competitions/WC/teams",
+	        HttpMethod.GET,
+	        entity,
+	        String.class
+	    );
+
+	    return ResponseEntity.ok(response.getBody());
 	}
 
 	@PutMapping("/resend")
