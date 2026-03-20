@@ -6,8 +6,7 @@ import { LoginService } from './login.service';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  standalone: false,
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })

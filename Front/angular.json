@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "front-mundial2026": {
+    "Front": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -29,10 +29,8 @@
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
+              "src/favicon.ico",
+              "src/assets"
             ],
             "styles": [
               "src/styles.css"
@@ -66,13 +64,16 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "front-mundial2026:build:production"
+              "buildTarget": "Front:build:production"
             },
             "development": {
-              "buildTarget": "front-mundial2026:build:development"
+              "buildTarget": "Front:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "port": 8082
+          }
         },
         "test": {
           "builder": "@angular/build:unit-test"
