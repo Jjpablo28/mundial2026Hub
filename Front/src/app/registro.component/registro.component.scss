@@ -1,6 +1,6 @@
-/* Contenedor principal */
 .auth-container {
-  height: 100vh;
+  min-height: calc(100vh - 90px);
+  margin-top: 90px;
   width: 100%;
   background: linear-gradient(135deg, #1A1A1A 0%, #111 100%);
   display: flex;
@@ -11,7 +11,6 @@
   box-sizing: border-box;
 }
 
-/* Wrapper de dos columnas */
 .auth-wrapper {
   display: flex;
   width: 100%;
@@ -22,7 +21,6 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
-/* Columna izquierda: formulario registro */
 .auth-left {
   flex: 1;
   background: #1E1E1E;
@@ -32,14 +30,19 @@
   padding: 40px;
 }
 
-/* Card interna */
 .auth-card {
   width: 100%;
   max-width: 360px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 22px;
   animation: fadeIn 0.6s ease;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 h2 {
@@ -56,17 +59,17 @@ h2 {
   text-align: center;
 }
 
-/* Inputs */
 .input-group {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  width: 100%;
 }
 
-input, select {
+input,
+select {
   width: 100%;
-  padding: 12px 16px;
+  padding: 14px 18px;
   border-radius: 12px;
   border: 1px solid #333;
   background: #2A2A2A;
@@ -76,14 +79,17 @@ input, select {
   box-sizing: border-box;
 }
 
-/* Focus */
-input:focus, select:focus {
+input::placeholder {
+  color: #777;
+}
+
+input:focus,
+select:focus {
   border: 1px solid #E1FF57;
-  box-shadow: 0 4px 12px rgba(225,255,87,0.4);
+  box-shadow: 0 4px 12px rgba(225, 255, 87, 0.4);
   background: #3A3A3A;
 }
 
-/* Flecha para select */
 .input-group select {
   appearance: none;
   -webkit-appearance: none;
@@ -94,36 +100,57 @@ input:focus, select:focus {
   padding-right: 36px;
 }
 
-/* Botón de Registrarse */
-.btn-primary {
-  padding: 1.3em 3em;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 2.5px;
-  font-weight: 500;
-  color: #000;
-  background-color: #fff;
-  border: none;
-  border-radius: 45px;
-  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease 0s;
+.auth-card button {
+  appearance: none;
+  background-color: transparent;
+  border: 2px solid #E1FF57;
+  border-radius: 20px;
+  box-sizing: border-box;
+  color: #E1FF57;
   cursor: pointer;
-  outline: none;
+  display: inline-block;
+
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+
   width: 100%;
+  min-height: 48px;
+  padding: 12px;
+
+  text-align: center;
+  transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
-  background-color: #23c483;
-  box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
-  color: #fff;
-  transform: translateY(-7px);
+
+.auth-card button:hover {
+  color: #000;
+  background-color: #E1FF57;
+  box-shadow: 0 10px 25px rgba(225, 255, 87, 0.3);
+  transform: translateY(-2px);
 }
+
+
+.auth-card button:active {
+  transform: scale(0.97);
+  box-shadow: none;
+}
+
+/* Disabled */
+.auth-card button:disabled {
+  border-color: #555;
+  color: #777;
+  background: transparent;
+  cursor: not-allowed;
+}
+
 
 .btn-primary:active {
   transform: translateY(-1px);
 }
 
-/* Link de login */
 .link-text {
   font-size: 13px;
   text-align: center;
@@ -140,7 +167,6 @@ input:focus, select:focus {
   color: #fff;
 }
 
-/* Columna derecha: info / imagen */
 .auth-right {
   flex: 1;
   background: linear-gradient(135deg, #2A2A2A 0%, #1E1E1E 100%);
@@ -159,20 +185,60 @@ input:focus, select:focus {
   border-radius: 12px;
 }
 
-/* Animación */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Responsive */
 @media screen and (max-width: 768px) {
   .auth-wrapper {
     flex-direction: column;
     height: auto;
   }
-  .auth-left, .auth-right {
+
+  .auth-left,
+  .auth-right {
     width: 100%;
     padding: 20px;
   }
+
+  .auth-card {
+    max-width: 100%;
+    gap: 18px;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+  }
+
+  input,
+  select {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+
+  .btn-primary {
+    padding: 1em;
+    font-size: 11px;
+  }
+
+  .auth-right {
+    display: none;
+  }
+  .auth-card button {
+    font-size: 12px;
+    padding: 11px;
+  }
+
 }
+

@@ -33,12 +33,12 @@
             <select
               name="country"
               [(ngModel)]="form.country"
-              (change)="onCountryChange()"
+              (ngModelChange)="onCountryChange($event)"
               required
             >
-              <option value="" disabled selected>Selecciona un país</option>
-              <option *ngFor="let c of countries" [value]="c.country">
-                {{ c.country }}
+              <option value="" disabled>Selecciona un país</option>
+              <option *ngFor="let c of countries" [value]="c">
+                {{ c }}
               </option>
             </select>
           </div>
@@ -47,9 +47,10 @@
             <select
               name="city"
               [(ngModel)]="form.city"
+              [disabled]="cities.length === 0"
               required
             >
-              <option value="" disabled selected>Selecciona una ciudad</option>
+              <option value="" disabled>Selecciona una ciudad</option>
               <option *ngFor="let c of cities" [value]="c">
                 {{ c }}
               </option>
@@ -57,18 +58,16 @@
           </div>
 
           <div class="input-group">
-            <select
-              name="team"
-              [(ngModel)]="form.team"
-            >
-              <option value="" disabled selected>Equipo favorito (próximamente)</option>
+            <select [(ngModel)]="form.team">
+              <option value="" disabled>Selecciona un equipo</option>
               <option *ngFor="let t of teams" [value]="t">
                 {{ t }}
               </option>
             </select>
+
           </div>
 
-          <button type="submit" class="btn-primary">
+          <button type="submit">
             Registrarse
           </button>
 

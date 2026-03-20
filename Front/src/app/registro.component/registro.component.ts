@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RegistroService } from './registro.service';
 import { CommonModule } from '@angular/common';
@@ -19,7 +19,7 @@ export class RegistroComponent implements OnInit {
     team: ''
   };
 
-  countries: any[] = [];
+  countries: string[] = [];
   cities: string[] = [];
   teams: string[] = [];
 
@@ -27,22 +27,31 @@ export class RegistroComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCountries();
+    this.loadTeams()
+
   }
 
   loadCountries() {
     this.registroService.getCountries().subscribe(res => {
-      this.countries = res.data;
+      this.countries = res;
     });
   }
+  onCountryChange(country: string) {
+    if (!country) return;
 
-  onCountryChange() {
-    this.registroService.getCities(this.form.country)
-      .subscribe(res => {
-        this.cities = res.data;
+    this.cities = [];
+
+    this.registroService.getCitiesByCountry(country)
+      .subscribe(cities => {
+        this.cities = cities;
       });
-    this.teams = [];
-    this.form.team = '';
   }
+  loadTeams(){
+    this.registroService.getTeams().subscribe(teams=> {this.teams = teams; })
+    console.log(this.teams)
+  }
+
+
 
   register() {
     console.log(this.form);
