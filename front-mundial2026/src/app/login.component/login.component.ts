@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common'; // ✅ IMPORTANTE
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { LoginService } from './login.service';
@@ -7,7 +7,7 @@ import { LoginService } from './login.service';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink], // ✅ FIX
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -28,6 +28,8 @@ export class LoginComponent {
       next: () => {
         alert('Login OK');
         console.log(this.form);
+
+
       },
       error: () => alert('Error en login')
     });
