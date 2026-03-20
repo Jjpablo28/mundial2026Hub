@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.security.auth.login.AccountNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +50,7 @@ public class AuthController {
 	private final AuthenticationManager authenticationManager;
 
 	@Autowired
-	//private static final SecureRandom random = new SecureRandom();
+	// private static final SecureRandom random = new SecureRandom();
 
 	public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserService userService) {
 		this.authenticationManager = authenticationManager;
@@ -61,14 +63,14 @@ public class AuthController {
 		if (userService.findUsernameAlreadyTaken(registerRequest.getUserName())) {
 			return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
 		}
-		
+
 		int result = 1;
 		if (rol.equals("ADMIN")) {
 			result = userService.createWithRol(registerRequest, "ADMIN");
-			
+
 		} else if (rol.equals("USER")) {
 			result = userService.createWithRol(registerRequest, "USER");
-		
+
 		} else if (rol.equals("TEMPORAL")) {
 			result = userService.createWithRol(registerRequest, "TEMPORAL");
 
@@ -113,6 +115,26 @@ public class AuthController {
 		}
 	}
 
+	@PutMapping("/resend")
+	public ResponseEntity<?> resendCode(String identifier) {
+		try {
+			userService.updateVerificationCodeByUserName(identifier);
+
+			return ResponseEntity.ok(Map.of("message", "Código reenviado correctamente", "success", true));
+
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
+
+		} catch (RuntimeException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(Map.of("message", "Usuario no encontrado", "success", false));
+
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(Map.of("message", "Error interno", "success", false));
+		}
+	}
+
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody LoguinRequestDTO loginRequest) {
 
@@ -154,6 +176,13 @@ public class AuthController {
 
 		User user = userService.findByEmail(dto.getEmail());
 
+		if (user == null) {
+			return ResponseEntity.badRequest().body("Usuario no existe");
+		}
+		if (user.getCode() == null) {
+			return ResponseEntity.badRequest().body("Genera el codigo nuevamente");
+		}
+
 		if (user.isEnabled()) {
 			return ResponseEntity.badRequest().body("Usuario ya verificado");
 		}
@@ -163,7 +192,11 @@ public class AuthController {
 		}
 
 		if (user.getVerificationExpires().isBefore(LocalDateTime.now())) {
+			user.setCode(null);
+			user.setVerificationExpires(null);
+			userRepo.save(user);
 			return ResponseEntity.badRequest().body("Código expirado");
+
 		}
 
 		user.setEnabled(true);
@@ -200,26 +233,25 @@ public class AuthController {
 			return role;
 		}
 	}
-	
-	@PutMapping(path = "/rememberPassword")
+
+	@PutMapping("/rememberPassword")
 	public ResponseEntity<?> rememberPassword(@RequestParam String user, @RequestParam String newPassword) {
-		UserDTO updateUser = new UserDTO(user, null, null, null, null, null, newPassword, null, null, null, null, null);
-		int status = userService.rememberPassword(updateUser);
 
-		if (status == 0) {
+		try {
+			UserDTO dto = new UserDTO();
+			dto.setUserName(user);
+			dto.setPassword(newPassword);
 
-			return ResponseEntity.status(HttpStatus.ACCEPTED)
-					.body(Map.of("message", "PPassword changed successfully", "success", true));
-		} else if (status == 2) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(Map.of("message", "User not found", "success", false));
-		} else if (status == 4) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(Map.of("message", "Password not valid", "success", false));
-		} else {
+			userService.rememberPassword(dto);
+
+			return ResponseEntity.ok(Map.of("message", "Contraseña actualizada correctamente", "success", true));
+
+		} catch (IllegalArgumentException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(Map.of("message", "Error on update", "success", false));
+					.body(Map.of("message", e.getMessage(), "success", false));
+		} catch (RuntimeException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(Map.of("message", "Usuario no encontrado", "success", false));
 		}
 	}
-
 }

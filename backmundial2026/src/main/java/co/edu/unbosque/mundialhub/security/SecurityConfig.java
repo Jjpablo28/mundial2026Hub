@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -57,20 +58,8 @@ public class SecurityConfig {
 					auth.requestMatchers("/auth/**").permitAll();
 					auth.requestMatchers("/payment/**").permitAll();
 					auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
-					auth.requestMatchers("/user/showAllEncrypted").hasAnyRole("USER", "ADMIN");
-					auth.requestMatchers("/user/updatePasswordByUserName").hasAnyRole("USER", "ADMIN","CHECKER");
-					auth.requestMatchers("/user/updatePasswordById").hasAnyRole("USER", "ADMIN","CHECKER");
-					auth.requestMatchers("/user/encryptUser").hasAnyRole("USER", "ADMIN");
-					auth.requestMatchers("/user/decrypUser").hasAnyRole("USER", "ADMIN");
-					auth.requestMatchers("/user/deleteById").hasAnyRole("USER", "ADMIN");
-					auth.requestMatchers("/user/deletebyuser").hasAnyRole("USER", "ADMIN");
-					auth.requestMatchers("/user/updateRol").hasAnyRole("ADMIN");
-					auth.requestMatchers("/user/getbyuser").hasAnyRole("USER", "ADMIN");
-					auth.requestMatchers("/event/showAllByAdminId").hasAnyRole("ADMIN");
-					auth.requestMatchers("/event/deleteById").hasAnyRole("ADMIN");
-					auth.requestMatchers("/event/create").hasRole("ADMIN");
-					auth.requestMatchers("/event/showAll").permitAll();
-					auth.requestMatchers("/email/enviarCorreo").hasAnyRole("TEMPORAL", "USER", "ADMIN", "CHECKER");
+					auth.requestMatchers("/users/**").hasAnyRole("USER", "ADMIN");
+
 					auth.anyRequest().authenticated();
 				}).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

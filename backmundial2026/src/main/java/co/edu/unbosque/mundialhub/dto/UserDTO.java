@@ -21,10 +21,15 @@ public class UserDTO {
     private LocalDateTime verificationExpires;
     private String password;
     private Role role; 
+    
+    private String country;
     private String favoriteTeam;
-	private LocalDateTime createdAt;
+    private String city;
+	
+    private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 	private LocalDateTime lastLogin;
+	
 
     public UserDTO() {
     }
@@ -41,7 +46,7 @@ public class UserDTO {
 
 
 	public UserDTO(String userName, String name, String email, String identification, String code,
-			LocalDateTime verificationExpires, String password, Role role, String favoriteTeam, LocalDateTime createdAt,
+			LocalDateTime verificationExpires, String password, Role role,String country,String city, String favoriteTeam, LocalDateTime createdAt,
 			LocalDateTime updatedAt, LocalDateTime lastLogin) {
 		super();
 		this.userName = userName;
@@ -51,6 +56,8 @@ public class UserDTO {
 		this.code = code;
 		this.verificationExpires = verificationExpires;
 		this.password = password;
+		this.city=city;
+		this.country=country;
 		this.role = role;
 		this.favoriteTeam = favoriteTeam;
 		this.createdAt = createdAt;
@@ -174,6 +181,27 @@ public class UserDTO {
 	public void setLastLogin(LocalDateTime lastLogin) {
 		this.lastLogin = lastLogin;
 	}
-    
+
+
+	public String getCountry() {
+		return country;
+	}
+
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+
+	public String getCity() {
+		return city;
+	}
+
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	
     
 }
