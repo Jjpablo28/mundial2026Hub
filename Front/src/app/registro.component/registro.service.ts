@@ -8,7 +8,7 @@ import {map, Observable} from 'rxjs';
 export class RegistroService {
 
   private apiUrl = 'https://countriesnow.space/api/v0.1/';
-  private apiTeams = 'https://api.football-data.org/v4/competitions/WC/teams';
+  private apiTeams = 'http://localhost:8080/auth/teams';
 
 
   constructor(private http: HttpClient) {
@@ -31,12 +31,10 @@ export class RegistroService {
   }
 
   getTeams(): Observable<any[]> {
-    return this.http.get<any>(this.apiTeams, {
-      headers: {
-        'X-Auth-Token': 'fa6c5ddedd8748a2ba406b03aee84411'
-      }
-    }).pipe(
-      map(res => res.teams)
+    return this.http.get<any>(this.apiTeams).pipe(
+      map(res => {
+        return res.teams.map((t: any) => t.name);
+      })
     );
   }
 }

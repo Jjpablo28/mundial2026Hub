@@ -58,7 +58,7 @@
           </div>
 
           <div class="input-group">
-            <select [(ngModel)]="form.team">
+            <select name="team" [(ngModel)]="form.team">
               <option value="" disabled>Selecciona un equipo</option>
               <option *ngFor="let t of teams" [value]="t">
                 {{ t }}

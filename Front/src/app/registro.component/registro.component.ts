@@ -47,11 +47,10 @@ export class RegistroComponent implements OnInit {
       });
   }
   loadTeams(){
-    this.registroService.getTeams().subscribe(teams=> {this.teams = teams; })
-    console.log(this.teams)
+    this.registroService.getTeams().subscribe(res => {
+      this.teams = res;
+    });
   }
-
-
 
   register() {
     console.log(this.form);
