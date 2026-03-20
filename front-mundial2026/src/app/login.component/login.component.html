@@ -1,26 +1,53 @@
-<div class="container" [ngClass]="{'shake': shakeForm}">
-  <form (ngSubmit)="login()">
+<div class="auth-container">
+  <div class="auth-wrapper">
 
-    <h2>Iniciar Sesión</h2>
+    <!-- Columna izquierda: Login / Registro -->
+    <div class="auth-left">
+      <div class="auth-card">
+        <h2>Inicia sesión</h2>
+        <p class="subtitle">Accede a tu cuenta</p>
 
-    <!-- Email / Usuario -->
-    <div class="input-group" [ngClass]="{'active': form.identifier}">
-      <input type="text" [(ngModel)]="form.identifier" name="identifier" required placeholder=" " />
-      <label>Email / Usuario</label>
+        <form (ngSubmit)="login()" #loginForm="ngForm">
+          <div class="input-group">
+            <input
+              type="text"
+              name="user"
+              [(ngModel)]="form.user"
+              required
+              placeholder="Usuario o email"
+            />
+          </div>
+
+          <div class="input-group">
+            <input
+              type="password"
+              name="password"
+              [(ngModel)]="form.password"
+              required
+              placeholder="Contraseña"
+            />
+          </div>
+
+          <button type="submit" class="btn-primary">
+            Ingresar
+          </button>
+        </form>
+
+        <p class="link-text">
+          ¿No tienes cuenta? <a routerLink="/register">Regístrate</a>
+        </p>
+      </div>
     </div>
 
-    <!-- Contraseña -->
-    <div class="input-group" [ngClass]="{'active': form.password}">
-      <input type="password" [(ngModel)]="form.password" name="password" required placeholder=" " />
-      <label>Contraseña</label>
+    <!-- Columna derecha: Información / Imagen -->
+    <div class="auth-right">
+      <div class="info-box">
+        <h3>Bienvenido a nuestro sistema</h3>
+        <p>Bla Bla Bla</p>
+        <!-- Ejemplo de imagen -->
+        <img src="assets/login-image.png" alt="Info Login" />
+      </div>
     </div>
 
-    <button type="submit">Ingresar</button>
-
-    <p class="register-link">
-      ¿No tienes cuenta?
-      <a routerLink="/register">Registrarse</a>
-    </p>
-
-  </form>
+  </div>
 </div>

@@ -1,59 +1,93 @@
-<div class="container" [ngClass]="{'shake': shakeForm}">
-  <form (ngSubmit)="register()">
+<div class="auth-container">
+  <div class="auth-wrapper">
 
-    <h2>Registro</h2>
+    <!-- Columna izquierda: Registro -->
+    <div class="auth-left">
+      <div class="auth-card">
+        <h2>Crear cuenta</h2>
+        <p class="subtitle">Regístrate para continuar</p>
 
-    <!-- Inputs con floating labels -->
-    <div class="input-group" [ngClass]="{'active': form.userName}">
-      <input type="text" [(ngModel)]="form.userName" name="userName" required placeholder=" " />
-      <label>Usuario</label>
+        <form (ngSubmit)="register()" #registerForm="ngForm">
+
+          <div class="input-group">
+            <input
+              type="text"
+              name="user"
+              [(ngModel)]="form.user"
+              required
+              placeholder="Usuario"
+            />
+          </div>
+
+          <div class="input-group">
+            <input
+              type="email"
+              name="email"
+              [(ngModel)]="form.email"
+              required
+              placeholder="Correo electrónico"
+            />
+          </div>
+
+          <div class="input-group">
+            <select
+              name="country"
+              [(ngModel)]="form.country"
+              (change)="onCountryChange()"
+              required
+            >
+              <option value="" disabled selected>Selecciona un país</option>
+              <option *ngFor="let c of countries" [value]="c.country">
+                {{ c.country }}
+              </option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <select
+              name="city"
+              [(ngModel)]="form.city"
+              required
+            >
+              <option value="" disabled selected>Selecciona una ciudad</option>
+              <option *ngFor="let c of cities" [value]="c">
+                {{ c }}
+              </option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <select
+              name="team"
+              [(ngModel)]="form.team"
+            >
+              <option value="" disabled selected>Equipo favorito (próximamente)</option>
+              <option *ngFor="let t of teams" [value]="t">
+                {{ t }}
+              </option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-primary">
+            Registrarse
+          </button>
+
+        </form>
+
+        <p class="link-text">
+          ¿Ya tienes cuenta? <a routerLink="/">Inicia sesión</a>
+        </p>
+      </div>
     </div>
 
-    <div class="input-group" [ngClass]="{'active': form.name}">
-      <input type="text" [(ngModel)]="form.name" name="name" required placeholder=" " />
-      <label>Nombre</label>
+    <!-- Columna derecha: Información / Imagen -->
+    <div class="auth-right">
+      <div class="info-box">
+        <h3>Únete a nuestra comunidad</h3>
+        <p>Comparte tu pasión y descubre todo lo relacionado con tu equipo favorito.</p>
+        <img src="assets/register-image.png" alt="Registro Info" />
+      </div>
     </div>
 
-    <div class="input-group" [ngClass]="{'active': form.email}">
-      <input type="email" [(ngModel)]="form.email" name="email" required placeholder=" " />
-      <label>Email</label>
-    </div>
-
-    <div class="input-group" [ngClass]="{'active': form.identification}">
-      <input type="text" [(ngModel)]="form.identification" name="identification" required placeholder=" " />
-      <label>Identificación</label>
-    </div>
-
-    <div class="input-group" [ngClass]="{'active': form.password}">
-      <input type="password" [(ngModel)]="form.password" name="password" required placeholder=" " />
-      <label>Contraseña</label>
-    </div>
-
-    <!-- Select País -->
-    <div class="input-group select-group">
-      <select [(ngModel)]="form.country" name="country" (change)="onCountryChange()" required>
-        <option value="">Seleccione país</option>
-        <option *ngFor="let c of countries" [value]="c.country">{{ c.country }}</option>
-      </select>
-    </div>
-
-    <!-- Select Ciudad -->
-    <div class="input-group select-group">
-      <select [(ngModel)]="form.city" name="city" [disabled]="!form.country" required>
-        <option value="">Seleccione ciudad</option>
-        <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
-      </select>
-    </div>
-
-    <!-- Select Equipo favorito -->
-    <div class="input-group select-group">
-      <select [(ngModel)]="form.favoriteTeam" name="favoriteTeam" [disabled]="!teams.length">
-        <option value="">Seleccione equipo</option>
-        <option *ngFor="let t of teams" [value]="t">{{ t }}</option>
-      </select>
-    </div>
-
-    <button type="submit">Registrarse</button>
-
-  </form>
+  </div>
 </div>
