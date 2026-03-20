@@ -49,9 +49,6 @@ public class User implements UserDetails {
 	private LocalDateTime lastLogin;
 
 	private String favoriteTeam;
-	private String country;
-	private String city;
-	
 
 	@Enumerated(EnumType.STRING)
 	private Role role;
@@ -84,12 +81,10 @@ public class User implements UserDetails {
 		this.password = password;
 	}
 
-
-
 	public User(Long id, String userName, String name, String email, String password, String identification,
 			String code, LocalDateTime verificationExpires, LocalDateTime createdAt, LocalDateTime updatedAt,
-			LocalDateTime lastLogin, String favoriteTeam, String country, String city, Role role,
-			boolean accountNonExpired, boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled) {
+			LocalDateTime lastLogin, String favoriteTeam, Role role, boolean accountNonExpired,
+			boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled) {
 		super();
 		this.id = id;
 		this.userName = userName;
@@ -103,13 +98,12 @@ public class User implements UserDetails {
 		this.updatedAt = updatedAt;
 		this.lastLogin = lastLogin;
 		this.favoriteTeam = favoriteTeam;
-		this.country = country;
-		this.city = city;
 		this.role = role;
 		this.accountNonExpired = accountNonExpired;
 		this.accountNonLocked = accountNonLocked;
 		this.credentialsNonExpired = credentialsNonExpired;
 		this.enabled = enabled;
+
 	}
 
 	@Override
@@ -159,7 +153,7 @@ public class User implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-	    return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+		return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
 	}
 
 	@Override
@@ -275,22 +269,6 @@ public class User implements UserDetails {
 
 	public void setVerificationExpires(LocalDateTime verificationExpires) {
 		this.verificationExpires = verificationExpires;
-	}
-
-	public String getCountry() {
-		return country;
-	}
-
-	public void setCountry(String country) {
-		this.country = country;
-	}
-
-	public String getCity() {
-		return city;
-	}
-
-	public void setCity(String city) {
-		this.city = city;
 	}
 
 }

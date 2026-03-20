@@ -29,7 +29,7 @@ public interface CRUDOperation<T, E> {
 	 * @return Un código de resultado indicando el éxito o el motivo del fallo
 	 * (dependiendo de la implementación).
 	 */
-	public T create(T data);
+	public int create(T data);
 	
 	public int createWithRol(T data, String rol);
 	
@@ -40,7 +40,7 @@ public interface CRUDOperation<T, E> {
 	 * @return Una lista de objetos DTO que representan todos los registros de la
 	 * entidad.
 	 */
-	public List<T> findAll();
+	public List<T> getAll();
 	/**
 	 * Elimina una entidad por su ID.
 	 *
@@ -48,7 +48,7 @@ public interface CRUDOperation<T, E> {
 	 * @return Un código de resultado indicando el éxito o el motivo del fallo
 	 * (dependiendo de la implementación).
 	 */
-	public void deleteById(Long id);
+	public int deleteById(Long id);
 	/**
 	 * Actualiza una entidad existente por su ID utilizando los datos proporcionados
 	 * en el DTO.
@@ -58,7 +58,7 @@ public interface CRUDOperation<T, E> {
 	 * @return Un código de resultado indicando el éxito o el motivo del fallo
 	 * (dependiendo de la implementación).
 	 */
-	public T updateById(Long id, T newData);
+	public int updateById(Long id, T newData);
 	/**
 	 * Cuenta el número total de registros de la entidad.
 	 *
@@ -72,8 +72,23 @@ public interface CRUDOperation<T, E> {
 	 * @return {@code true} si la entidad existe, {@code false} en caso contrario.
 	 */
 	public boolean exist(Long id);
-
-;
+	/**
+	 * Encripta los datos sensibles de un DTO y devuelve una entidad con los datos
+	 * encriptados.
+	 *
+	 * @param data El DTO cuyos datos se van a encriptar.
+	 * @return Una entidad con los datos encriptados.
+	 */
+	public E encrypt(T data);
+	/**
+	 * Desencripta los datos sensibles de un DTO.
+	 *
+	 * @param data El DTO cuyos datos se van a desencriptar.
+	 * @return Una cadena de resultado (dependiendo de la implementación, podría
+	 * ser {@code null} si la operación se realiza directamente sobre el
+	 * DTO).
+	 */
+	public String decrypt(T data);
 
 
 }
