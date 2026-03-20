@@ -1,7 +1,5 @@
 package co.edu.unbosque.mundialhub.service;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,7 +8,6 @@ import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +18,6 @@ import co.edu.unbosque.mundialhub.model.User;
 import co.edu.unbosque.mundialhub.model.User.Role;
 import co.edu.unbosque.mundialhub.repository.UserRepository;
 import co.edu.unbosque.mundialhub.util.AESUtil;
-import jakarta.mail.MessagingException;
-import jakarta.transaction.Transactional;
 
 //import jakarta.mail.MessagingException;
 
@@ -40,9 +35,6 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 	@Autowired
 	private UserRepository userRepo;
-
-	@Autowired
-	private EmailService emailService;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -64,16 +56,11 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 	String code = "";
 
-	private String loadTemplate(String path) throws IOException {
-		return new String(getClass().getResourceAsStream(path).readAllBytes(), StandardCharsets.UTF_8);
-	}
-
-	@Override
-	public UserDTO create(UserDTO newUserDto) {
+	public UserDTO createU(UserDTO newUserDto) {
 
 		validateUser(newUserDto);
 		findUsernameAlreadyTaken(newUserDto.getUserName());
-		findEmailAlreadyTaken(newUserDto.getEmail());
+		findUsernameAlreadyTaken(newUserDto.getEmail());
 
 		try {
 
@@ -82,20 +69,17 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 			entity.setPassword(passwordEncoder.encode(newUserDto.getPassword()));
 
-			entity.setName(AESUtil.encrypt(newUserDto.getName()));
-			entity.setEmail(AESUtil.encrypt(newUserDto.getEmail()));
-			entity.setUserName(AESUtil.encrypt(newUserDto.getUserName()));
-			entity.setIdentification(AESUtil.encrypt(newUserDto.getIdentification()));
-
-			entity.setCity(newUserDto.getCity());
-			entity.setCountry(newUserDto.getCountry());
+			entity.setName(AESUtil.encrypt(entity.getName()));
+			entity.setEmail(AESUtil.encrypt(entity.getEmail()));
+			entity.setUserName(AESUtil.encrypt(entity.getUserName()));
+			entity.setIdentification(AESUtil.encrypt(entity.getIdentification()));
 
 			entity.setEnabled(false);
 
 			String code = generateCode();
 
 			entity.setCode(code);
-			entity.setVerificationExpires(LocalDateTime.now().plusMinutes(2));
+			entity.setVerificationExpires(LocalDateTime.now().plusMinutes(10));
 
 			entity.setCreatedAt(LocalDateTime.now());
 			entity.setUpdatedAt(LocalDateTime.now());
@@ -110,7 +94,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 			userRepo.save(entity);
 
-			sendConfirmationCode(newUserDto.getEmail(), code);
+			// sendConfirmationCode(newUserDto.getEmail(), code);
 
 			UserDTO createdDto = modelMapper.map(entity, UserDTO.class);
 			decryptSensitiveFields(createdDto);
@@ -122,34 +106,58 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		}
 	}
 
-	@Scheduled(fixedRate = 60000)
-	@Transactional
-	public void cleanExpiredVerification() {
-		List<User> expired = userRepo.findByVerificationExpires(LocalDateTime.now());
-		expired.forEach(t -> {
-			t.setCode(null);
-			t.setVerificationExpires(null);
-			userRepo.save(t);
-		});
-	}
+	/*
+	 * public void sendConfirmationCode(String destinationEmail, String code) throws
+	 * IOException, MessagingException {
+	 * 
+	 * if (code == null || code.length() != 6) { throw new
+	 * IllegalArgumentException("El código debe tener 6 dígitos"); }
+	 * 
+	 * String subject = "Código de verificación - Veltrix Pass";
+	 * 
+	 * char[] d = code.toCharArray();
+	 * 
+	 * String htmlTemplate = loadTemplate("/templates/code-email.html");
+	 * 
+	 * String body = htmlTemplate.replace("{{D1}}",
+	 * String.valueOf(d[0])).replace("{{D2}}", String.valueOf(d[1]))
+	 * .replace("{{D3}}", String.valueOf(d[2])).replace("{{D4}}",
+	 * String.valueOf(d[3])) .replace("{{D5}}",
+	 * String.valueOf(d[4])).replace("{{D6}}", String.valueOf(d[5]));
+	 * 
+	 * }
+	 */
 
-	public void sendConfirmationCode(String destinationEmail, String code) throws IOException, MessagingException {
+	/*
+	 * private String loadTemplate(String path) throws IOException { return new
+	 * String(getClass().getResourceAsStream(path).readAllBytes(),
+	 * StandardCharsets.UTF_8); }
+	 */
+	private void validateUser(UserDTO userDto) {
 
-		if (code == null || code.length() != 6) {
-			throw new IllegalArgumentException("El código debe tener 6 dígitos");
+		if (userDto == null) {
+			throw new IllegalArgumentException("User data cannot be null");
 		}
 
-		String subject = "Código de verificación - Veltrix Pass";
+		if (userDto.getUserName() == null || userDto.getUserName().isBlank()) {
+			throw new IllegalArgumentException("Username is required");
+		}
 
-		char[] d = code.toCharArray();
+		if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
+			throw new IllegalArgumentException("Email is required");
+		}
 
-		String htmlTemplate = loadTemplate("/templates/code-email.html");
+		if (userDto.getPassword() == null || userDto.getPassword().isBlank()) {
+			throw new IllegalArgumentException("Password is required");
+		}
 
-		String body = htmlTemplate.replace("{{D1}}", String.valueOf(d[0])).replace("{{D2}}", String.valueOf(d[1]))
-				.replace("{{D3}}", String.valueOf(d[2])).replace("{{D4}}", String.valueOf(d[3]))
-				.replace("{{D5}}", String.valueOf(d[4])).replace("{{D6}}", String.valueOf(d[5]));
+		if (findUsernameAlreadyTaken(userDto.getUserName())) {
+			throw new IllegalArgumentException("Username already taken");
+		}
 
-		emailService.sendEmailDefault(destinationEmail, subject, body);
+		if (findEmailAlreadyTaken(userDto.getEmail())) {
+			throw new IllegalArgumentException("Email already registered");
+		}
 	}
 
 	public String getCode() {
@@ -160,11 +168,17 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		this.code = code;
 	}
 
+	private String generateCode() {
+
+		int code = random.nextInt(900000) + 100000; // rango 100000–999999
+		return String.valueOf(code);
+	}
+
 	/**
 	 * Obtiene un usuario por su ID. Usa el método findById(Integer userId) de
 	 * UserRepository.
 	 */
-	public UserDTO findById(Long id) {
+	public UserDTO findById(Integer id) {
 
 		User entity = userRepo.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + id));
@@ -173,11 +187,9 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		decryptSensitiveFields(dto);
 		return dto;
 	}
-
 	/**
 	 * Obtiene todos los usuarios.
 	 */
-	@Override
 	public List<UserDTO> findAll() {
 		List<User> entityList = userRepo.findAll();
 		List<UserDTO> dtoList = new ArrayList<>();
@@ -237,8 +249,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		return updatedDto;
 	}
 
-	@Override
-	public void deleteById(Long id) {
+	public void deleteById(Integer id) {
 
 		if (id == null) {
 			throw new IllegalArgumentException("User ID cannot be null");
@@ -248,6 +259,26 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 				.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado para eliminar con ID: " + id));
 
 		userRepo.delete(userToDelete);
+	}
+
+	private void decryptSensitiveFields(UserDTO dto) {
+		try {
+
+			if (dto.getName() != null) {
+				dto.setName(AESUtil.decrypt(dto.getName()));
+			}
+
+			if (dto.getEmail() != null) {
+				dto.setEmail(AESUtil.decrypt(dto.getEmail()));
+			}
+
+			if (dto.getIdentification() != null) {
+				dto.setIdentification(AESUtil.decrypt(dto.getIdentification()));
+			}
+
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Error decrypting user fields", e);
+		}
 	}
 
 	public User findByEmail(String email) {
@@ -304,19 +335,70 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		if (userOptional.isPresent()) {
 			User user = userOptional.get();
 			if (passwordEncoder.matches(password, user.getPassword())) {
-				return 0;
+				return 0; 
 			}
 		}
 		return 1;
 	}
 
+
+
+	@Override
 	public int createWithRol(UserDTO data, String rol) {
 		try {
 			data.setRole(Role.valueOf(rol));
-			create(data);
+			createU(data);
 			return 0;
 		} catch (IllegalArgumentException e) {
 			System.err.println(e);
+			return 1;
+		}
+	}
+
+
+
+
+
+	@Override
+	public List<UserDTO> getAll() {
+		List<User> entityList = userRepo.findAll();
+		List<UserDTO> dtoList = new ArrayList<>();
+		entityList.forEach((entity) -> {
+
+			UserDTO dto = modelMapper.map(entity, UserDTO.class);
+
+			if (dto.getEmail() != null) {
+				dto.setEmail(AESUtil.decrypt(dto.getEmail()));
+			}
+			if (dto.getUserName() != null) {
+				dto.setUserName(AESUtil.decrypt(dto.getUserName()));
+			}
+			if (dto.getName() != null) {
+				dto.setName(AESUtil.decrypt(dto.getName()));
+			}
+			if (dto.getIdentification() != null) {
+				dto.setIdentification(AESUtil.decrypt(dto.getIdentification()));
+			}
+			dtoList.add(dto);
+		});
+
+		return dtoList;
+	}
+
+	/**
+	 * Elimina un usuario de la base de datos por su ID.
+	 *
+	 * @param id El ID del usuario a eliminar.
+	 * @return 0 si la eliminación fue exitosa, 1 si el usuario con el ID
+	 *         especificado no existe.
+	 */
+	@Override
+	public int deleteById(Long id) {
+		Optional<User> found = userRepo.findById(id);
+		if (found.isPresent()) {
+			userRepo.delete(found.get());
+			return 0;
+		} else {
 			return 1;
 		}
 	}
@@ -328,217 +410,40 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	 * @return 0 si la eliminación fue exitosa, 1 si no se encontró ningún usuario
 	 *         con el nombre de usuario especificado.
 	 */
-	public void deleteByUsername(String username) {
-
-		User user = userRepo.findByUserName(encryptUser(username))
-				.orElseThrow(() -> new RuntimeException("User not found"));
-
-		userRepo.delete(user);
+	public int deleteByUsername(String username) {
+		Optional<User> found = userRepo.findByUserName(encryptUser(username));
+		if (found.isPresent()) {
+			userRepo.delete(found.get());
+			return 0;
+		} else {
+			return 1;
+		}
 	}
 
 	@Override
-	public UserDTO updateById(Long id, UserDTO newData) {
+	public int updateById(Long id, UserDTO newData) {
 
-		int validation = validateUserData(newData);
-		if (validation != 3) {
-			throw new IllegalArgumentException("Invalid user data");
+		if (validateUserData(newData) != 3) {
+			return validateUserData(newData);
+
+		}
+		Optional<User> foundUserOptional = userRepo.findById(id);
+
+		if (!foundUserOptional.isPresent()) {
+			return 2;
 		}
 
-		User existingUser = userRepo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+		User existingUser = foundUserOptional.get();
 
 		if (isAnyNewDataConflict(newData, existingUser)) {
-			throw new IllegalArgumentException("Conflict with existing data");
+
+			return 1;
 		}
 
 		updateUserFields(existingUser, newData);
-		existingUser.setUpdatedAt(LocalDateTime.now());
 
 		userRepo.save(existingUser);
-
-		UserDTO dto = modelMapper.map(existingUser, UserDTO.class);
-		decryptSensitiveFields(dto);
-
-		return dto;
-	}
-
-	@Override
-	public long count() {
-		return userRepo.count();
-	}
-
-	@Override
-	public boolean exist(Long id) {
-		return userRepo.existsById(id);
-	}
-
-	public String encryptLoginIdentifier(LoguinRequestDTO data) {
-
-		if (data.getIdentifier() == null || data.getIdentifier().isBlank()) {
-			throw new IllegalArgumentException("Identifier is required");
-		}
-
-		return AESUtil.encrypt(data.getIdentifier().trim());
-	}
-
-	public void updatePasswordByEmail(String email, UserDTO newData) {
-
-		if (newData.getPassword() == null) {
-			throw new IllegalArgumentException("Password is required");
-		}
-
-		Exceptions exception = new Exceptions();
-
-		if (!exception.isValidPassword(newData.getPassword())) {
-			throw new IllegalArgumentException("Invalid password format");
-		}
-
-		User user = findByEmail(email);
-
-		user.setPassword(passwordEncoder.encode(newData.getPassword()));
-		userRepo.save(user);
-	}
-
-	public void rememberPassword(UserDTO newData) {
-
-		Exceptions exception = new Exceptions();
-
-		if (newData.getPassword() == null || !exception.isValidPassword(newData.getPassword())) {
-			throw new IllegalArgumentException("Invalid password");
-		}
-
-		User user = userRepo.findByUserName(AESUtil.encrypt(newData.getUserName()))
-				.orElseThrow(() -> new RuntimeException("User not found"));
-
-		user.setPassword(passwordEncoder.encode(newData.getPassword()));
-		userRepo.save(user);
-	}
-
-	public UserDTO updateRol(Long id, UserDTO newData) {
-
-		User user = userRepo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
-
-		if (newData.getRole() == null) {
-			throw new IllegalArgumentException("Role is required");
-		}
-
-		user.setRole(newData.getRole());
-		userRepo.save(user);
-
-		return modelMapper.map(user, UserDTO.class);
-	}
-
-	public boolean isUserExist(String user) {
-		user = AESUtil.encrypt(user);
-		Optional<User> found = userRepo.findByUserName(user);
-		if (found.isPresent()) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public List<UserDTO> getByUser(String user) {
-
-		Optional<User> optionalUser = userRepo.findByUserName(user);
-		List<UserDTO> dtoList = new ArrayList<>();
-
-		optionalUser.ifPresent(entity -> {
-
-			UserDTO dto = modelMapper.map(entity, UserDTO.class);
-
-			if (dto.getUserName() != null) {
-				dto.setUserName(AESUtil.decrypt(dto.getUserName()));
-			}
-
-			if (dto.getEmail() != null) {
-				dto.setEmail(AESUtil.decrypt(dto.getEmail()));
-			}
-
-			if (dto.getName() != null) {
-				dto.setName(AESUtil.decrypt(dto.getName()));
-			}
-
-			dtoList.add(dto);
-		});
-
-		return dtoList;
-	}
-
-	public UserDTO updatePassword(Long id, UserDTO newData) {
-
-		if (newData.getPassword() == null) {
-			throw new IllegalArgumentException("Password is required");
-		}
-
-		Exceptions exception = new Exceptions();
-
-		if (!exception.isValidPassword(newData.getPassword())) {
-			throw new IllegalArgumentException("Invalid password format");
-		}
-
-		User user = userRepo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
-
-		user.setPassword(passwordEncoder.encode(newData.getPassword()));
-		userRepo.save(user);
-
-		return modelMapper.map(user, UserDTO.class);
-	}
-
-	public void updateVerificationCodeByUserName(String identifier) {
-
-		User user = null;
-
-		Optional<User> optionalUser = userRepo.findByUserName(AESUtil.encrypt(identifier));
-		if (!optionalUser.isPresent()) {
-			Optional<User> optionalUserEmail = userRepo.findByEmail(AESUtil.encrypt(identifier));
-			user = modelMapper.map(optionalUserEmail, User.class);
-
-		} else {
-
-			user = modelMapper.map(optionalUser, User.class);
-		}
-
-		if (user.getName() == null) {
-			throw new RuntimeException("User not found");
-		}
-
-		if (user.getCode() == null) {
-			throw new IllegalArgumentException("User already verified");
-		}
-
-		user.setCode(generateCode());
-		user.setVerificationExpires(LocalDateTime.now().plusMinutes(5));
-		
-
-		userRepo.save(user);
-		
-		try {
-			sendConfirmationCode(AESUtil.decrypt(user.getEmail()), user.getCode());
-		} catch (Exception e) {
-			e.printStackTrace();
-		} 
-	}
-
-	public String decryptUser(String user) {
-		if (user != null) {
-			user = AESUtil.decrypt(user);
-
-		}
-		return user;
-	}
-
-	public String encryptUser(String user) {
-		if (user != null) {
-			user = AESUtil.encrypt(user);
-
-		}
-		return user;
-	}
-
-	private String generateCode() {
-
-		int code = random.nextInt(900000) + 100000; // rango 100000–999999
-		return String.valueOf(code);
+		return 0;
 	}
 
 	private int validateUserData(UserDTO newData) {
@@ -593,12 +498,144 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		}
 	}
 
-	private void decryptSensitiveFields(UserDTO dto) {
-		try {
+	@Override
+	public long count() {
+		return userRepo.count();
+	}
 
-			if (dto.getName() != null) {
-				dto.setName(AESUtil.decrypt(dto.getName()));
+	@Override
+	public boolean exist(Long id) {
+		return userRepo.existsById(id);
+	}
+
+	
+
+	public String encryptLoginIdentifier(LoguinRequestDTO data) {
+
+		if (data.getIdentifier() == null || data.getIdentifier().isBlank()) {
+			throw new IllegalArgumentException("Identifier is required");
+		}
+
+		return AESUtil.encrypt(data.getIdentifier().trim());
+	}
+
+	@Override
+	public String decrypt(UserDTO data) {
+
+		User entity = modelMapper.map(data, User.class);
+
+		if (entity.getUserName() != null) {
+			entity.setUserName(AESUtil.decrypt(entity.getUserName()));
+
+		}
+		if (entity.getName() != null) {
+			entity.setName(AESUtil.decrypt(entity.getName()));
+
+		}
+		if (entity.getEmail() != null) {
+			entity.setEmail(AESUtil.decrypt(entity.getEmail()));
+
+		}
+		if (entity.getName() != null) {
+			entity.setName(AESUtil.decrypt(entity.getName()));
+		}
+
+		return null;
+	}
+
+	public int updatePasswordByEmail(String email, UserDTO newData) {
+
+		if (newData.getPassword() == null) {
+			return 4;
+		}
+
+		Exceptions exception = new Exceptions();
+
+		if (!exception.isValidPassword(newData.getPassword())) {
+			return 4;
+		}
+
+		User user;
+		try {
+			user = findByEmail(email);
+		} catch (RuntimeException e) {
+			return 2;
+		}
+
+		user.setPassword(passwordEncoder.encode(newData.getPassword()));
+		userRepo.save(user);
+
+		return 0;
+	}
+
+	public int rememberPassword(UserDTO newData) {
+		Optional<User> found = userRepo.findByUserName(AESUtil.encrypt(newData.getUserName()));
+		Exceptions exception = new Exceptions();
+		if (newData.getPassword() != null) {
+			if (!exception.isValidPassword(newData.getPassword())) {
+				return 4;
 			}
+		}
+		if (found.isPresent()) {
+			User temp = found.get();
+			if (temp.getPassword() != null) {
+
+				temp.setPassword(passwordEncoder.encode(newData.getPassword()));
+
+			}
+
+			userRepo.save(temp);
+			return 0;
+		}
+
+		if (!found.isPresent()) {
+			return 2;
+		} else {
+			return 3;
+		}
+
+	}
+
+
+	public int updateRol(Long id, UserDTO newData) {
+
+		Optional<User> optionalUser = userRepo.findById(id);
+
+		if (optionalUser.isEmpty()) {
+			return 0;
+		}
+
+		User user = optionalUser.get();
+
+		if (newData.getRole() == null) {
+			return 2;
+		}
+
+		user.setRole(newData.getRole());
+		userRepo.save(user);
+
+		return 1;
+	}
+
+	public boolean isUserExist(String user) {
+		user = AESUtil.encrypt(user);
+		Optional<User> found = userRepo.findByUserName(user);
+		if (found.isPresent()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public List<UserDTO> getByUser(String user) {
+
+		Optional<User> optionalUser = userRepo.findByUserName(user);
+		List<UserDTO> dtoList = new ArrayList<>();
+
+		optionalUser.ifPresent(entity -> {
+
+			UserDTO dto = modelMapper.map(entity, UserDTO.class);
+
 			if (dto.getUserName() != null) {
 				dto.setUserName(AESUtil.decrypt(dto.getUserName()));
 			}
@@ -607,39 +644,87 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 				dto.setEmail(AESUtil.decrypt(dto.getEmail()));
 			}
 
-			if (dto.getIdentification() != null) {
-				dto.setIdentification(AESUtil.decrypt(dto.getIdentification()));
+			if (dto.getName() != null) {
+				dto.setName(AESUtil.decrypt(dto.getName()));
 			}
 
-		} catch (Exception e) {
-			throw new IllegalArgumentException("Error decrypting user fields", e);
+			dtoList.add(dto);
+		});
+
+		return dtoList;
+	}
+
+	public int updatePassword(Long id, UserDTO newData) {
+		Optional<User> found = userRepo.findById(id);
+		Exceptions exception = new Exceptions();
+		if (newData.getPassword() != null) {
+			if (!exception.isValidPassword(newData.getPassword())) {
+
+				return 4;
+			}
+		}
+		if (found.isPresent()) {
+			User temp = found.get();
+
+			if (temp.getPassword() != null) {
+				temp.setPassword(passwordEncoder.encode(newData.getPassword()));
+			}
+			userRepo.save(temp);
+			return 0;
+		}
+
+		if (!found.isPresent()) {
+			return 2;
+		} else {
+			return 3;
 		}
 	}
 
-	private void validateUser(UserDTO userDto) {
 
-		if (userDto == null) {
-			throw new IllegalArgumentException("User data cannot be null");
+	public int updateVerificationCodeByUserName(String userName, String code, LocalDateTime expires) {
+
+		User user = userRepo.findByUserName(AESUtil.encrypt(userName))
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		if (user.getCode() != null) {
+			user.setCode(code);
+			user.setVerificationExpires(expires);
+
+			userRepo.save(user);
+			return 0;
+		} else {
+			new RuntimeException("User already verified");
+			return 1;
 		}
 
-		if (userDto.getUserName() == null || userDto.getUserName().isBlank()) {
-			throw new IllegalArgumentException("Username is required");
-		}
+	}
 
-		if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
-			throw new IllegalArgumentException("Email is required");
-		}
 
-		if (userDto.getPassword() == null || userDto.getPassword().isBlank()) {
-			throw new IllegalArgumentException("Password is required");
-		}
+	public String decryptUser(String user) {
+		if (user != null) {
+			user = AESUtil.decrypt(user);
 
-		if (findUsernameAlreadyTaken(userDto.getUserName())) {
-			throw new IllegalArgumentException("Username already taken");
 		}
+		return user;
+	}
 
-		if (findEmailAlreadyTaken(userDto.getEmail())) {
-			throw new IllegalArgumentException("Email already registered");
+
+	public String encryptUser(String user) {
+		if (user != null) {
+			user = AESUtil.encrypt(user);
+
 		}
+		return user;
+	}
+
+	@Override
+	public int create(UserDTO data) {
+		return 0;
+	}
+
+
+	public User encrypt(UserDTO data) {
+
+		return null;
 	}
 }
