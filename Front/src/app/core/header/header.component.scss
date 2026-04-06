@@ -7,42 +7,73 @@
   background: #0F0F0F;
   border-bottom: 2px solid #222;
   z-index: 1000;
-
   display: flex;
-  justify-content: center; // 👈 centra el contenido interno
+  justify-content: center;
+  box-sizing: border-box;
 }
 
-/* CONTENEDOR INTERNO (CLAVE) */
 .header-container {
   width: 100%;
-  max-width: 1200px; // 👈 controla el ancho como en tu ejemplo
+  max-width: 1200px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 30px;
+  box-sizing: border-box;
 }
 
-/* LOGO */
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
   color: #E1FF57;
-  font-weight: 700;
-  font-size: 20px;
+  font-weight: 800;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
-/* NAV */
+.logo:hover {
+  transform: scale(1.02);
+}
+
+.logo img {
+  height: 50px;
+  width: auto;
+  filter: drop-shadow(0 0 8px rgba(225, 255, 87, 0.3));
+  object-fit: contain;
+}
+
+.logo span {
+  letter-spacing: -0.5px;
+}
+
 nav {
   display: flex;
   align-items: center;
-  gap: 20px; // 👈 mejor que margin-left
+  gap: 25px;
 }
 
 nav a {
   color: #aaa;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
   transition: 0.3s;
 }
 
 nav a:hover {
   color: #E1FF57;
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 15px;
+  }
+  .logo span {
+    display: none;
+  }
+  nav {
+    gap: 15px;
+  }
 }

@@ -1,0 +1,256 @@
+/* =========================
+   CONTENEDOR PRINCIPAL
+========================= */
+.auth-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  background: linear-gradient(135deg, #1A1A1A 0%, #111 100%);
+  font-family: 'Inter', sans-serif;
+  padding: 20px 16px;
+}
+
+/* =========================
+   WRAPPER
+========================= */
+.auth-wrapper {
+  display: flex;
+  width: 100%;
+  max-width: 900px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* =========================
+   COLUMNA IZQUIERDA
+========================= */
+.auth-left {
+  flex: 1;
+  background: #1E1E1E;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+/* =========================
+   CARD
+========================= */
+.auth-card {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeInUp 0.6s ease;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* =========================
+   TEXTOS
+========================= */
+h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+}
+
+.subtitle {
+  color: #AAAAAA;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* =========================
+   INPUTS
+========================= */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+input{
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  background: #2A2A2A;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+input::placeholder {
+  color: #777;
+}
+
+input:focus{
+  border: 1px solid #E1FF57;
+  box-shadow: 0 4px 12px rgba(225, 255, 87, 0.35);
+  background: #333;
+}
+
+.auth-card button {
+  appearance: none;
+  background-color: transparent;
+  border: 2px solid #E1FF57;
+  border-radius: 20px;
+  box-sizing: border-box;
+  color: #E1FF57;
+  cursor: pointer;
+  display: inline-block;
+
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+
+  width: 100%;
+  min-height: 48px;
+  padding: 12px;
+
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+
+.auth-card button:hover {
+  color: #000;
+  background-color: #E1FF57;
+  box-shadow: 0 10px 25px rgba(225, 255, 87, 0.3);
+  transform: translateY(-2px);
+}
+
+
+.auth-card button:active {
+  transform: scale(0.97);
+  box-shadow: none;
+}
+
+/* Disabled */
+.auth-card button:disabled {
+  border-color: #555;
+  color: #777;
+  background: transparent;
+  cursor: not-allowed;
+}
+
+
+.link-text {
+  font-size: 12px;
+  text-align: center;
+  color: #AAA;
+}
+
+.link-text a {
+  color: #E1FF57;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.link-text a:hover {
+  color: #fff;
+}
+
+
+.auth-right {
+  flex: 1;
+  background: linear-gradient(135deg, #2A2A2A 0%, #1E1E1E 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: #fff;
+  flex-direction: column;
+  text-align: center;
+}
+
+.auth-right img {
+  margin-top: 20px;
+  max-width: 100%;
+  border-radius: 12px;
+}
+
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+@media screen and (max-width: 768px) {
+
+  .auth-wrapper {
+    flex-direction: column;
+  }
+
+  .auth-left,
+  .auth-right {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .auth-card {
+    max-width: 100%;
+    gap: 18px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  input,
+  select {
+    font-size: 13px;
+    padding: 11px 14px;
+  }
+
+  .auth-card button {
+    font-size: 12px;
+    padding: 11px;
+  }
+}
+/* Agrega esto al final de tu archivo original */
+
+.error-code {
+  font-size: 100px;
+  font-weight: 900;
+  color: #E1FF57;
+  margin: 0;
+  text-shadow: 0 10px 20px rgba(225, 255, 87, 0.2);
+  text-align: center;
+}
+
+/* Ajuste para que el texto no se pierda en el fondo oscuro */
+.auth-left .subtitle {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.auth-right {
+  flex-direction: column; /* Asegura que el 403 y el texto se apilen */
+}

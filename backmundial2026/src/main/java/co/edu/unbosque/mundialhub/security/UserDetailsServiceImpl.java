@@ -1,5 +1,8 @@
+/**
+ * Paquete que contiene las clases relacionadas con la seguridad de la
+ * aplicación Virus Detected backend.
+ */
 package co.edu.unbosque.mundialhub.security;
-
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -7,7 +10,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import co.edu.unbosque.mundialhub.repository.UserRepository;
-
 
 
 /**

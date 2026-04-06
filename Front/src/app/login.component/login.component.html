@@ -1,7 +1,6 @@
 <div class="auth-container">
   <div class="auth-wrapper">
 
-    <!-- Columna izquierda: Login / Registro -->
     <div class="auth-left">
       <div class="auth-card">
         <h2>Inicia sesión</h2>
@@ -12,7 +11,7 @@
             <input
               type="text"
               name="user"
-              [(ngModel)]="form.user"
+              [(ngModel)]="identifier"
               required
               placeholder="Usuario o email"
             />
@@ -22,34 +21,104 @@
             <input
               type="password"
               name="password"
-              [(ngModel)]="form.password"
+              [(ngModel)]="password"
               required
               placeholder="Contraseña"
             />
           </div>
 
-          <!-- From Uiverse.io by zymantas-katinas -->
-          <!-- From Uiverse.io by e-coders -->
-
           <button>Iniciar Sesión</button>
-
         </form>
 
         <p class="link-text">
           ¿No tienes cuenta? <a routerLink="/register">Regístrate</a>
         </p>
+
+        <p class="link-text" style="margin-top: 0;">
+          ¿Olvidaste tu contraseña? <a (click)="showForgotModal = true" style="cursor: pointer;">Recupérala aquí</a>
+        </p>
+
       </div>
     </div>
 
-    <!-- Columna derecha: Información / Imagen -->
     <div class="auth-right">
       <div class="info-box">
         <h3>Bienvenido a nuestro sistema</h3>
         <p>Bla Bla Bla.</p>
-        <!-- Ejemplo de imagen -->
         <img src="assets/login-image.png" alt="Info Login" />
       </div>
     </div>
 
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showForgotModal">
+  <div class="modal-box">
+    <h3>Recuperar Contraseña</h3>
+    <p>Ingresa el correo electrónico asociado a tu cuenta para recibir las instrucciones.</p>
+
+    <div class="input-group">
+      <input
+        type="email"
+        [(ngModel)]="forgotEmail"
+        placeholder="Ingresa tu correo"
+        style="text-align: left; font-size: 14px; letter-spacing: normal;"
+      />
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="showForgotModal = false">Cancelar</button>
+      <button class="btn-submit" (click)="checkEmail()" [disabled]="!forgotEmail">
+        Enviar
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showNewPasswordModal">
+  <div class="modal-box">
+    <h3>Nueva Contraseña</h3>
+    <p>Ingresa y confirma tu nueva contraseña de acceso.</p>
+
+    <div class="input-group" style="margin-bottom: 16px;">
+      <input
+        [type]="showPass ? 'text' : 'password'"
+        [(ngModel)]="newPassword"
+        placeholder="Nueva contraseña"
+        style="padding-right: 40px;"
+      />
+      <i class="fas toggle-password"
+         [ngClass]="showPass ? 'fa-eye-slash' : 'fa-eye'"
+         (click)="showPass = !showPass"></i>
+    </div>
+
+    <div class="input-group" style="margin-bottom: 24px;">
+      <input
+        [type]="showConfirmPass ? 'text' : 'password'"
+        [(ngModel)]="confirmPassword"
+        placeholder="Confirmar contraseña"
+        style="padding-right: 40px;"
+      />
+      <i class="fas toggle-password"
+         [ngClass]="showConfirmPass ? 'fa-eye-slash' : 'fa-eye'"
+         (click)="showConfirmPass = !showConfirmPass"></i>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="showNewPasswordModal = false">Cancelar</button>
+      <button class="btn-submit" (click)="updatePassword()" [disabled]="!newPassword || newPassword !== confirmPassword">
+        Actualizar
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="custom-popup" *ngIf="showErrorPopup">
+  <div class="popup-content border-error">
+    <i class="fas fa-exclamation-circle error-icon"></i>
+    <span>{{ errorMessage }}</span>
+    <button class="close-btn" (click)="showErrorPopup = false">
+      <i class="fas fa-times"></i>
+    </button>
   </div>
 </div>

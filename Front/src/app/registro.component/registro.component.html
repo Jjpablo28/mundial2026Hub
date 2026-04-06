@@ -10,65 +10,48 @@
         <form (ngSubmit)="register()" #registerForm="ngForm">
 
           <div class="input-group">
-            <input
-              type="text"
-              name="user"
-              [(ngModel)]="form.user"
-              required
-              placeholder="Usuario"
-            />
+            <input type="text" [(ngModel)]="userName" name="user" placeholder="Usuario" required />
           </div>
 
           <div class="input-group">
-            <input
-              type="email"
-              name="email"
-              [(ngModel)]="form.email"
-              required
-              placeholder="Correo electrónico"
-            />
+            <input type="text" [(ngModel)]="name" name="name" placeholder="Nombre Completo" required />
           </div>
 
           <div class="input-group">
-            <select
-              name="country"
-              [(ngModel)]="form.country"
-              (ngModelChange)="onCountryChange($event)"
-              required
-            >
+            <input type="email" [(ngModel)]="email" name="email" placeholder="Correo electrónico" required />
+          </div>
+
+          <div class="input-group">
+            <input type="text" [(ngModel)]="id" name="id" placeholder="Identificación" required />
+          </div>
+
+          <div class="input-group">
+            <select [(ngModel)]="country" name="country" (ngModelChange)="onCountryChange($event)" required>
               <option value="" disabled>Selecciona un país</option>
-              <option *ngFor="let c of countries" [value]="c">
-                {{ c }}
-              </option>
+              <option *ngFor="let c of countries" [value]="c">{{ c }}</option>
             </select>
           </div>
 
           <div class="input-group">
-            <select
-              name="city"
-              [(ngModel)]="form.city"
-              [disabled]="cities.length === 0"
-              required
-            >
+            <select [(ngModel)]="city" name="city" [disabled]="cities.length === 0" required>
               <option value="" disabled>Selecciona una ciudad</option>
-              <option *ngFor="let c of cities" [value]="c">
-                {{ c }}
-              </option>
+              <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
             </select>
           </div>
 
           <div class="input-group">
-            <select name="team" [(ngModel)]="form.team">
-              <option value="" disabled>Selecciona un equipo</option>
-              <option *ngFor="let t of teams" [value]="t">
-                {{ t }}
-              </option>
-            </select>
-
+            <input type="password" [(ngModel)]="password" name="password" placeholder="Contraseña" required />
           </div>
 
-          <button type="submit">
-            Registrarse
+
+          <button type="submit" [disabled]="isLoading || !registerForm.valid">
+            <!-- Si NO está cargando, muestra el texto normal -->
+            <span *ngIf="!isLoading">Registrarse</span>
+
+            <!-- Si ESTÁ cargando, muestra el loader -->
+            <span *ngIf="isLoading" class="loader-container">
+    <i class="fas fa-spinner fa-spin"></i> Cargando...
+  </span>
           </button>
 
         </form>
@@ -90,3 +73,4 @@
 
   </div>
 </div>
+

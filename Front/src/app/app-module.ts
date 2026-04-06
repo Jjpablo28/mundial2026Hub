@@ -3,15 +3,24 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {CommonModule, NgForOf, NgIf} from '@angular/common';
-import {HttpClientModule, HttpClient, provideHttpClient, HTTP_INTERCEPTORS} from '@angular/common/http';
-import {LoginComponent} from './login.component/login.component';
-import {HeaderComponent} from './core/header/header.component';
-import {FooterComponent} from './core/footer/footer.component';
-import {RegistroComponent} from './registro.component/registro.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule, NgForOf, NgIf } from '@angular/common';
+import {
+  HttpClientModule,
+  HttpClient,
+  provideHttpClient,
+  HTTP_INTERCEPTORS,
+} from '@angular/common/http';
+import { LoginComponent } from './login.component/login.component';
+import { HeaderComponent } from './core/header/header.component';
+import { FooterComponent } from './core/footer/footer.component';
+import { RegistroComponent } from './registro.component/registro.component';
 
-
+import { VerifyComponent } from './verify.component/verify.component';
+import { HomeComponent } from './home.component/home.component';
+import { Forbidden } from './statusCode/forbidden/forbidden';
+import { AuthInterceptor } from './security/AuthInterceptor';
+import { LandingComponent } from './landing.component/landing.component';
 
 @NgModule({
   declarations: [
@@ -19,8 +28,11 @@ import {RegistroComponent} from './registro.component/registro.component';
     LoginComponent,
     HeaderComponent,
     FooterComponent,
-    RegistroComponent
-
+    RegistroComponent,
+    VerifyComponent,
+    HomeComponent,
+    Forbidden,
+    LandingComponent,
   ],
   imports: [
     BrowserModule,
@@ -38,13 +50,17 @@ import {RegistroComponent} from './registro.component/registro.component';
         deps: [HttpClient] // Dependencias que se inyectarán en la función de fábrica (en este caso, HttpClient).
       }
     }),*/
-
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),
-    /*{ provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },*/
-    provideHttpClient()
+
+    provideHttpClient(),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true,
+    },
   ],
-  bootstrap: [App]
+  bootstrap: [App],
 })
-export class AppModule { }
+export class AppModule {}

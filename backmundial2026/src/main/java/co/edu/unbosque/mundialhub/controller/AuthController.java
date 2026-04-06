@@ -1,13 +1,13 @@
 package co.edu.unbosque.mundialhub.controller;
 
+import java.security.SecureRandom;
 //import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.security.auth.login.AccountNotFoundException;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -40,7 +40,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:8081", "http://localhost:8082" })
+@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:8081", "http://localhost:8082/register" })
 @Tag(name = "Autenticación", description = "Login and register")
 public class AuthController {
 
@@ -54,8 +54,11 @@ public class AuthController {
 
 	private final AuthenticationManager authenticationManager;
 
+	@Value("${api.footbalData}")
+	private String apiKey;
+
 	@Autowired
-	// private static final SecureRandom random = new SecureRandom();
+	private static final SecureRandom random = new SecureRandom();
 
 	public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserService userService) {
 		this.authenticationManager = authenticationManager;
@@ -89,8 +92,8 @@ public class AuthController {
 
 		if (result == 0) {
 
-			return ResponseEntity.status(HttpStatus.CREATED).body(
-					Map.of("message", "User registered successfully", "success", true, "code", userService.getCode()));
+			return ResponseEntity.status(HttpStatus.CREATED)
+					.body(Map.of("message", "User registered successfully", "success", true));
 		} else if (result == 4) {
 			System.err.println("Html");
 
@@ -119,24 +122,20 @@ public class AuthController {
 					.body(Map.of("message", "Error registering user", "success", false));
 		}
 	}
-	
+
 	@GetMapping("/teams")
 	public ResponseEntity<?> getTeams() {
-	    RestTemplate restTemplate = new RestTemplate();
+		RestTemplate restTemplate = new RestTemplate();
 
-	    HttpHeaders headers = new HttpHeaders();
-	    headers.set("X-Auth-Token", "fa6c5ddedd8748a2ba406b03aee84411");
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("X-Auth-Token", apiKey);
 
-	    HttpEntity<String> entity = new HttpEntity<>(headers);
+		HttpEntity<String> entity = new HttpEntity<>(headers);
 
-	    ResponseEntity<String> response = restTemplate.exchange(
-	        "https://api.football-data.org/v4/competitions/WC/teams",
-	        HttpMethod.GET,
-	        entity,
-	        String.class
-	    );
+		ResponseEntity<String> response = restTemplate.exchange(
+				"https://api.football-data.org/v4/competitions/WC/teams", HttpMethod.GET, entity, String.class);
 
-	    return ResponseEntity.ok(response.getBody());
+		return ResponseEntity.ok(response.getBody());
 	}
 
 	@PutMapping("/resend")
@@ -194,33 +193,47 @@ public class AuthController {
 					.body("Nombre de usuario o contraseña inválidos o usuario no encontrado");
 		}
 	}
-
+	
+	@GetMapping("/email")
+	public ResponseEntity<?> findByEmail(@RequestParam("email") String email) {
+	    try {
+	        boolean user = userService.findEmail(email);
+	        return ResponseEntity.ok(user);
+	    } catch (RuntimeException e) {
+	        
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+	    }
+	}
+	
 	@PostMapping("/verify")
 	public ResponseEntity<?> verify(@RequestBody VerifyUserDTO dto) {
-
 		User user = userService.findByEmail(dto.getEmail());
 
 		if (user == null) {
-			return ResponseEntity.badRequest().body("Usuario no existe");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(Map.of("message", "Usuario no existe", "success", false));
 		}
+
 		if (user.getCode() == null) {
-			return ResponseEntity.badRequest().body("Genera el codigo nuevamente");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(Map.of("message", "Genera el código nuevamente", "success", false));
 		}
 
 		if (user.isEnabled()) {
-			return ResponseEntity.badRequest().body("Usuario ya verificado");
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+					.body(Map.of("message", "Usuario ya verificado", "success", false));
 		}
 
 		if (!user.getCode().equals(dto.getCode())) {
-			return ResponseEntity.badRequest().body("Código incorrecto");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(Map.of("message", "Código incorrecto", "success", false));
 		}
 
 		if (user.getVerificationExpires().isBefore(LocalDateTime.now())) {
 			user.setCode(null);
 			user.setVerificationExpires(null);
 			userRepo.save(user);
-			return ResponseEntity.badRequest().body("Código expirado");
-
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Código expirado", "success", false));
 		}
 
 		user.setEnabled(true);
@@ -228,9 +241,9 @@ public class AuthController {
 		user.setVerificationExpires(null);
 		userRepo.save(user);
 
-		return ResponseEntity.ok("Usuario verificado correctamente");
+		return ResponseEntity.ok(Map.of("message", "Usuario verificado correctamente", "success", true));
 	}
-
+	
 	private static class AuthResponse {
 		private final String token;
 
@@ -259,11 +272,11 @@ public class AuthController {
 	}
 
 	@PutMapping("/rememberPassword")
-	public ResponseEntity<?> rememberPassword(@RequestParam String user, @RequestParam String newPassword) {
+	public ResponseEntity<?> rememberPassword(@RequestParam String email, @RequestParam String newPassword) {
 
 		try {
 			UserDTO dto = new UserDTO();
-			dto.setUserName(user);
+			dto.setEmail(email);
 			dto.setPassword(newPassword);
 
 			userService.rememberPassword(dto);
@@ -277,5 +290,9 @@ public class AuthController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body(Map.of("message", "Usuario no encontrado", "success", false));
 		}
+	}
+
+	public static SecureRandom getRandom() {
+		return random;
 	}
 }

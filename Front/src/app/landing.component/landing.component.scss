@@ -1,0 +1,134 @@
+$bg-dark: #1A1A1A;
+$accent: #E1FF57;
+$text-dim: #AAAAAA;
+
+.landing-wrapper {
+  flex: 1;
+  background: linear-gradient(135deg, $bg-dark 0%, #111 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  padding: 60px 20px;
+}
+
+.hero-content {
+  text-align: center;
+  z-index: 2;
+  max-width: 800px;
+  margin-bottom: 80px;
+}
+
+.main-title {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+
+.main-title span {
+  color: $accent;
+}
+
+.main-description {
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  color: $text-dim;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.btn-glow {
+  background-color: $accent;
+  color: #000;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 50px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 10px 20px rgba(225, 255, 87, 0.2);
+}
+
+.btn-glow:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(225, 255, 87, 0.4);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #fff;
+  border: 2px solid #333;
+  padding: 16px 32px;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-outline:hover {
+  border-color: $accent;
+  color: $accent;
+}
+
+.stats-container {
+  display: flex;
+  gap: 40px;
+  z-index: 2;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.stat-box {
+  text-align: center;
+  padding: 20px;
+}
+
+.stat-value {
+  display: block;
+  font-size: clamp(2rem, 5vw, 2.5rem);
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  color: $text-dim;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+}
+
+.stat-box.highlighted .stat-value {
+  color: $accent;
+  text-shadow: 0 0 15px rgba(225, 255, 87, 0.5);
+}
+
+.bg-blur-circle {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(225, 255, 87, 0.05) 0%, transparent 70%);
+  top: -100px;
+  right: -100px;
+  z-index: 1;
+}
+
+@media (max-width: 600px) {
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+}

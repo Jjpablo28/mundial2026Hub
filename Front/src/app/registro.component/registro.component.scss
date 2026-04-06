@@ -1,13 +1,12 @@
 .auth-container {
-  min-height: calc(100vh - 90px);
-  margin-top: 90px;
-  width: 100%;
-  background: linear-gradient(135deg, #1A1A1A 0%, #111 100%);
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  background: linear-gradient(135deg, #1A1A1A 0%, #111 100%);
   font-family: 'Inter', sans-serif;
-  padding: 0 16px;
+  padding: 40px 20px;
   box-sizing: border-box;
 }
 
@@ -15,7 +14,8 @@
   display: flex;
   width: 100%;
   max-width: 900px;
-  height: 80%;
+  min-height: 500px;
+  background: #1E1E1E;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -28,6 +28,26 @@
   justify-content: center;
   align-items: center;
   padding: 40px;
+  box-sizing: border-box;
+}
+
+.auth-right {
+  flex: 1;
+  background: linear-gradient(135deg, #2A2A2A 0%, #1E1E1E 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: #fff;
+  flex-direction: column;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.auth-right img {
+  margin-top: 20px;
+  max-width: 100%;
+  border-radius: 12px;
 }
 
 .auth-card {
@@ -66,8 +86,7 @@ h2 {
   width: 100%;
 }
 
-input,
-select {
+input, select {
   width: 100%;
   padding: 14px 18px;
   border-radius: 12px;
@@ -83,19 +102,18 @@ input::placeholder {
   color: #777;
 }
 
-input:focus,
-select:focus {
+input:focus, select:focus {
   border: 1px solid #E1FF57;
   box-shadow: 0 4px 12px rgba(225, 255, 87, 0.4);
   background: #3A3A3A;
+  outline: none;
 }
 
 .input-group select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  position: relative;
-  background: #2A2A2A url('data:image/svg+xml;utf8,<svg fill="gray" height="12" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 12px center;
+  background: #2A2A2A url('data:image/svg+xml;utf8,<svg fill="gray" height="12" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 16px center;
   background-size: 12px;
   padding-right: 36px;
 }
@@ -109,46 +127,38 @@ select:focus {
   color: #E1FF57;
   cursor: pointer;
   display: inline-block;
-
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
-
   width: 100%;
   min-height: 48px;
   padding: 12px;
-
   text-align: center;
   transition: all 0.3s ease;
 }
 
-
-.auth-card button:hover {
+.auth-card button:hover:not(:disabled) {
   color: #000;
   background-color: #E1FF57;
   box-shadow: 0 10px 25px rgba(225, 255, 87, 0.3);
   transform: translateY(-2px);
 }
 
-
-.auth-card button:active {
+.auth-card button:active:not(:disabled),
+.btn-primary:active {
   transform: scale(0.97);
   box-shadow: none;
 }
 
-/* Disabled */
-.auth-card button:disabled {
+.auth-card button:disabled,
+button:disabled {
   border-color: #555;
   color: #777;
   background: transparent;
   cursor: not-allowed;
-}
-
-
-.btn-primary:active {
-  transform: translateY(-1px);
+  opacity: 0.8;
 }
 
 .link-text {
@@ -161,84 +171,48 @@ select:focus {
 .link-text a {
   color: #E1FF57;
   text-decoration: none;
+  transition: 0.3s;
 }
 
 .link-text a:hover {
   color: #fff;
 }
 
-.auth-right {
-  flex: 1;
-  background: linear-gradient(135deg, #2A2A2A 0%, #1E1E1E 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px;
-  color: #fff;
-  flex-direction: column;
-  text-align: center;
+.fa-spin {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
 }
 
-.auth-right img {
-  margin-top: 20px;
-  max-width: 100%;
-  border-radius: 12px;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media screen and (max-width: 768px) {
-  .auth-wrapper {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .auth-left,
-  .auth-right {
-    width: 100%;
+  .auth-container {
     padding: 20px;
   }
-
-  .auth-card {
-    max-width: 100%;
-    gap: 18px;
+  .auth-wrapper {
+    flex-direction: column;
+    min-height: auto;
   }
-
-  h2 {
-    font-size: 24px;
+  .auth-left {
+    width: 100%;
+    padding: 30px 20px;
   }
-
-  .subtitle {
-    font-size: 13px;
-  }
-
-  input,
-  select {
-    padding: 12px 14px;
-    font-size: 13px;
-  }
-
-  .btn-primary {
-    padding: 1em;
-    font-size: 11px;
-  }
-
   .auth-right {
     display: none;
   }
-  .auth-card button {
-    font-size: 12px;
-    padding: 11px;
+  .auth-card {
+    max-width: 100%;
   }
-
+  h2 {
+    font-size: 24px;
+  }
 }
-

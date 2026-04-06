@@ -1,0 +1,31 @@
+<div class="auth-container">
+  <div class="auth-wrapper">
+
+    <!-- Lado Izquierdo (Mensaje) -->
+    <div class="auth-left">
+      <div class="auth-card">
+        <h2>Acceso Denegado</h2>
+        <p class="subtitle">
+          Tu rol actual no tiene los permisos necesarios para acceder a este recurso.
+        </p>
+
+        <form> <!-- Usamos form solo por la estructura de gap que ya tienes -->
+          <button type="button" (click)="goHome()">Volver al Inicio</button>
+        </form>
+
+        <p class="link-text">
+          ¿Crees que es un error? <a href="#">Contacta a soporte</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Lado Derecho (Visual 403) -->
+    <div class="auth-right">
+      <div class="auth-card">
+        <h1 class="error-code">403</h1>
+        <p class="subtitle" style="letter-spacing: 5px; color: #fff;">FORBIDDEN</p>
+      </div>
+    </div>
+
+  </div>
+</div>

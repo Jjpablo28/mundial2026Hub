@@ -139,7 +139,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 			throw new IllegalArgumentException("El código debe tener 6 dígitos");
 		}
 
-		String subject = "Código de verificación - Veltrix Pass";
+		String subject = "Código de verificación - Mundial 2026 Hub";
 
 		char[] d = code.toCharArray();
 
@@ -256,6 +256,11 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 		return userRepo.findByEmail(emailEncrypt)
 				.orElseThrow(() -> new RuntimeException("Usuario no encontrado con email: " + email));
+	}
+	
+	public boolean findEmail(String email) {
+	    String emailEncrypt = AESUtil.encrypt(email);
+	    return userRepo.findByEmail(emailEncrypt).isPresent();
 	}
 
 	/**
@@ -406,7 +411,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 			throw new IllegalArgumentException("Invalid password");
 		}
 
-		User user = userRepo.findByUserName(AESUtil.encrypt(newData.getUserName()))
+		User user = userRepo.findByEmail(AESUtil.encrypt(newData.getEmail()))
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
 		user.setPassword(passwordEncoder.encode(newData.getPassword()));

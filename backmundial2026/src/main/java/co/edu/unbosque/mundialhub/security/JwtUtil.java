@@ -1,8 +1,8 @@
-package co.edu.unbosque.mundialhub.security;
 /**
  * Paquete que contiene las clases relacionadas con la seguridad de la
  * aplicación Virus Detected backend.
  */
+package co.edu.unbosque.mundialhub.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -17,7 +17,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
 
 /**
  * Utilidad para la generación, extracción y validación de tokens JWT (JSON Web
