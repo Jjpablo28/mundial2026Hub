@@ -16,6 +16,9 @@ export interface JwtTokenPayload {
   authorities?: AuthorityPayload[]; // <-- Así viene en el token
   exp?: number;
   iat?: number;
+  id?: number;
+  email?: string;
+  name?: string;
 }
 
 
@@ -108,5 +111,19 @@ export class AuthService {
       }
     }
     return null;
+  }
+  getUserId(): number | null {
+    const payload = this.getDecodedToken();
+    return payload && payload.id ? payload.id : null;
+  }
+
+  getUserName(): string | null {
+    const payload = this.getDecodedToken();
+    return payload && payload.user ? payload.user : null;
+  }
+
+  getUserEmail(): string | null {
+    const payload = this.getDecodedToken();
+    return payload && payload.email ? payload.email : null;
   }
 }

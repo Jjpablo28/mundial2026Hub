@@ -33,7 +33,7 @@ public class JwtUtil {
 	/**
 	 * Tiempo de validez del token JWT en milisegundos (actualmente 1 hora).
 	 */
-	private static final long JWT_TOKEN_VALIDITY = 60 * 60 * 1000; // 1 hour
+	private static final long JWT_TOKEN_VALIDITY = 30 * 60 * 1000; // 1 hour
 	/**
 	 * Clave secreta para la firma de los tokens JWT. Se obtiene de la configuración
 	 * de la aplicación. Si no se proporciona, se utiliza una clave por defecto (que
@@ -122,10 +122,12 @@ public class JwtUtil {
 	 *                              la autenticación).
 	 * @return El token JWT generado.
 	 */
-	public String generateToken(UserDetails userDetails, String usernameDesencriptado) {
+	public String generateToken(UserDetails userDetails, String usernameDesencriptado,Long userId, String userEmail) {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("authorities", userDetails.getAuthorities());
 		claims.put("user", usernameDesencriptado);
+		claims.put("id", userId);
+	    claims.put("email", userEmail);
 
 		return createToken(claims, userDetails.getUsername());
 	}

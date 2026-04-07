@@ -32,6 +32,7 @@ import co.edu.unbosque.mundialhub.dto.LoguinRequestDTO;
 import co.edu.unbosque.mundialhub.dto.UserDTO;
 import co.edu.unbosque.mundialhub.dto.VerifyUserDTO;
 import co.edu.unbosque.mundialhub.model.User;
+import co.edu.unbosque.mundialhub.model.User.Role;
 import co.edu.unbosque.mundialhub.repository.UserRepository;
 import co.edu.unbosque.mundialhub.security.JwtUtil;
 import co.edu.unbosque.mundialhub.service.UserService;
@@ -179,8 +180,12 @@ public class AuthController {
 
 			UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-			String jwt = jwtUtil.generateToken(userDetails, AESUtil.encrypt(userFound.getUsername()));
+			String jwt = jwtUtil.generateToken(userDetails, AESUtil.decrypt(userFound.getUsername()),userFound.getId(),AESUtil.decrypt(userFound.getEmail()));
 
+			userFound.setLastLogin(LocalDateTime.now());
+			
+			userRepo.save(userFound);
+			
 			String role = null;
 			if (userDetails instanceof User) {
 				role = ((User) userDetails).getRole().name();
@@ -239,6 +244,10 @@ public class AuthController {
 		user.setEnabled(true);
 		user.setCode(null);
 		user.setVerificationExpires(null);
+		if(user.getRole()==Role.TEMPORAL) {
+			user.setRole(Role.USER);
+		
+		}
 		userRepo.save(user);
 
 		return ResponseEntity.ok(Map.of("message", "Usuario verificado correctamente", "success", true));

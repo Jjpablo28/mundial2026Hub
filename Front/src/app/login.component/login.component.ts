@@ -94,11 +94,12 @@ export class LoginComponent {
     this.loginService.findEmail(this.forgotEmail).subscribe({
       next: (response) => {
         if (response == true) {
+          localStorage.setItem('email', this.forgotEmail);
           this.forgotEmail = '';
           this.showNewPasswordModal = true;
           this.showForgotModal=false
 
-          localStorage.setItem('email', this.forgotEmail);
+
           this.cdr.detectChanges();
 
         } else {

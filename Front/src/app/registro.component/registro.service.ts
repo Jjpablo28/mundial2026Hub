@@ -4,14 +4,7 @@ import { HttpParams } from '@angular/common/http';
 import {map, Observable} from 'rxjs';
 import { observableToBeFn } from 'rxjs/internal/testing/TestScheduler';
 
-export interface RegisterRequest {
-  userName: string;
-  email: string;
-  country: string;
-  city: string;
-  id: string;
-  name: string;
-}
+
 
 @Injectable({
   providedIn: 'root'
@@ -46,7 +39,11 @@ export class RegistroService {
   getTeams(): Observable<any[]> {
     return this.http.get<any>(this.apiUrl+'teams').pipe(
       map(res => {
-        return res.teams.map((t: any) => t.name);
+        return res.teams.map((t: any) =>({
+            name: t.name,
+            crest:t.crest
+        })
+          );
       })
     );
   }

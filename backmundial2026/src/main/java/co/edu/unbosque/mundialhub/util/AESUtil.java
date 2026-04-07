@@ -180,7 +180,8 @@ public class AESUtil {
 		
 		
 		
-		System.out.println(decrypt("E33oLGY3niN+E0b8DknkHnPuuDax"));
+		System.out.println(decrypt("HDu6LVoGrVL4lmlIQ2scktsIReG2hE8ldIdOXYIh3DyjmZbcqb5pG3dizks="));
+		System.out.println(decrypt("E33oLJluuM689UlcG225//QWQHI="));
 	}
 
 }

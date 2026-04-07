@@ -41,6 +41,8 @@ public class User implements UserDetails {
 	private String identification;
 
 	private String code;
+	
+	private String avatarUrl;
 
 	private LocalDateTime verificationExpires;
 
@@ -88,7 +90,7 @@ public class User implements UserDetails {
 
 	public User(Long id, String userName, String name, String email, String password, String identification,
 			String code, LocalDateTime verificationExpires, LocalDateTime createdAt, LocalDateTime updatedAt,
-			LocalDateTime lastLogin, String favoriteTeam, String country, String city, Role role,
+			LocalDateTime lastLogin, String favoriteTeam, String country, String city,String avatarUrl, Role role,
 			boolean accountNonExpired, boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled) {
 		super();
 		this.id = id;
@@ -110,6 +112,7 @@ public class User implements UserDetails {
 		this.accountNonLocked = accountNonLocked;
 		this.credentialsNonExpired = credentialsNonExpired;
 		this.enabled = enabled;
+		this.avatarUrl=avatarUrl;
 	}
 
 	@Override
@@ -292,5 +295,14 @@ public class User implements UserDetails {
 	public void setCity(String city) {
 		this.city = city;
 	}
+
+	public String getAvatarUrl() {
+		return avatarUrl;
+	}
+
+	public void setAvatarUrl(String avatarUrl) {
+		this.avatarUrl = avatarUrl;
+	}
+	
 
 }

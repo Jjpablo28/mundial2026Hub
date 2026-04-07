@@ -21,6 +21,7 @@ public class UserDTO {
     private LocalDateTime verificationExpires;
     private String password;
     private Role role; 
+    private String avatarUrl;
     
     private String country;
     private String favoriteTeam;
@@ -46,7 +47,7 @@ public class UserDTO {
 
 
 	public UserDTO(String userName, String name, String email, String identification, String code,
-			LocalDateTime verificationExpires, String password, Role role,String country,String city, String favoriteTeam, LocalDateTime createdAt,
+			LocalDateTime verificationExpires, String password,String avatarUrl, Role role,String country,String city, String favoriteTeam, LocalDateTime createdAt,
 			LocalDateTime updatedAt, LocalDateTime lastLogin) {
 		super();
 		this.userName = userName;
@@ -63,6 +64,7 @@ public class UserDTO {
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 		this.lastLogin = lastLogin;
+		this.avatarUrl=avatarUrl;
 	}
 
 
@@ -200,6 +202,16 @@ public class UserDTO {
 
 	public void setCity(String city) {
 		this.city = city;
+	}
+
+
+	public String getAvatarUrl() {
+		return avatarUrl;
+	}
+
+
+	public void setAvatarUrl(String avatarUrl) {
+		this.avatarUrl = avatarUrl;
 	}
 
 	
