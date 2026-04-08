@@ -41,6 +41,15 @@ export class AuthService {
     return new HttpHeaders({ 'Content-Type': 'application/json' });
   }
 
+  redirectError(errorId:any){
+    if(errorId==403){
+      this.router.navigate(['/forbidden']);
+    }
+    if (errorId==401){
+      this.router.navigate(['/login']);
+    }
+  }
+
 
   logout(): void {
     this.removeToken();

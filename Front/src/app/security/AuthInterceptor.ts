@@ -28,11 +28,8 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authRequest).pipe(
       catchError((error) => {
-        // Si el servidor responde 401 (No autorizado) o 403 (Prohibido)
-        if (error.status === 401 || error.status === 403) {
-          console.warn('Sesión expirada o inválida. Cerrando sesión...');
-          this.authService.logout(); // Esto limpia el storage y redirige al login
-        }
+        this.authService.redirectError(error.status);
+
         return throwError(() => error);
       })
     );

@@ -31,7 +31,7 @@ public interface CRUDOperation<T, E> {
 	 */
 	public T create(T data);
 	
-	public int createWithRol(T data, String rol);
+
 	
 		/**
 	 * Obtiene todos los registros de la entidad y los devuelve como una lista de

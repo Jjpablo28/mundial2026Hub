@@ -214,6 +214,16 @@ public class UserDTO {
 		this.avatarUrl = avatarUrl;
 	}
 
+
+	@Override
+	public String toString() {
+		return "UserDTO [id=" + id + ", userName=" + userName + ", name=" + name + ", email=" + email
+				+ ", identification=" + identification + ", code=" + code + ", verificationExpires="
+				+ verificationExpires + ", password=" + password + ", role=" + role + ", avatarUrl=" + avatarUrl
+				+ ", country=" + country + ", favoriteTeam=" + favoriteTeam + ", city=" + city + ", createdAt="
+				+ createdAt + ", updatedAt=" + updatedAt + ", lastLogin=" + lastLogin + "]";
+	}
+
 	
     
 }

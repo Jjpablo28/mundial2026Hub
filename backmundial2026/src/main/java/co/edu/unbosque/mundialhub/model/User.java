@@ -115,10 +115,6 @@ public class User implements UserDetails {
 		this.avatarUrl=avatarUrl;
 	}
 
-	@Override
-	public String toString() {
-		return super.toString();
-	}
 
 	public Long getId() {
 		return id;
@@ -302,6 +298,17 @@ public class User implements UserDetails {
 
 	public void setAvatarUrl(String avatarUrl) {
 		this.avatarUrl = avatarUrl;
+	}
+
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", userName=" + userName + ", name=" + name + ", email=" + email + ", password="
+				+ password + ", identification=" + identification + ", code=" + code + ", avatarUrl=" + avatarUrl
+				+ ", verificationExpires=" + verificationExpires + ", createdAt=" + createdAt + ", updatedAt="
+				+ updatedAt + ", lastLogin=" + lastLogin + ", favoriteTeam=" + favoriteTeam + ", country=" + country
+				+ ", city=" + city + ", role=" + role + ", accountNonExpired=" + accountNonExpired
+				+ ", accountNonLocked=" + accountNonLocked + ", credentialsNonExpired=" + credentialsNonExpired
+				+ ", enabled=" + enabled + "]";
 	}
 	
 

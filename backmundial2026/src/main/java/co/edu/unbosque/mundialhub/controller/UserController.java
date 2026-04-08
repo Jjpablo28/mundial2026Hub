@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,9 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import co.edu.unbosque.mundialhub.dto.UpdatePasswordDTO;
 import co.edu.unbosque.mundialhub.dto.UserDTO;
+import co.edu.unbosque.mundialhub.model.User;
 import co.edu.unbosque.mundialhub.model.User.Role;
+import co.edu.unbosque.mundialhub.repository.UserRepository;
+import co.edu.unbosque.mundialhub.security.JwtUtil;
 import co.edu.unbosque.mundialhub.service.UserService;
+import co.edu.unbosque.mundialhub.util.AESUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -30,6 +36,12 @@ public class UserController {
 	@Autowired
 	private UserService userServ;
 	
+	@Autowired
+	private UserRepository userRepo;
+
+	@Autowired
+	private JwtUtil jwtUtil;
+
 	@PostMapping
 	public ResponseEntity<?> create(@RequestBody UserDTO registerRequest, @RequestParam String rol) {
 		if (userServ.findUsernameAlreadyTaken(registerRequest.getUserName())) {
@@ -130,30 +142,44 @@ public class UserController {
 
 	@PutMapping("/{id}")
 	public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDTO dto) {
+	    try {
+	        UserDTO updated = userServ.updateById(id, dto);
 
-		try {
-			UserDTO updated = userServ.updateById(id, dto);
+	        User userEntity = userRepo.findById(id)
+	                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-			return ResponseEntity
-					.ok(Map.of("message", "Usuario actualizado correctamente", "data", updated, "success", true));
+	        UserDetails userDetails = org.springframework.security.core.userdetails.User
+	                .withUsername(userEntity.getUserName()) // Ya viene encriptado de la DB
+	                .password("") // No necesitamos la pass para el token
+	                .authorities(userEntity.getRole().name()) // O la lógica que uses para roles
+	                .build();
 
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(Map.of("message", e.getMessage(), "success", false));
-		} catch (RuntimeException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(Map.of("message", "Usuario no encontrado", "success", false));
-		}
+	        String userNameDecrypted = AESUtil.decrypt(userEntity.getUserName());
+	        String emailDecrypted = AESUtil.decrypt(userEntity.getEmail());
+	        
+	        String jwt = jwtUtil.generateToken(userDetails, userNameDecrypted, id, emailDecrypted);
+
+	        return ResponseEntity.ok(Map.of(
+	            "message", "Usuario actualizado correctamente", 
+	            "data", updated, 
+	            "success", true, 
+	            "token", jwt
+	        ));
+
+	    } catch (Exception e) {
+
+	    	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+	    }
 	}
 
 	@PutMapping("/{id}/password")
-	public ResponseEntity<?> updatePassword(@PathVariable Long id, @RequestParam String newPassword) {
+	public ResponseEntity<?> updatePassword(@PathVariable Long id, @RequestBody UpdatePasswordDTO dtoU) {
 
 		try {
 			UserDTO dto = new UserDTO();
-			dto.setPassword(newPassword);
+			dto.setPassword(dtoU.getNewPassword());
 
-			userServ.updatePassword(id, dto);
+			userServ.updatePassword(id, dto,dtoU.getOldPassword());
 
 			return ResponseEntity.ok(Map.of("message", "Contraseña actualizada correctamente", "success", true));
 
@@ -165,7 +191,7 @@ public class UserController {
 					.body(Map.of("message", "Usuario no encontrado", "success", false));
 		}
 	}
-	
+
 	@GetMapping("/count")
 	public ResponseEntity<?> countAll() {
 

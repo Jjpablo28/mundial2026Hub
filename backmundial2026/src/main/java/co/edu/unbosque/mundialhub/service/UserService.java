@@ -257,10 +257,10 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		return userRepo.findByEmail(emailEncrypt)
 				.orElseThrow(() -> new RuntimeException("Usuario no encontrado con email: " + email));
 	}
-	
+
 	public boolean findEmail(String email) {
-	    String emailEncrypt = AESUtil.encrypt(email);
-	    return userRepo.findByEmail(emailEncrypt).isPresent();
+		String emailEncrypt = AESUtil.encrypt(email);
+		return userRepo.findByEmail(emailEncrypt).isPresent();
 	}
 
 	/**
@@ -357,6 +357,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 		updateUserFields(existingUser, newData);
 		existingUser.setUpdatedAt(LocalDateTime.now());
+		
 
 		userRepo.save(existingUser);
 
@@ -469,7 +470,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		return dtoList;
 	}
 
-	public UserDTO updatePassword(Long id, UserDTO newData) {
+	public UserDTO updatePassword(Long id, UserDTO newData,String oldPassword) {
 
 		if (newData.getPassword() == null) {
 			throw new IllegalArgumentException("Password is required");
@@ -482,11 +483,17 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		}
 
 		User user = userRepo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+		
+		if (passwordEncoder.matches(oldPassword, user.getPassword())) {
+			user.setPassword(passwordEncoder.encode(newData.getPassword()));
+			userRepo.save(user);
+			return modelMapper.map(user, UserDTO.class);
+			
+		}else {
+			throw new IllegalArgumentException("The actual password doesn't match");
+		}
 
-		user.setPassword(passwordEncoder.encode(newData.getPassword()));
-		userRepo.save(user);
 
-		return modelMapper.map(user, UserDTO.class);
 	}
 
 	public void updateVerificationCodeByUserName(String identifier) {
@@ -513,15 +520,14 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 		user.setCode(generateCode());
 		user.setVerificationExpires(LocalDateTime.now().plusMinutes(5));
-		
 
 		userRepo.save(user);
-		
+
 		try {
 			sendConfirmationCode(AESUtil.decrypt(user.getEmail()), user.getCode());
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
+		}
 	}
 
 	public String decryptUser(String user) {
@@ -586,15 +592,38 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	}
 
 	private void updateUserFields(User existingUser, UserDTO newData) {
-		if (newData.getUserName() != null && !newData.getUserName().equals(existingUser.getUserName())) {
-			existingUser.setUserName(AESUtil.encrypt(newData.getUserName()));
-		}
-		if (newData.getName() != null && !newData.getName().equals(existingUser.getName())) {
-			existingUser.setName(AESUtil.encrypt(newData.getName()));
+		if (newData.getUserName() != null) {
+			String currentDecrypted = AESUtil.decrypt(existingUser.getUserName());
+			if (!newData.getUserName().equals(currentDecrypted)) {
+				existingUser.setUserName(AESUtil.encrypt(newData.getUserName()));
+			}
 		}
 
-		if (newData.getEmail() != null && !newData.getEmail().equals(existingUser.getEmail())) {
-			existingUser.setEmail(AESUtil.encrypt(newData.getEmail()));
+		if (newData.getName() != null) {
+			String currentDecrypted = AESUtil.decrypt(existingUser.getName());
+			if (!newData.getName().equals(currentDecrypted)) {
+				existingUser.setName(AESUtil.encrypt(newData.getName()));
+			}
+		}
+
+		if (newData.getEmail() != null) {
+			String currentDecrypted = AESUtil.decrypt(existingUser.getEmail());
+			if (!newData.getEmail().equals(currentDecrypted)) {
+				existingUser.setEmail(AESUtil.encrypt(newData.getEmail()));
+			}
+		}
+
+		if (newData.getCountry() != null) {
+			existingUser.setCountry(newData.getCountry());
+		}
+		if (newData.getCity() != null) {
+			existingUser.setCity(newData.getCity());
+		}
+		if (newData.getFavoriteTeam() != null) {
+			existingUser.setFavoriteTeam(newData.getFavoriteTeam());
+		}
+		if (newData.getAvatarUrl() != null) {
+			existingUser.setAvatarUrl(newData.getAvatarUrl());
 		}
 	}
 

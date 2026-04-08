@@ -6,7 +6,7 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a class="nav-link" [class.active]="menuActivo === 'dashboard'" (click)="cambiarMenu('dashboard')"> Dashboard</a>
+      <a class="nav-link" [class.active]="menuActivo === 'partidos'" (click)="cambiarMenu('partidos')"> Partidos</a>
       <a class="nav-link" [class.active]="menuActivo === 'proyectos'" (click)="cambiarMenu('proyectos')"> Mis Proyectos</a>
       <a class="nav-link" [class.active]="menuActivo === 'reportes'" (click)="cambiarMenu('reportes')"> Reportes</a>
 
@@ -40,13 +40,8 @@
 
     <section class="content-wrapper" [ngSwitch]="menuActivo">
 
-      <ng-container *ngSwitchCase="'dashboard'">
-        <div class="dashboard-grid">
-          <div class="card">
-            <h3>Actividad</h3>
-            <p class="big-number">85%</p>
-          </div>
-        </div>
+      <ng-container *ngSwitchCase="'partidos'">
+
       </ng-container>
 
       <ng-container *ngSwitchCase="'cuenta'">
@@ -66,16 +61,14 @@
             <p class="text-muted" style="margin-bottom: 15px; font-size: 0.9rem;">Selecciona el avatar que te representará en el sistema:</p>
 
             <div class="avatar-selector">
-              <div class="avatar-option active"><img src="https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/2_hyyqec.png" alt="Avatar 1"></div>
-              <div class="avatar-option"><img src="https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/4_cylwgo.png" alt="Avatar 2"></div>
-              <div class="avatar-option"><img src="https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/1_hgwg6q.png" alt="Avatar 3"></div>
-              <div class="avatar-option"><img src="https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/6_mnllri.png" alt="Avatar 4"></div>
-              <div class="avatar-option"><img src="https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/9_hyeyqu.png" alt="Avatar 5"></div>
-              <div class="avatar-option"><img src="https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/7_vckmsj.png" alt="Avatar 6"></div>
-              <div class="avatar-option"><img src="https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/3_edl267.png" alt="Avatar 7"></div>
-              <div class="avatar-option"><img src="https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/10_s4uxo8.png" alt="Avatar 8"></div>
-              <div class="avatar-option"><img src="https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/5_zvitrg.png" alt="Avatar 9"></div>
-              <div class="avatar-option"><img src="https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/8_p1wx2e.png" alt="Avatar 10"></div>
+              @for (url of avatarUrls; track url) {
+                <div
+                  class="avatar-option"
+                  [class.active]="imageUrl === url"
+                  (click)="selectAvatar(url)">
+                  <img [src]="url" alt="Avatar">
+                </div>
+              }
             </div>
           </div>
 
@@ -86,19 +79,19 @@
               <label>Nombre Completo</label>
               <div class="input-box">
                 <i class="fas fa-id-card"></i>
-                <input type="text" [value]="name" placeholder="Tu nombre completo">
+                <input type="text" [(ngModel)]="name" placeholder="Tu nombre completo">
               </div>
 
               <label>Nombre de Usuario</label>
               <div class="input-box">
                 <i class="fas fa-at"></i>
-                <input type="text" [value]="userName" placeholder="Nombre de usuario">
+                <input type="text" [(ngModel)]="userName" placeholder="Nombre de usuario">
               </div>
 
               <label>Correo Electrónico</label>
               <div class="input-box">
                 <i class="fas fa-envelope"></i>
-                <input type="email" [value]="email" placeholder="ejemplo@correo.com" disabled>
+                <input type="email" [(ngModel)]="email" placeholder="ejemplo@correo.com" disabled>
               </div>
 
               <label>País de Origen</label>
@@ -124,7 +117,6 @@
                 <i class="fas fa-futbol main-icon"></i>
 
                 <div class="custom-select" (click)="toggleDropdown()">
-
                   <ng-container *ngIf="selectedTeam; else placeholderTpl">
                     <img [src]="selectedTeam.crest" class="flag-icon" alt="crest">
                     <span>{{ selectedTeam.name }}</span>
@@ -146,7 +138,7 @@
               </div>
 
               <div class="form-action">
-                <button class="btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+                <button class="btn-primary" (click)="updateUser()"><i class="fas fa-save"></i> Guardar Cambios</button>
               </div>
 
             </div>
@@ -159,19 +151,51 @@
               <label>Contraseña Actual</label>
               <div class="input-box">
                 <i class="fas fa-key"></i>
-                <input type="password" placeholder="••••••••">
+                <input
+                  [type]="showOldPass ? 'text' : 'password'"
+                  [(ngModel)]="oldPassword"
+                  placeholder="••••••••"
+                  class="password-input"
+                >
+                <i class="fas toggle-password"
+                   [ngClass]="showOldPass ? 'fa-eye-slash' : 'fa-eye'"
+                   (click)="showOldPass = !showOldPass"></i>
               </div>
 
               <label>Nueva Contraseña</label>
               <div class="input-box">
                 <i class="fas fa-shield-alt"></i>
-                <input type="password" placeholder="••••••••">
+                <input
+                  [type]="showNewPass ? 'text' : 'password'"
+                  [(ngModel)]="newPassword"
+                  placeholder="••••••••"
+                  class="password-input"
+                >
+                <i class="fas toggle-password"
+                   [ngClass]="showNewPass ? 'fa-eye-slash' : 'fa-eye'"
+                   (click)="showNewPass = !showNewPass"></i>
               </div>
 
               <div class="form-action">
-                <button class="btn-primary">Actualizar Contraseña</button>
+                <button class="btn-primary" (click)="updatePassword()"><i class="fas fa-sync-alt"></i> Actualizar Contraseña</button>
               </div>
 
+            </div>
+          </div>
+
+          <div class="card danger-zone">
+            <h3 class="card-title">
+              <i class="fas fa-exclamation-triangle"></i> Zona de Peligro
+            </h3>
+
+            <p class="danger-text">
+              Una vez que elimines tu cuenta, perderás acceso a todos tus proyectos, reportes y datos guardados de forma permanente. <strong>Esta acción no se puede deshacer.</strong>
+            </p>
+
+            <div class="form-action">
+              <button class="btn-danger" (click)="deleteAccount()">
+                <i class="fas fa-trash-alt"></i> Eliminar mi cuenta definitivamente
+              </button>
             </div>
           </div>
 

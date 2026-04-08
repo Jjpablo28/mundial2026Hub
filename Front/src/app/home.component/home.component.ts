@@ -24,12 +24,29 @@ export class HomeComponent implements OnInit {
               private cdr: ChangeDetectorRef) {
   }
 
+  avatarUrls: string[] = [
+    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/2_hyyqec.png',
+    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/4_cylwgo.png',
+    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/1_hgwg6q.png',
+    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/6_mnllri.png',
+    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/9_hyeyqu.png',
+    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/7_vckmsj.png',
+    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/3_edl267.png',
+    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/10_s4uxo8.png',
+    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/5_zvitrg.png',
+    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/8_p1wx2e.png'
+  ];
+
 
   public userRole: 'admin' | 'user' = 'user';
   public userName: string = '';
   public name: string = '';
   public email: string = '';
-  public imageUrl: string = '';
+  public oldPassword: string = '';
+  public newPassword: string = '';
+  imageUrl: string = this.avatarUrls[0];
+  public showOldPass: boolean = false;
+  public showNewPass: boolean = false;
 
   public country: string = '';
   public city: string = '';
@@ -43,9 +60,14 @@ export class HomeComponent implements OnInit {
 
   public menuActivo: string = 'dashboard';
 
+
+  selectAvatar(url: string) {
+    this.imageUrl = url;
+  }
   toggleDropdown() {
     this.isDropdownOpen = !this.isDropdownOpen;
   }
+
   cambiarMenu(menu: string): void {
     this.menuActivo = menu;
   }
@@ -54,17 +76,30 @@ export class HomeComponent implements OnInit {
     this.authService.logout();
   }
 
-  getuser() {
+  deleteAccount() {
+    let id: number | null = this.authService.getUserId();
+    this.homeService.deleteAccount(id).subscribe({
+      next: res => {
+        alert('cuenta eliminada con exito');
+        this.logout()
+
+      },
+      error: err => {
+        console.log(err);
+      }
+    });
+  }
+
+  getUser() {
     let id: number | null = this.authService.getUserId();
     this.homeService.getUserById(id).subscribe({
       next: res => {
-        console.log(res);
-
         this.email = res.email;
         this.name = res.name;
         this.country = res.country;
         this.city = res.city;
-        this.imageUrl=res.avatarUrl;
+        this.imageUrl = res.avatarUrl;
+
         if (res.favoriteTeam && this.teams && this.teams.length > 0) {
           const equipoEncontrado = this.teams.find(t => t.name === res.favoriteTeam);
           this.cdr.detectChanges();
@@ -83,6 +118,7 @@ export class HomeComponent implements OnInit {
     });
 
   }
+
   selectTeam(team: Team) {
     this.selectedTeam = team;
     this.isDropdownOpen = false;
@@ -111,8 +147,9 @@ export class HomeComponent implements OnInit {
   loadTeams() {
     this.registroService.getTeams().subscribe({
       next: res => {
-      this.teams=res;
+        this.teams = res;
         this.cdr.detectChanges();
+        console.log(res)
       },
       error: err => {
 
@@ -120,10 +157,55 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  updatePassword() {
+    let id: number | null = this.authService.getUserId();
+    const body = {
+      oldPassword: this.oldPassword,
+      newPassword: this.newPassword
+    };
+
+    this.homeService.updatePassword(body, id).subscribe({
+      next: res => {
+        console.log(res);
+
+      },
+      error: err => {
+        console.log(err);
+      }
+    });
+
+  }
+
+  updateUser() {
+    let id: number | null = this.authService.getUserId();
+    const body = {
+      userName: this.userName,
+      name: this.name,
+      email: this.email,
+      country: this.country,
+      city: this.city,
+      favoriteTeam: this.selectedTeam ? this.selectedTeam.name : null,
+      avatarUrl: this.imageUrl
+    };
+    this.homeService.updateUser(body, id).subscribe({
+      next: res => {
+        console.log(res);
+        if (res.token) {
+          this.authService.saveToken(res.token);
+        }
+      },
+      error: err => {
+        console.log(err);
+      }
+    });
+  }
+
   ngOnInit(): void {
-    this.getuser();
+    this.getUser();
+    this.cdr.detectChanges();
     this.loadCountries();
-    this.loadTeams()
+    this.cdr.detectChanges();
+    this.loadTeams();
     this.cdr.detectChanges();
 
     this.userName = this.authService.getUserName() || 'Usuario';

@@ -65,6 +65,7 @@ public class SecurityConfig {
 	        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 	        .authorizeHttpRequests(auth -> {
 	            auth.requestMatchers("/auth/**").permitAll();
+	            auth.requestMatchers("/teams/**").permitAll();
 	            auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
 	            auth.anyRequest().authenticated();
 	        })
