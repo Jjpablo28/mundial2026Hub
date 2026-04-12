@@ -149,14 +149,15 @@ public class UserController {
 	                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
 	        UserDetails userDetails = org.springframework.security.core.userdetails.User
-	                .withUsername(userEntity.getUserName()) // Ya viene encriptado de la DB
-	                .password("") // No necesitamos la pass para el token
-	                .authorities(userEntity.getRole().name()) // O la lógica que uses para roles
+	                .withUsername(userEntity.getUserName()) 
+	                .authorities(userEntity.getRole().name())
 	                .build();
 
-	        String userNameDecrypted = AESUtil.decrypt(userEntity.getUserName());
-	        String emailDecrypted = AESUtil.decrypt(userEntity.getEmail());
+	        // 1. Validamos nulos antes de desencriptar
+	        String userNameDecrypted = userEntity.getUserName() != null ? AESUtil.decrypt(userEntity.getUserName()) : null;
+	        String emailDecrypted = userEntity.getEmail() != null ? AESUtil.decrypt(userEntity.getEmail()) : null;
 	        
+	        // 2. Generamos el token de forma segura
 	        String jwt = jwtUtil.generateToken(userDetails, userNameDecrypted, id, emailDecrypted);
 
 	        return ResponseEntity.ok(Map.of(

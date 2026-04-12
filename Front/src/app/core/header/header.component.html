@@ -6,8 +6,31 @@
     </div>
 
     <nav>
-      <a routerLink="/login">Inicio</a>
-      <a routerLink="/register">Registro</a>
+      <ng-container *ngIf="!isLoggedIn">
+        <a routerLink="/login" routerLinkActive="active">Iniciar Sesión</a>
+        <a routerLink="/register" routerLinkActive="active">Registro</a>
+      </ng-container>
+
+      <ng-container *ngIf="isLoggedIn">
+
+        <a routerLink="/dashboard" routerLinkActive="active">Mi Panel</a>
+        <a routerLink="/partidos" routerLinkActive="active">Partidos</a>
+
+        <ng-container *ngIf="userRole === 'ADMIN' || userRole === 'admin'">
+          <a routerLink="/admin/usuarios" routerLinkActive="active">Usuarios</a>
+          <a routerLink="/admin/configuracion" routerLinkActive="active">Sistema</a>
+        </ng-container>
+
+        <div class="user-menu" style="display: inline-block; margin-left: 15px;">
+          <span style="color: #E1FF57; margin-right: 15px; font-weight: 600;">
+            {{ userName || 'Usuario' }}
+          </span>
+          <button (click)="logout()" style="background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: 0.3s;">
+            Cerrar Sesión
+          </button>
+        </div>
+
+      </ng-container>
     </nav>
   </div>
 </header>

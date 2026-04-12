@@ -67,8 +67,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                 
                                 String cleanUsername = AESUtil.decrypt(encryptedUsername);
                                 
-                                // ¡NUEVO RADAR DE SEGURIDAD!
-                                System.out.println("🟢 [WEBSOCKET AUTH] Túnel seguro abierto para el usuario: [" + cleanUsername + "]");
+                               
                                 
                                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                                         cleanUsername, null, userDetails.getAuthorities());

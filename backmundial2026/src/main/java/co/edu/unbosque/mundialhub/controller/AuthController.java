@@ -58,7 +58,7 @@ public class AuthController {
 	@Value("${api.footbalData}")
 	private String apiKey;
 
-	@Autowired
+
 	private static final SecureRandom random = new SecureRandom();
 
 	public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserService userService) {
@@ -138,6 +138,21 @@ public class AuthController {
 
 		return ResponseEntity.ok(response.getBody());
 	}
+	
+	@GetMapping("/matches")
+	public ResponseEntity<?> getMatches() {
+		RestTemplate restTemplate = new RestTemplate();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("X-Auth-Token", apiKey);
+
+		HttpEntity<String> entity = new HttpEntity<>(headers);
+
+		ResponseEntity<String> response = restTemplate.exchange(
+				"https://api.football-data.org/v4/competitions/WC/matches", HttpMethod.GET, entity, String.class);
+
+		return ResponseEntity.ok(response.getBody());
+	}
 
 	@PutMapping("/resend")
 	public ResponseEntity<?> resendCode(String identifier) {
@@ -180,7 +195,12 @@ public class AuthController {
 
 			UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-			String jwt = jwtUtil.generateToken(userDetails, AESUtil.decrypt(userFound.getUsername()),userFound.getId(),AESUtil.decrypt(userFound.getEmail()));
+			// 1. Validamos nulos antes de desencriptar
+			String userNameDecrypted = userFound.getUsername() != null ? AESUtil.decrypt(userFound.getUsername()) : null;
+			String emailDecrypted = userFound.getEmail() != null ? AESUtil.decrypt(userFound.getEmail()) : null;
+
+			// 2. Generamos el token de forma segura
+			String jwt = jwtUtil.generateToken(userDetails, userNameDecrypted, userFound.getId(), emailDecrypted);
 
 			userFound.setLastLogin(LocalDateTime.now());
 			

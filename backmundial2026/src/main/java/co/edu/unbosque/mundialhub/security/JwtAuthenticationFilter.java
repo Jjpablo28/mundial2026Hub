@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.jsonwebtoken.ExpiredJwtException;
 
 import java.io.IOException;
 /**
@@ -74,8 +75,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             jwt = authorizationHeader.substring(7);
             try {
                 username = jwtUtil.extractUsername(jwt);
+            } catch (ExpiredJwtException e) {
+                logger.warn("El Token JWT ha expirado");
             } catch (Exception e) {
-                logger.error("Error extracting username from token", e);
+                logger.error("Error procesando el token JWT: " + e.getMessage());
             }
         }
 

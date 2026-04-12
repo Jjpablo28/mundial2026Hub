@@ -16,6 +16,7 @@ export class HomeComponentService {
   }
 
   private apiUrl = 'http://localhost:8080/users/';
+  private urlFootball = 'http://localhost:8080/auth/';
 
 
   getUserById(id: any): Observable<any> {
@@ -48,4 +49,19 @@ export class HomeComponentService {
     });
   }
 
+  getMatches(): Observable<any[]> {
+    return this.http.get<any>(this.urlFootball + 'matches').pipe(
+      map(res => {
+        const dataArray = res.matches ? res.matches : res;
+
+        return dataArray.map((m: any) => ({
+          utcDate: m.utcDate,
+          stage: m.stage,
+          matchday: m.matchday,
+          homeTeam: m.homeTeam,
+          awayTeam: m.awayTeam
+        }));
+      })
+    );
+  }
 }

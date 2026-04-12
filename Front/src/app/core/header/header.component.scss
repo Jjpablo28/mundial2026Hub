@@ -1,3 +1,10 @@
+$bg-dark: #1A1A1A;
+$card-bg: #1E1E1E;
+$accent: #E1FF57;
+$text-light: #ffffff;
+$text-muted: #AAAAAA;
+$border: #333333;
+$error: #ff4d4d;
 .header {
   position: fixed;
   top: 0;
@@ -14,12 +21,13 @@
 
 .header-container {
   width: 100%;
-  max-width: 1200px;
+  /* 🔥 1. ELIMINAMOS el max-width: 1200px; para que ocupe toda la pantalla */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 30px;
+  padding: 0 40px; /* 🔥 2. Aumentamos un poco el padding lateral para que respire */
   box-sizing: border-box;
+  height: 100%; /* 🔥 3. Le damos altura total para las pestañas */
 }
 
 .logo {
@@ -48,10 +56,12 @@
   letter-spacing: -0.5px;
 }
 
+/* 🔥 4. AJUSTES DE NAVEGACIÓN TIPO 365 SCORE */
 nav {
   display: flex;
   align-items: center;
   gap: 25px;
+  height: 100%; /* Obliga al menú a tocar el borde inferior */
 }
 
 nav a {
@@ -60,10 +70,35 @@ nav a {
   font-size: 15px;
   font-weight: 500;
   transition: 0.3s;
+
+  /* Hacemos que el enlace ocupe toda la altura */
+  display: flex;
+  align-items: center;
+  height: 100%;
+  position: relative;
 }
 
 nav a:hover {
   color: #E1FF57;
+}
+
+/* 🔥 5. LA MAGIA DE LA PESTAÑA ACTIVA */
+nav a.active {
+  color: #E1FF57;
+  font-weight: 700;
+}
+
+/* La línea inferior brillante */
+nav a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; /* Tapa el borde gris del header */
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: #E1FF57;
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 -2px 8px rgba(225, 255, 87, 0.4);
 }
 
 @media (max-width: 768px) {

@@ -1,9 +1,8 @@
-import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { HttpParams } from '@angular/common/http';
-import {map, Observable} from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { observableToBeFn } from 'rxjs/internal/testing/TestScheduler';
-
 
 
 @Injectable({
@@ -14,7 +13,7 @@ import { observableToBeFn } from 'rxjs/internal/testing/TestScheduler';
 export class RegistroService {
 
   private apiCountries = 'https://countriesnow.space/api/v0.1/';
-  private apiUrl = 'http://localhost:8080/auth/';
+  private apiUrl = 'http://localhost:8080/';
 
 
   constructor(private http: HttpClient) {
@@ -37,26 +36,32 @@ export class RegistroService {
   }
 
   getTeams(): Observable<any[]> {
-    return this.http.get<any>(this.apiUrl+'teams').pipe(
+    return this.http.get<any>(this.apiUrl + 'teams').pipe(
       map(res => {
-        return res.teams.map((t: any) =>({
-            name: t.name,
-            crest:t.crest
-        })
-          );
+        const dataArray = res.teams ? res.teams : res;
+
+        return dataArray.map((t: any) => ({
+          name: t.name,
+          crest: t.crest,
+          shortName: t.shortName,
+          fifaRanking: t.fifaRanking,
+          groupName:t.groupName
+        }));
       })
     );
   }
+
   register(data: any, rol: string): Observable<any> {
     const params = new HttpParams().set('rol', rol);
-    return this.http.post<any>(this.apiUrl + 'register', data, { params });
+    return this.http.post<any>(this.apiUrl +'auth/ '+'register', data, { params });
   }
 
   resendCode(email: string): Observable<any> {
     const params = new HttpParams().set('identifier', email);
-    return this.http.put<any>(this.apiUrl + 'resend', null, { params });  }
+    return this.http.put<any>(this.apiUrl +'auth/'+'resend', null, { params });
+  }
 
-  verify(data:any): Observable<any> {
-    return this.http.post<any>(this.apiUrl + 'verify', data);
+  verify(data: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl+'auth/' + 'verify', data);
   }
 }
