@@ -1145,6 +1145,81 @@ html, body {
     transform: translateY(-2px);
   }
 }
+.controls-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  width: 100%;
+  max-width: 100%; /* BLINDAJE 1: Evita que el contenedor padre se desborde de la pantalla */
+  margin-bottom: 2.5rem;
+}
+
+.group-filters {
+  display: flex;
+  overflow-x: auto;
+  flex-wrap: nowrap; /* BLINDAJE 2: Prohíbe terminantemente que los botones bajen de línea */
+  gap: 10px;
+  padding-bottom: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+
+  /* Scroll suave para celulares */
+  -webkit-overflow-scrolling: touch;
+
+  .filter-btn {
+    flex: 0 0 auto; /* BLINDAJE 3: El botón no puede encogerse ni estirarse, mantiene su tamaño original */
+    white-space: nowrap; /* BLINDAJE 4: El texto "Grupo A" no se puede partir en dos líneas */
+  }
+
+  /* Estilos del scrollbar */
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(225, 255, 87, 0.3);
+    border-radius: 10px;
+  }
+}
+
+.sort-segmented-control {
+  display: flex;
+  flex: 0 0 auto; /* BLINDAJE 5: La pastilla de orden NO puede ser aplastada por los grupos */
+  background-color: #1A1A1A;
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid #333;
+
+
+
+  button {
+    background: transparent;
+    color: #888;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &:hover { color: #fff; }
+
+    &.active {
+      background-color: #333;
+      color: #E1FF57;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+  }
+}
+
 
 /* =========================================================
    MEDIA QUERIES (RESPONSIVE)
@@ -1178,4 +1253,20 @@ html, body {
   .form-action { grid-column: 1; margin-top: 1rem; .btn-primary { width: 100%; justify-content: center; } }
 
   .dashboard-banner { padding: 0 20px; .banner-content h2 { font-size: 1.8rem; } }
+  .controls-toolbar {
+    flex-direction: column;
+    align-items: stretch; /* Estira los elementos al 100% del ancho */
+  }
+
+  .group-filters {
+    width: 100%;
+  }
+
+  .sort-segmented-control {
+    width: 100%;
+    button {
+      flex: 1; /* Los 3 botones se dividen el espacio equitativamente */
+      justify-content: center;
+    }
+  }
 }

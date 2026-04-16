@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { AuthService } from '../security/AuthService';
 import { HomeComponentService } from './home.component.service';
 import { RegistroService } from '../registro.component/registro.service';
+import { AccountComponent } from '../account.component/account.component';
 
 export interface Team {
   name: string;
@@ -10,6 +11,7 @@ export interface Team {
   fifaRanking: string;
   groupName: string;
 }
+
 
 @Component({
   selector: 'app-home.component',
@@ -25,34 +27,18 @@ export class HomeComponent implements OnInit {
               private cdr: ChangeDetectorRef) {
   }
 
-  avatarUrls: string[] = [
-    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/2_hyyqec.png',
-    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/4_cylwgo.png',
-    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/1_hgwg6q.png',
-    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/6_mnllri.png',
-    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/9_hyeyqu.png',
-    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/7_vckmsj.png',
-    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/3_edl267.png',
-    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/10_s4uxo8.png',
-    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536870/5_zvitrg.png',
-    'https://res.cloudinary.com/dnrzgy60o/image/upload/v1775536871/8_p1wx2e.png'
-  ];
 
   public isLoading: boolean = true;
   public isModalOpen: boolean = false;
   public filteredTeams: any[] = [];
   public groups: string[] = ['Todos', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
   public selectedGroup: string = 'Todos';
+  imageUrl: any = null;
 
   public userRole: 'admin' | 'user' = 'user';
   public userName: string = '';
   public name: string = '';
   public email: string = '';
-  public oldPassword: string = '';
-  public newPassword: string = '';
-  imageUrl: string = this.avatarUrls[0];
-  public showOldPass: boolean = false;
-  public showNewPass: boolean = false;
 
   public country: string = '';
   public city: string = '';
@@ -64,7 +50,7 @@ export class HomeComponent implements OnInit {
   public isStadiumModalOpen: boolean = false;
   public isBracketModalOpen: boolean = false;
 
-  // 🔥 NUEVAS VARIABLES PARA EL FIXTURE COMPLETO 🔥
+
   public isFixtureModalOpen: boolean = false;
   public fixtureGroups: { name: string, matches: any[] }[] = [];
   public fixtureKnockout: { name: string, matches: any[] }[] = [];
@@ -75,12 +61,9 @@ export class HomeComponent implements OnInit {
   public viewingTeam: any = null;
 
   public menuActivo: string = 'dashboard';
-  public activeBanner: number = 0;
-  public banners = [
-    { title: 'Copa Mundial 2026', sub: '48 equipos buscando la gloria.', img: 'assets/img/banner1.jpg' },
-    { title: 'Sedes Confirmadas', sub: 'México, Canadá y EE.UU. listos.', img: 'assets/img/banner2.jpg' },
-    { title: '¡Haz tu Polla!', sub: 'Compite con amigos y gana premios.', img: 'assets/img/banner3.jpg' }
-  ];
+  public sortOption: 'clasificacion' | 'asc' | 'desc' = 'clasificacion';
+  public defaultTeamsOrder: Team[] = [];
+
 
   public stadiums = [
     { name: 'Estadio Azteca', city: 'Ciudad de México', capacity: '87,523', image: 'https://hotelesemporio.com/wp-content/uploads/2025/11/Estadio.jpg' },
@@ -108,17 +91,7 @@ export class HomeComponent implements OnInit {
       .slice(0, 4);
   }
 
-  setBanner(index: number) {
-    this.activeBanner = index;
-  }
 
-  selectAvatar(url: string) {
-    this.imageUrl = url;
-  }
-
-  toggleDropdown() {
-    this.isDropdownOpen = !this.isDropdownOpen;
-  }
 
   cambiarMenu(menu: string): void {
     if (this.menuActivo === menu) {
@@ -155,7 +128,7 @@ export class HomeComponent implements OnInit {
     this.isBracketModalOpen = false;
   }
 
-  // 🔥 NUEVA LÓGICA DEL FIXTURE 🔥
+
   openFixtureModal() {
     const groupsMap = new Map<string, any[]>();
     const knockoutMap = new Map<string, any[]>();
@@ -198,52 +171,27 @@ export class HomeComponent implements OnInit {
     this.isFixtureModalOpen = false;
   }
 
+  changeSort(option: 'clasificacion' | 'asc' | 'desc') {
+    this.sortOption = option;
+    this.isLoading = true;
+
+    if (option === 'clasificacion') {
+      this.teams = [...this.defaultTeamsOrder];
+    } else if (option === 'asc') {
+      this.teams.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (option === 'desc') {
+      this.teams.sort((a, b) => b.name.localeCompare(a.name));
+    }
+    this.isLoading = false;
+    this.filterByGroup(this.selectedGroup);
+
+  }
+
   logout() {
     this.authService.logout();
   }
 
-  deleteAccount() {
-    let id: number | null = this.authService.getUserId();
-    this.homeService.deleteAccount(id).subscribe({
-      next: res => {
-        alert('cuenta eliminada con exito');
-        this.logout();
-      },
-      error: err => {
-        console.log(err);
-      }
-    });
-  }
 
-  getUser() {
-    let id: number | null = this.authService.getUserId();
-    this.homeService.getUserById(id).subscribe({
-      next: res => {
-        this.email = res.email;
-        this.name = res.name;
-        this.country = res.country;
-        this.city = res.city;
-        this.imageUrl = res.avatarUrl;
-
-        if (res.favoriteTeam && this.teams && this.teams.length > 0) {
-          const equipoEncontrado = this.teams.find(t => t.name === res.favoriteTeam);
-          this.cdr.detectChanges();
-          if (equipoEncontrado) {
-            this.selectedTeam = equipoEncontrado;
-          } else {
-            this.selectedTeam = { name: res.favoriteTeam, crest: '', shortName: '',fifaRanking:'',groupName:'' };
-          }
-        }
-        this.onCountryChange(this.country);
-        this.cdr.detectChanges();
-        this.isLoading = false;
-      },
-      error: err => {
-        this.isLoading = false;
-        console.log(err);
-      }
-    });
-  }
 
   closeModal() {
     this.isModalOpen = false;
@@ -300,10 +248,7 @@ export class HomeComponent implements OnInit {
     return stage || 'Amistoso';
   }
 
-  selectTeam(team: Team) {
-    this.selectedTeam = team;
-    this.isDropdownOpen = false;
-  }
+
 
   loadCountries() {
     this.registroService.getCountries().subscribe(res => {
@@ -311,28 +256,21 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  onCountryChange(country: string) {
-    if (!country) return;
 
-    this.cities = [];
-
-    this.registroService.getCitiesByCountry(country)
-      .subscribe(cities => {
-        this.cities = cities;
-        this.cdr.detectChanges();
-      });
-  }
 
   loadTeams() {
     this.registroService.getTeams().subscribe({
       next: res => {
         this.teams = res;
         this.filterByGroup('Todos');
-        this.getUser();
         this.loadMatches();
-        console.log("Equipos cargados:", res);
+
+        this.loadUser();
+
+        this.isLoading = false;
       },
       error: err => {
+        console.log(err);
         this.isLoading = false;
       }
     });
@@ -347,51 +285,46 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  updatePassword() {
-    let id: number | null = this.authService.getUserId();
-    const body = {
-      oldPassword: this.oldPassword,
-      newPassword: this.newPassword
-    };
-
-    this.homeService.updatePassword(body, id).subscribe({
-      next: res => {
-        console.log(res);
-      },
-      error: err => {
-        console.log(err);
-      }
-    });
-  }
-
-  updateUser() {
-    let id: number | null = this.authService.getUserId();
-    const body = {
-      userName: this.userName,
-      name: this.name,
-      email: this.email,
-      country: this.country,
-      city: this.city,
-      favoriteTeam: this.selectedTeam ? this.selectedTeam.name : null,
-      avatarUrl: this.imageUrl
-    };
-    this.homeService.updateUser(body, id).subscribe({
-      next: res => {
-        console.log(res);
-        if (res.token) {
-          this.authService.saveToken(res.token);
-        }
-      },
-      error: err => {
-        console.log(err);
-      }
-    });
-  }
-
   ngOnInit(): void {
     this.isLoading = true;
+    this.teams = this.authService.getTeamsValue() || [];
     this.loadTeams();
     this.loadCountries();
     this.userName = this.authService.getUserName() || 'Usuario';
+
+    this.authService.avatar$.subscribe(url => {
+      if (url) {
+        this.imageUrl = url;
+        this.cdr.detectChanges();
+      }
+    });
+
+    this.authService.equipo$.subscribe(equipo => {
+      if (equipo) {
+        this.selectedTeam = equipo;
+        this.cdr.detectChanges();
+      }
+    });
+    this.defaultTeamsOrder = [...this.teams];
+  }
+
+
+  loadUser() {
+    let id: number | null = this.authService.getUserId();
+    if (id) {
+      this.homeService.getUserById(id).subscribe({
+        next: res => {
+          this.authService.actualizarAvatar(res.avatarUrl);
+
+          if (res.favoriteTeam && this.teams && this.teams.length > 0) {
+            const equipoEncontrado = this.teams.find(t => t.name === res.favoriteTeam);
+            if (equipoEncontrado) {
+              this.authService.actualizarEquipo(equipoEncontrado);
+            }
+          }
+        },
+        error: err => console.log('Error cargando usuario', err)
+      });
+    }
   }
 }

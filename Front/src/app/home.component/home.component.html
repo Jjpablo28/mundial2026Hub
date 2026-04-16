@@ -307,69 +307,8 @@
         </div>
 
       </ng-container>
-      <ng-container *ngSwitchCase="'partidos'">
-        <button class="btn-back" (click)="cambiarMenu('dashboard')">
-          <i class="fas fa-arrow-left"></i> Volver al Inicio
-        </button>
 
-        <div class="page-header" style="margin-bottom: 2.5rem;">
-          <h2 style="font-size: 1.8rem; font-weight: 700; color: #fff;">Equipos Clasificados</h2>
-          <p style="color: #AAAAAA;">Conoce las selecciones que disputarán el mundial.</p>
-        </div>
 
-        <div class="loader-container" *ngIf="isLoading">
-          <div class="spinner"></div>
-          <p>Cargando información...</p>
-        </div>
-
-        <div *ngIf="!isLoading">
-          <div class="group-filters">
-            <button *ngFor="let group of groups" class="filter-btn"
-                    [class.active]="selectedGroup === group" (click)="filterByGroup(group)">
-              {{ group === 'Todos' ? 'Todos' : 'Grupo ' + group }}
-            </button>
-          </div>
-
-          <div class="teams-grid">
-            <div class="team-card" *ngFor="let team of filteredTeams" (click)="openTeamDetails(team)"
-                 [class.favorite-team]="selectedTeam?.name === team.name">
-              <div class="favorite-badge" *ngIf="selectedTeam?.name === team.name">
-                <i class="fas fa-star"></i> Tu Equipo
-              </div>
-              <div class="crest-container">
-                <img [src]="team.crest" [alt]="team.name" class="team-crest">
-              </div>
-              <h3 class="team-name">{{ team.name }}</h3>
-              <p class="team-subtext">Grupo {{ team.groupName }} • Ranking: {{ team.fifaRanking }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="team-modal-overlay" *ngIf="isModalOpen" (click)="closeModal()">
-          <div class="team-modal-box" (click)="$event.stopPropagation()">
-            <button class="close-btn" (click)="closeModal()"><i class="fas fa-times"></i></button>
-            <div class="modal-header">
-              <img [src]="viewingTeam?.crest" class="modal-crest">
-              <div>
-                <h2 style="color: #fff;">{{ viewingTeam?.name }} ({{ viewingTeam?.shortName }})</h2>
-                <span class="badge">Grupo {{ viewingTeam?.groupName }}</span>
-              </div>
-            </div>
-            <div class="matches-section">
-              <h3 style="color: #E1FF57;"><i class="fas fa-calendar-alt"></i> Partidos</h3>
-              <div class="match-item" *ngFor="let match of viewingTeam?.matches">
-                <div class="match-date">{{ match.date | date:'dd MMM • HH:mm' }}</div>
-                <div class="match-details">
-                  <div class="match-phase">{{ match.phase }}</div>
-                  <div class="match-rival">vs {{ match.rival }}</div>
-                </div>
-                <img *ngIf="match.rivalCrest" [src]="match.rivalCrest" style="width: 35px; margin-left: auto;">
-              </div>
-            </div>
-          </div>
-        </div>
-      </ng-container>
-      
       <ng-container *ngSwitchCase="'partidos'">
 
         <button class="btn-back" (click)="cambiarMenu('dashboard')">
@@ -387,16 +326,30 @@
         </div>
 
         <div *ngIf="!isLoading">
-          <div class="group-filters">
-            <button
-              *ngFor="let group of groups"
-              class="filter-btn"
-              [class.active]="selectedGroup === group"
-              (click)="filterByGroup(group)">
-              {{ group === 'Todos' ? 'Todos' : 'Grupo ' + group }}
+
+            <div class="group-filters">
+              <button
+                *ngFor="let group of groups"
+                class="filter-btn"
+                [class.active]="selectedGroup === group"
+                (click)="filterByGroup(group)">
+                {{ group === 'Todos' ? 'Todos' : 'Grupo ' + group }}
+              </button>
+
+          </div>
+          <div class="controls-toolbar">
+          <div class="sort-segmented-control">
+            <button [class.active]="sortOption === 'clasificacion'" (click)="changeSort('clasificacion')">
+              <i class="fas fa-trophy"></i> Clasificación
+            </button>
+            <button [class.active]="sortOption === 'asc'" (click)="changeSort('asc')">
+              <i class="fas fa-sort-alpha-down"></i> A-Z
+            </button>
+            <button [class.active]="sortOption === 'desc'" (click)="changeSort('desc')">
+              <i class="fas fa-sort-alpha-up"></i> Z-A
             </button>
           </div>
-
+          </div>
           <div class="teams-grid">
             <div
               class="team-card"
@@ -453,122 +406,9 @@
       </ng-container>
 
       <ng-container *ngSwitchCase="'cuenta'">
-        <div class="profile-summary">
-          <div class="avatar-circle active"><img [src]="imageUrl" alt="Avatar Actual"></div>
-          <div class="profile-details">
-            <h2>{{ userName }}</h2>
-            <span class="status-badge"><i class="fas fa-check-circle"></i> Verificado</span>
-          </div>
-        </div>
 
-        <div class="settings-container">
-          <div class="card">
-            <h3 class="card-title"><i class="fas fa-user-circle"></i> Avatar de Perfil</h3>
-            <p class="text-muted" style="margin-bottom: 15px; font-size: 0.9rem;">Elige cómo te verán los demás:</p>
-            <div class="avatar-selector">
-              <div
-                class="avatar-option"
-                *ngFor="let url of avatarUrls"
-                [class.active]="imageUrl === url"
-                (click)="selectAvatar(url)">
-                <img [src]="url" alt="Opción de Avatar">
-              </div>
-            </div>
-          </div>
+        <app-account></app-account>
 
-          <div class="card">
-            <h3 class="card-title"><i class="fas fa-address-card"></i> Información Personal</h3>
-            <div class="form-grid">
-              <label>Nombre Completo</label>
-              <div class="input-box">
-                <i class="fas fa-id-card"></i>
-                <input type="text" [(ngModel)]="name" placeholder="Tu nombre">
-              </div>
-
-              <label>Nombre de Usuario</label>
-              <div class="input-box">
-                <i class="fas fa-at"></i>
-                <input type="text" [(ngModel)]="userName" placeholder="Username">
-              </div>
-
-              <label>Correo Electrónico</label>
-              <div class="input-box">
-                <i class="fas fa-envelope"></i>
-                <input type="email" [(ngModel)]="email" disabled>
-              </div>
-
-              <label>País</label>
-              <div class="input-box">
-                <i class="fas fa-globe-americas"></i>
-                <select [(ngModel)]="country" (ngModelChange)="onCountryChange($event)">
-                  <option *ngFor="let c of countries" [value]="c">{{ c }}</option>
-                </select>
-              </div>
-
-              <label>Ciudad</label>
-              <div class="input-box">
-                <i class="fas fa-city"></i>
-                <select [(ngModel)]="city" [disabled]="cities.length === 0">
-                  <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
-                </select>
-              </div>
-
-              <label>Equipo Favorito</label>
-              <div class="input-box custom-dropdown-container">
-                <i class="fas fa-futbol main-icon"></i>
-                <div class="custom-select" (click)="toggleDropdown()">
-                  <ng-container *ngIf="selectedTeam; else placeholderTpl">
-                    <img [src]="selectedTeam.crest" class="flag-icon" alt="crest">
-                    <span>{{ selectedTeam.name }}</span>
-                  </ng-container>
-                  <ng-template #placeholderTpl>Selecciona un equipo...</ng-template>
-                  <i class="fas fa-chevron-down arrow-icon"></i>
-                </div>
-                <div class="custom-options" *ngIf="isDropdownOpen">
-                  <div class="option-item" *ngFor="let t of teams" (click)="selectTeam(t)">
-                    <img [src]="t.crest" class="flag-icon" alt="crest">
-                    <span>{{ t.name }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-action">
-                <button class="btn-primary" (click)="updateUser()"><i class="fas fa-save"></i> Guardar Cambios</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <h3 class="card-title"><i class="fas fa-lock"></i> Seguridad</h3>
-            <div class="form-grid">
-              <label>Contraseña Actual</label>
-              <div class="input-box">
-                <i class="fas fa-key"></i>
-                <input [type]="showOldPass ? 'text' : 'password'" [(ngModel)]="oldPassword">
-                <i class="fas toggle-password" [ngClass]="showOldPass ? 'fa-eye-slash' : 'fa-eye'" (click)="showOldPass = !showOldPass"></i>
-              </div>
-
-              <label>Nueva Contraseña</label>
-              <div class="input-box">
-                <i class="fas fa-shield-alt"></i>
-                <input [type]="showNewPass ? 'text' : 'password'" [(ngModel)]="newPassword">
-                <i class="fas toggle-password" [ngClass]="showNewPass ? 'fa-eye-slash' : 'fa-eye'" (click)="showNewPass = !showNewPass"></i>
-              </div>
-
-              <div class="form-action">
-                <button class="btn-primary" (click)="updatePassword()"><i class="fas fa-sync-alt"></i> Actualizar</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="card danger-zone">
-            <h3 class="card-title"><i class="fas fa-exclamation-triangle"></i> Zona de Peligro</h3>
-            <p class="danger-text">Borrar tu cuenta eliminará permanentemente todos tus datos.</p>
-            <div class="form-action">
-              <button class="btn-danger" (click)="deleteAccount()"><i class="fas fa-trash-alt"></i> Eliminar Cuenta</button>
-            </div>
-          </div>
-        </div>
       </ng-container>
 
     </section>

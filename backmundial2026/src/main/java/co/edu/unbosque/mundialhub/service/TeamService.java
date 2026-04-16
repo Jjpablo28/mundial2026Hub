@@ -84,6 +84,12 @@ public class TeamService implements CRUDOperation<TeamDTO, Team> {
 		});
 		return dtoList;
 	}
+	public List<Team> findAllASC() {
+	    return teamRepo.findAllByOrderByNameAsc();
+	}
+	public List<Team> findAllDESC() {
+		return teamRepo.findAllByOrderByNameDesc();
+	}
 	public UserDTO findById(Long id) {
 
 		Team entity = teamRepo.findById(id)

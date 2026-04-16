@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.unbosque.mundialhub.dto.TeamDTO;
@@ -46,17 +47,23 @@ public class TeamController {
 				.body(Map.of("message", "El equipo ha sido creado", "success", true));
 	}
 
-	@GetMapping
-	public ResponseEntity<?> getAll() {
+	@GetMapping({"", "/", "/{order:[a-zA-Z]+}"})
+	public ResponseEntity<?> getAll(@PathVariable(required = false) String order) {
 		try {
-			return ResponseEntity.ok(teamServ.findAll());
+			if ("ASC".equalsIgnoreCase(order)) {
+	            return ResponseEntity.ok(teamServ.findAllASC());				
+	        } else if ("DESC".equalsIgnoreCase(order)) {
+	            return ResponseEntity.ok(teamServ.findAllDESC());				
+	        } else {
+	            return ResponseEntity.ok(teamServ.findAll());
+	        }
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(Map.of("message", "Error al obtener equipos", "success", false));
 		}
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping("/{id:\\d+}")
 	public ResponseEntity<?> getById(@PathVariable Long id) {
 		try {
 			return ResponseEntity.ok(teamServ.findById(id));

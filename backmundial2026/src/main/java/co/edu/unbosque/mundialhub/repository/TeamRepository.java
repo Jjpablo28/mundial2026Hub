@@ -1,5 +1,6 @@
 package co.edu.unbosque.mundialhub.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +21,10 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
     public Optional<User> findByGroupName(String email);
 
 	public Optional<User> findById(Integer userId);
+	
+	List<Team> findAllByOrderByNameAsc();
+	
+	List<Team> findAllByOrderByNameDesc();
 	
 	
 }

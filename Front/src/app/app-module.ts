@@ -1,10 +1,11 @@
-import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {APP_INITIALIZER, NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule, NgForOf, NgIf } from '@angular/common';
+
 import {
   HttpClientModule,
   HttpClient,
@@ -21,7 +22,13 @@ import { HomeComponent } from './home.component/home.component';
 import { Forbidden } from './statusCode/forbidden/forbidden';
 import { AuthInterceptor } from './security/AuthInterceptor';
 import { LandingComponent } from './landing.component/landing.component';
+import { AccountComponent } from './account.component/account.component';
+import { AuthService } from './security/AuthService';
 
+
+export function initializeApp(authService: AuthService) {
+  return () => authService.cargarDatosIniciales();
+}
 @NgModule({
   declarations: [
     App,
@@ -33,6 +40,7 @@ import { LandingComponent } from './landing.component/landing.component';
     HomeComponent,
     Forbidden,
     LandingComponent,
+    AccountComponent
   ],
   imports: [
     BrowserModule,
@@ -59,6 +67,12 @@ import { LandingComponent } from './landing.component/landing.component';
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
       multi: true,
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      deps: [AuthService],
+      multi: true
     },
   ],
   bootstrap: [App],
