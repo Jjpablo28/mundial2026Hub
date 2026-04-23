@@ -1,4 +1,4 @@
-import {APP_INITIALIZER, NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { APP_INITIALIZER, NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing-module';
@@ -24,7 +24,7 @@ import { AuthInterceptor } from './security/AuthInterceptor';
 import { LandingComponent } from './landing.component/landing.component';
 import { AccountComponent } from './account.component/account.component';
 import { AuthService } from './security/AuthService';
-
+import { MatchComponent } from './match.component/match.component';
 
 export function initializeApp(authService: AuthService) {
   return () => authService.cargarDatosIniciales();
@@ -40,7 +40,8 @@ export function initializeApp(authService: AuthService) {
     HomeComponent,
     Forbidden,
     LandingComponent,
-    AccountComponent
+    AccountComponent,
+    MatchComponent,
   ],
   imports: [
     BrowserModule,
@@ -72,7 +73,7 @@ export function initializeApp(authService: AuthService) {
       provide: APP_INITIALIZER,
       useFactory: initializeApp,
       deps: [AuthService],
-      multi: true
+      multi: true,
     },
   ],
   bootstrap: [App],

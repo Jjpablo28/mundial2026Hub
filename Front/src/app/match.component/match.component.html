@@ -1,0 +1,174 @@
+<div class="dashboard-split-layout">
+
+  <div class="list-column">
+    <h3 class="column-title">Encuentros</h3>
+
+    <div class="search-filter-container">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Buscar equipo..." (input)="onSearchChange($event)">
+      </div>
+      <div class="filter-box">
+        <select (change)="onPhaseChange($event)">
+          <option value="TODAS">Todas las fases</option>
+          <option *ngFor="let fase of fasesDisponibles" [value]="fase">
+            {{ traducirFase(fase) }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="partidos.length === 0" class="loading-list">
+      <p>Cargando partidos...</p>
+    </div>
+
+    <div *ngIf="partidos.length > 0 && partidosFiltrados.length === 0" class="loading-list text-center">
+      <p><i class="fas fa-search-minus"></i> No se encontraron partidos.</p>
+    </div>
+
+    <div class="match-list-card" *ngFor="let partido of partidosFiltrados" (click)="verDetalles(partido)">
+
+      <div class="team-row home">
+        <span class="team-name" [class.tbd]="!partido.homeTeam?.name">{{ partido.homeTeam?.name || 'Por definir' }}</span>
+        <img *ngIf="partido.homeTeam?.crest; else noCrestLocal" [src]="partido.homeTeam?.crest" class="list-crest" alt="Crest">
+        <ng-template #noCrestLocal><div class="list-crest placeholder-crest"><i class="fas fa-shield-alt"></i></div></ng-template>
+      </div>
+
+      <div class="vs-row">
+        <span class="vs-badge">VS</span>
+      </div>
+
+      <div class="team-row away">
+        <img *ngIf="partido.awayTeam?.crest; else noCrestAway" [src]="partido.awayTeam?.crest" class="list-crest" alt="Crest">
+        <ng-template #noCrestAway><div class="list-crest placeholder-crest"><i class="fas fa-shield-alt"></i></div></ng-template>
+        <span class="team-name" [class.tbd]="!partido.awayTeam?.name">{{ partido.awayTeam?.name || 'Por definir' }}</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="detail-column">
+
+    <div class="empty-state-container" *ngIf="!isLoading && !match">
+      <div class="empty-content">
+        <i class="fas fa-futbol glowing-ball"></i>
+        <h3>Selecciona un encuentro</h3>
+        <p>Haz clic en cualquier partido de la lista para ver estadísticas, alineaciones y detalles en tiempo real.</p>
+      </div>
+    </div>
+
+    <div class="loader-container" *ngIf="isLoading">
+      <div class="pulse-ring"></div>
+      <p>Obteniendo datos del partido...</p>
+    </div>
+
+    <div class="match-card-container" *ngIf="!isLoading && match">
+      <div class="card-header">
+        <button class="icon-btn favorite"><i class="far fa-star"></i></button>
+        <div class="titles">
+          <h2>{{ match.homeTeam.name || 'Por definir' }} Vs {{ match.awayTeam.name || 'Por definir' }}</h2>
+          <p>{{ match.competitionInfo }}</p>
+        </div>
+        <button class="icon-btn close" (click)="onClose()"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="scoreboard">
+        <div class="team home">
+          <img *ngIf="match.homeTeam.crest" [src]="match.homeTeam.crest" class="crest">
+          <div *ngIf="!match.homeTeam.crest" class="crest placeholder-crest" style="font-size: 3rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.05); margin-bottom: 15px;"><i class="fas fa-shield-alt"></i></div>
+          <h3 class="team-name">{{ match.homeTeam.name || 'Por definir' }}</h3>
+          <span class="country" *ngIf="match.homeTeam.country">({{ match.homeTeam.country }})</span>
+        </div>
+
+        <div class="match-info">
+          <div class="status-badge" [ngClass]="match.status?.toLowerCase()">
+            {{ match.status === 'FINISHED' ? 'Finalizado' : (match.status === 'LIVE' ? 'En Vivo' : 'Próximo') }}
+          </div>
+          <div class="score-display" *ngIf="match.status === 'FINISHED' || match.status === 'LIVE'">
+            {{ match.homeScore }} - {{ match.awayScore }}
+          </div>
+          <div class="time-display" *ngIf="match.status === 'SCHEDULED'">
+            {{ match.date | date:'HH:mm' }}
+          </div>
+          <div class="date-display">{{ match.date | date:'dd/MM' }}</div>
+        </div>
+
+        <div class="team away">
+          <img *ngIf="match.awayTeam.crest" [src]="match.awayTeam.crest" class="crest">
+          <div *ngIf="!match.awayTeam.crest" class="crest placeholder-crest" style="font-size: 3rem; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.05); margin-bottom: 15px;"><i class="fas fa-shield-alt"></i></div>
+          <h3 class="team-name">{{ match.awayTeam.name || 'Por definir' }}</h3>
+          <span class="country" *ngIf="match.awayTeam.country">({{ match.awayTeam.country }})</span>
+        </div>
+      </div>
+
+      <div class="tabs-container">
+        <button class="tab-btn" *ngFor="let tab of tabs" [class.active]="activeTab === tab" (click)="selectTab(tab)">
+          {{ tab }}
+        </button>
+      </div>
+
+      <div class="tab-content">
+
+        <div *ngIf="activeTab === 'Partido'" class="tab-panel">
+          <p>Resumen del partido entre {{ match.homeTeam.name || 'Local' }} y {{ match.awayTeam.name || 'Visitante' }}.</p>
+        </div>
+
+        <div *ngIf="activeTab === 'Estadísticas'" class="tab-panel standings-panel">
+
+          <div class="internal-loader" *ngIf="isLoadingStandings">
+            <i class="fas fa-circle-notch fa-spin"></i> Cargando tabla del {{ match.group | titlecase }}...
+          </div>
+
+          <div class="standings-grid" *ngIf="!isLoadingStandings && grupoDelPartido">
+            <div class="group-table-card">
+              <div class="group-header">
+                <h3>Clasificación - {{ grupoDelPartido.group }}</h3>
+              </div>
+
+              <table class="standings-table">
+                <thead>
+                <tr>
+                  <th>#</th>
+                  <th style="text-align: left;">Equipo</th>
+                  <th title="Partidos Jugados">PJ</th>
+                  <th title="Victorias">G</th>
+                  <th title="Empates">E</th>
+                  <th title="Derrotas">P</th>
+                  <th title="Diferencia de Goles">DG</th>
+                  <th title="Puntos">Pts</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let row of grupoDelPartido.table"
+                    [class.qualified]="row.position <= 2"
+                    [style.background]="(row.team.name === match.homeTeam.name || row.team.name === match.awayTeam.name) ? 'rgba(225, 255, 87, 0.1)' : ''">
+                  <td class="pos">{{ row.position }}</td>
+                  <td class="team-info">
+                    <img [src]="row.team.crest" [alt]="row.team.name">
+                    <span [style.color]="(row.team.name === match.homeTeam.name || row.team.name === match.awayTeam.name) ? '#E1FF57' : '#fff'">
+                        {{ row.team.tla }}
+                      </span>
+                  </td>
+                  <td>{{ row.playedGames }}</td>
+                  <td>{{ row.won }}</td>
+                  <td>{{ row.draw }}</td>
+                  <td>{{ row.lost }}</td>
+                  <td>{{ row.goalDifference > 0 ? '+' + row.goalDifference : row.goalDifference }}</td>
+                  <td class="points">{{ row.points }}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div *ngIf="!isLoadingStandings && !grupoDelPartido" class="internal-loader">
+            <p style="color: #aaa; margin: 20px 0;"><i class="fas fa-info-circle"></i> No hay tabla de posiciones aplicable para este partido (Fase eliminatoria).</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

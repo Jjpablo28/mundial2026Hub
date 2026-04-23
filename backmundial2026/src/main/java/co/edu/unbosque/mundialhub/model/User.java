@@ -1,5 +1,6 @@
 package co.edu.unbosque.mundialhub.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -7,6 +8,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
@@ -43,6 +46,8 @@ public class User implements UserDetails {
 	private String code;
 	
 	private String avatarUrl;
+	
+	private Integer totalPoints;
 
 	private LocalDateTime verificationExpires;
 
@@ -53,6 +58,13 @@ public class User implements UserDetails {
 	private String favoriteTeam;
 	private String country;
 	private String city;
+	
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+	private List<Bet> bets;
+
+	@OneToMany(mappedBy = "owner")
+	private List<BetGroup> betGroups;
+
 	
 
 	@Enumerated(EnumType.STRING)
@@ -86,12 +98,11 @@ public class User implements UserDetails {
 		this.password = password;
 	}
 
-
-
 	public User(Long id, String userName, String name, String email, String password, String identification,
-			String code, LocalDateTime verificationExpires, LocalDateTime createdAt, LocalDateTime updatedAt,
-			LocalDateTime lastLogin, String favoriteTeam, String country, String city,String avatarUrl, Role role,
-			boolean accountNonExpired, boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled) {
+			String code, String avatarUrl, Integer totalPoints, LocalDateTime verificationExpires,
+			LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLogin, String favoriteTeam,
+			String country, String city, List<Bet> bets, List<BetGroup> betGroups, Role role, boolean accountNonExpired,
+			boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled) {
 		super();
 		this.id = id;
 		this.userName = userName;
@@ -100,6 +111,8 @@ public class User implements UserDetails {
 		this.password = password;
 		this.identification = identification;
 		this.code = code;
+		this.avatarUrl = avatarUrl;
+		this.totalPoints = totalPoints;
 		this.verificationExpires = verificationExpires;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
@@ -107,14 +120,14 @@ public class User implements UserDetails {
 		this.favoriteTeam = favoriteTeam;
 		this.country = country;
 		this.city = city;
+		this.bets = bets;
+		this.betGroups = betGroups;
 		this.role = role;
 		this.accountNonExpired = accountNonExpired;
 		this.accountNonLocked = accountNonLocked;
 		this.credentialsNonExpired = credentialsNonExpired;
 		this.enabled = enabled;
-		this.avatarUrl=avatarUrl;
 	}
-
 
 	public Long getId() {
 		return id;
@@ -298,6 +311,31 @@ public class User implements UserDetails {
 
 	public void setAvatarUrl(String avatarUrl) {
 		this.avatarUrl = avatarUrl;
+	}
+	
+
+	public Integer getTotalPoints() {
+		return totalPoints;
+	}
+
+	public void setTotalPoints(Integer totalPoints) {
+		this.totalPoints = totalPoints;
+	}
+
+	public List<Bet> getBets() {
+		return bets;
+	}
+
+	public void setBets(List<Bet> bets) {
+		this.bets = bets;
+	}
+
+	public List<BetGroup> getBetGroups() {
+		return betGroups;
+	}
+
+	public void setBetGroups(List<BetGroup> betGroups) {
+		this.betGroups = betGroups;
 	}
 
 	@Override

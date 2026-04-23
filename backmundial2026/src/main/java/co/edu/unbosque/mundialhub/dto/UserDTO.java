@@ -1,7 +1,10 @@
 package co.edu.unbosque.mundialhub.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import co.edu.unbosque.mundialhub.model.Bet;
+import co.edu.unbosque.mundialhub.model.BetGroup;
 import co.edu.unbosque.mundialhub.model.User.Role;
 
 
@@ -22,11 +25,16 @@ public class UserDTO {
     private String password;
     private Role role; 
     private String avatarUrl;
+	private Integer totalPoints;
     
     private String country;
     private String favoriteTeam;
     private String city;
 	
+	private List<Bet> bets;
+	private List<BetGroup> betGroups;
+
+    
     private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 	private LocalDateTime lastLogin;
@@ -46,9 +54,12 @@ public class UserDTO {
 	}
 
 
+
+
 	public UserDTO(String userName, String name, String email, String identification, String code,
-			LocalDateTime verificationExpires, String password,String avatarUrl, Role role,String country,String city, String favoriteTeam, LocalDateTime createdAt,
-			LocalDateTime updatedAt, LocalDateTime lastLogin) {
+			LocalDateTime verificationExpires, String password, Role role, String avatarUrl, Integer totalPoints,
+			String country, String favoriteTeam, String city, List<Bet> bets, List<BetGroup> betGroups,
+			LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLogin) {
 		super();
 		this.userName = userName;
 		this.name = name;
@@ -57,14 +68,17 @@ public class UserDTO {
 		this.code = code;
 		this.verificationExpires = verificationExpires;
 		this.password = password;
-		this.city=city;
-		this.country=country;
 		this.role = role;
+		this.avatarUrl = avatarUrl;
+		this.totalPoints = totalPoints;
+		this.country = country;
 		this.favoriteTeam = favoriteTeam;
+		this.city = city;
+		this.bets = bets;
+		this.betGroups = betGroups;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 		this.lastLogin = lastLogin;
-		this.avatarUrl=avatarUrl;
 	}
 
 
@@ -214,15 +228,51 @@ public class UserDTO {
 		this.avatarUrl = avatarUrl;
 	}
 
+	
+	
+
+	public Integer getTotalPoints() {
+		return totalPoints;
+	}
+
+
+	public void setTotalPoints(Integer totalPoints) {
+		this.totalPoints = totalPoints;
+	}
+
+
+	public List<Bet> getBets() {
+		return bets;
+	}
+
+
+	public void setBets(List<Bet> bets) {
+		this.bets = bets;
+	}
+
+
+	public List<BetGroup> getBetGroups() {
+		return betGroups;
+	}
+
+
+	public void setBetGroups(List<BetGroup> betGroups) {
+		this.betGroups = betGroups;
+	}
+
 
 	@Override
 	public String toString() {
 		return "UserDTO [id=" + id + ", userName=" + userName + ", name=" + name + ", email=" + email
 				+ ", identification=" + identification + ", code=" + code + ", verificationExpires="
 				+ verificationExpires + ", password=" + password + ", role=" + role + ", avatarUrl=" + avatarUrl
-				+ ", country=" + country + ", favoriteTeam=" + favoriteTeam + ", city=" + city + ", createdAt="
-				+ createdAt + ", updatedAt=" + updatedAt + ", lastLogin=" + lastLogin + "]";
+				+ ", totalPoints=" + totalPoints + ", country=" + country + ", favoriteTeam=" + favoriteTeam + ", city="
+				+ city + ", bets=" + bets + ", betGroups=" + betGroups + ", createdAt=" + createdAt + ", updatedAt="
+				+ updatedAt + ", lastLogin=" + lastLogin + "]";
 	}
+
+
+
 
 	
     

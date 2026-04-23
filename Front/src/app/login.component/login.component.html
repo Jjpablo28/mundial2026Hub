@@ -27,7 +27,10 @@
             />
           </div>
 
-          <button>Iniciar Sesión</button>
+          <button type="submit" [disabled]="isLoading" [ngStyle]="{'opacity': isLoading ? '0.7' : '1'}">
+            <span *ngIf="!isLoading">Iniciar Sesión</span>
+            <span *ngIf="isLoading"><i class="fas fa-circle-notch fa-spin"></i> Entrando...</span>
+          </button>
         </form>
 
         <p class="link-text">
@@ -44,7 +47,7 @@
     <div class="auth-right">
       <div class="info-box">
 
-        <img src="assets/img/ae69d8e0-e865-468d-93ec-b9263784c326.jpg" alt="Info Login" />
+        <img src="assets/img/WhatsApp%20Image%202026-04-12%20at%207.25.58%20PM.png" alt="Info Login" />
       </div>
     </div>
 
@@ -119,5 +122,12 @@
     <button class="close-btn" (click)="showErrorPopup = false">
       <i class="fas fa-times"></i>
     </button>
+  </div>
+</div>
+<div class="loader-overlay" *ngIf="isLoading">
+  <div class="loader-content">
+    <div class="pulse-ring"></div>
+    <h3>Iniciando sesión...</h3>
+    <p>Preparando tu Mundial 2026</p>
   </div>
 </div>

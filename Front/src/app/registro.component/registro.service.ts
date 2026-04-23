@@ -53,7 +53,7 @@ export class RegistroService {
 
   register(data: any, rol: string): Observable<any> {
     const params = new HttpParams().set('rol', rol);
-    return this.http.post<any>(this.apiUrl +'auth/ '+'register', data, { params });
+    return this.http.post<any>(this.apiUrl +'auth/'+'register', data, { params });
   }
 
   resendCode(email: string): Observable<any> {

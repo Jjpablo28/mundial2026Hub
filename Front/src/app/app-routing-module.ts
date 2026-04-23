@@ -15,7 +15,7 @@ const routes: Routes = [
   { path: 'register', component: RegistroComponent },
   { path: 'verify', component: VerifyComponent },
   { path: 'forbidden', component: Forbidden },
-  { path: 'home', component: HomeComponent,  canActivate: [AuthGuard], data: { rolesPermitidos: ['TEMPORAL'] }},
+  { path: 'home', component: HomeComponent,  canActivate: [AuthGuard], data: { rolesPermitidos: ['TEMPORAL','USER'] }},
   {path:'landing',component: LandingComponent}
 ];
 

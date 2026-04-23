@@ -13,7 +13,6 @@ import co.edu.unbosque.mundialhub.dto.TeamDTO;
 import co.edu.unbosque.mundialhub.dto.UserDTO;
 import co.edu.unbosque.mundialhub.model.GroupName;
 import co.edu.unbosque.mundialhub.model.Team;
-import co.edu.unbosque.mundialhub.model.User;
 import co.edu.unbosque.mundialhub.repository.TeamRepository;
 
 @Service

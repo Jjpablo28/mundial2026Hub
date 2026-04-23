@@ -9,6 +9,9 @@
 
     <nav class="sidebar-nav">
       <a class="nav-link" [class.active]="menuActivo === 'partidos'" (click)="cambiarMenu('partidos')">
+        <i class="fas fa-futbol"></i> Partidos
+      </a>
+      <a class="nav-link" [class.active]="menuActivo === 'equipos'" (click)="cambiarMenu('equipos')">
         <i class="fas fa-flag"></i> Equipos
       </a>
       <a class="nav-link" [class.active]="menuActivo === 'proyectos'" (click)="cambiarMenu('proyectos')">
@@ -47,7 +50,7 @@
           {{ menuActivo === 'cuenta' ? 'Configuración de Cuenta' : 'Bienvenido de nuevo, ' + userName }}
         </h1>
         <p class="role-badge" *ngIf="menuActivo !== 'cuenta'">
-          Rol: <span [ngClass]="userRole === 'admin' ? 'admin' : 'user'">{{ userRole | uppercase }}</span>
+         <span [ngClass]="userRole === 'admin' ? 'admin' : 'user'"></span>
         </p>
       </div>
 
@@ -222,7 +225,7 @@
                   <div class="bracket-center-v2">
                     <div class="world-champions-title">WORLD CHAMPIONS</div>
                     <div class="winner-box">?</div>
-                    <img src="assets/img/favicon.ico" class="main-trophy-img" alt="Trophy"> </div>
+                    <img src="assets/img/favicon.ico" class="main-trophy-img" alt="Trophy"></div>
 
                   <div class="bracket-side right-side">
                     <div class="bracket-col col-1-match semis">
@@ -308,8 +311,16 @@
 
       </ng-container>
 
-
       <ng-container *ngSwitchCase="'partidos'">
+
+
+            <app-match></app-match>
+
+
+      </ng-container>
+
+
+      <ng-container *ngSwitchCase="'equipos'">
 
         <button class="btn-back" (click)="cambiarMenu('dashboard')">
           <i class="fas fa-arrow-left"></i> Volver al Inicio
@@ -317,7 +328,8 @@
 
         <div class="page-header" style="margin-bottom: 2.5rem;">
           <h2 style="font-size: 1.8rem; font-weight: 700; color: #fff;">Equipos Clasificados Oficialmente</h2>
-          <p style="color: #AAAAAA; font-size: 0.95rem;">Conoce las 48 selecciones que disputarán la Copa del Mundo 2026.</p>
+          <p style="color: #AAAAAA; font-size: 0.95rem;">Conoce las 48 selecciones que disputarán la Copa del Mundo
+            2026.</p>
         </div>
 
         <div class="loader-container" *ngIf="isLoading">
@@ -327,28 +339,28 @@
 
         <div *ngIf="!isLoading">
 
-            <div class="group-filters">
-              <button
-                *ngFor="let group of groups"
-                class="filter-btn"
-                [class.active]="selectedGroup === group"
-                (click)="filterByGroup(group)">
-                {{ group === 'Todos' ? 'Todos' : 'Grupo ' + group }}
-              </button>
+          <div class="group-filters">
+            <button
+              *ngFor="let group of groups"
+              class="filter-btn"
+              [class.active]="selectedGroup === group"
+              (click)="filterByGroup(group)">
+              {{ group === 'Todos' ? 'Todos' : 'Grupo ' + group }}
+            </button>
 
           </div>
           <div class="controls-toolbar">
-          <div class="sort-segmented-control">
-            <button [class.active]="sortOption === 'clasificacion'" (click)="changeSort('clasificacion')">
-              <i class="fas fa-trophy"></i> Clasificación
-            </button>
-            <button [class.active]="sortOption === 'asc'" (click)="changeSort('asc')">
-              <i class="fas fa-sort-alpha-down"></i> A-Z
-            </button>
-            <button [class.active]="sortOption === 'desc'" (click)="changeSort('desc')">
-              <i class="fas fa-sort-alpha-up"></i> Z-A
-            </button>
-          </div>
+            <div class="sort-segmented-control">
+              <button [class.active]="sortOption === 'clasificacion'" (click)="changeSort('clasificacion')">
+                <i class="fas fa-trophy"></i> Clasificación
+              </button>
+              <button [class.active]="sortOption === 'asc'" (click)="changeSort('asc')">
+                <i class="fas fa-sort-alpha-down"></i> A-Z
+              </button>
+              <button [class.active]="sortOption === 'desc'" (click)="changeSort('desc')">
+                <i class="fas fa-sort-alpha-up"></i> Z-A
+              </button>
+            </div>
           </div>
           <div class="teams-grid">
             <div
@@ -377,27 +389,32 @@
             <div class="modal-header">
               <img [src]="viewingTeam?.crest" [alt]="viewingTeam?.name" class="modal-crest">
               <div>
-                <h2 style="color: #fff; margin-bottom: 5px; font-size: 1.5rem;">{{ viewingTeam?.name }} ({{ viewingTeam?.shortName }})</h2>
+                <h2 style="color: #fff; margin-bottom: 5px; font-size: 1.5rem;">{{ viewingTeam?.name }}
+                  ({{ viewingTeam?.shortName }})</h2>
                 <span class="badge">Grupo {{ viewingTeam?.groupName }}</span>
                 <span class="badge" style="margin-left: 10px;">Ranking FIFA: {{ viewingTeam?.fifaRanking }}</span>
               </div>
             </div>
 
             <div class="matches-section">
-              <h3 style="color: #E1FF57; margin-bottom: 15px; font-size: 1.1rem;"><i class="fas fa-calendar-alt"></i> Próximos Partidos</h3>
+              <h3 style="color: #E1FF57; margin-bottom: 15px; font-size: 1.1rem;"><i class="fas fa-calendar-alt"></i>
+                Próximos Partidos</h3>
 
               <div class="match-item" *ngFor="let match of viewingTeam?.matches">
                 <div class="match-date">{{ match.date | date:'dd MMM yyyy • HH:mm' }}</div>
-                <div class="match-details" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div class="match-details"
+                     style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                   <div>
                     <div class="match-phase">{{ match.phase }}</div>
                     <div class="match-rival">vs {{ match.rival }}</div>
                   </div>
-                  <img *ngIf="match.rivalCrest" [src]="match.rivalCrest" [alt]="match.rival" style="width: 35px; height: 35px; object-fit: contain;">
+                  <img *ngIf="match.rivalCrest" [src]="match.rivalCrest" [alt]="match.rival"
+                       style="width: 35px; height: 35px; object-fit: contain;">
                 </div>
               </div>
 
-              <div *ngIf="!viewingTeam?.matches || viewingTeam?.matches.length === 0" style="color: #aaa; text-align: center; padding: 20px;">
+              <div *ngIf="!viewingTeam?.matches || viewingTeam?.matches.length === 0"
+                   style="color: #aaa; text-align: center; padding: 20px;">
                 No hay partidos programados por ahora.
               </div>
             </div>

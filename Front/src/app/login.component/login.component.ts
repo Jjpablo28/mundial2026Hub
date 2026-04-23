@@ -23,6 +23,7 @@ export class LoginComponent {
   errorMessage: string = '';
   showNewPasswordModal = false;
   showErrorPopup = false;
+  public isLoading: boolean = false;
 
   constructor(
     private loginService: LoginService,
@@ -33,22 +34,38 @@ export class LoginComponent {
   }
 
   login() {
+    // 👇 2. Encendemos el loader apenas hacen clic
+    this.isLoading = true;
+
     const body = {
       identifier: this.identifier,
       password: this.password
     };
+
     this.loginService.login(body).subscribe({
-      next: (response) => {
+      next: async (response) => {
         if (response.token) {
           this.authService.saveToken(response.token);
           console.log('Login exitoso. Token guardado.');
           this.authService.isAuthenticatedSubject.next(true);
-          const role = this.authService.getRole();
+
+          await this.authService.cargarDatosIniciales();
         }
+
+        this.isLoading = false;
         this.router.navigate(['/home']);
-        console.log('Registro exitoso', response, 'Data', body);
       },
-      error: (err) => console.log('Error en login', err)
+      error: (err) => {
+        console.log('Error en login', err);
+        this.isLoading = false;
+        this.errorMessage = 'Credenciales incorrectas';
+        this.showErrorPopup = true;
+
+        setTimeout(() => {
+          this.showErrorPopup = false;
+          this.cdr.detectChanges();
+        }, 5000);
+      }
     });
   }
 

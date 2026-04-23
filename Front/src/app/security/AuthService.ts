@@ -59,7 +59,8 @@ export class AuthService {
     const registroService = this.injector.get(RegistroService);
 
     try {
-      // 🚀 Ejecutamos todas las peticiones en paralelo para ganar velocidad
+      // 🚀 Usamos Promise.all con 'await' para que la función NO termine
+      // hasta que las tres peticiones hayan respondido con éxito.
       const [user, teams, countries] = await Promise.all([
         id ? firstValueFrom(homeService.getUserById(id)) : Promise.resolve(null),
         firstValueFrom(registroService.getTeams()),
@@ -67,13 +68,59 @@ export class AuthService {
       ]);
 
       if (user) this.userData.next(user);
-      if (teams) this.teamsData.next(teams);
-      if (countries) this.countriesData.next(countries);
+      if (teams) {
+        this.teamsData.next(teams);
+        localStorage.setItem('mundial_teams', JSON.stringify(teams));
+      }
+      if (countries) {
+        this.countriesData.next(countries);
+        localStorage.setItem('mundial_countries', JSON.stringify(countries));
+      }
+
+      console.log('✅ Todos los datos cargados correctamente.');
 
     } catch (error) {
-      console.error("Error cargando datos de inicio", error);
+      console.error("Error crítico cargando datos iniciales", error);
+      // Opcional: Si falla la carga de datos críticos, puedes forzar logout
+      // this.logout();
     }
   }
+
+  // 👇 NUEVO MÉTODO: Maneja la caché inteligente
+  private async cargarCatalogosEstaticos(registroService: any): Promise<void> {
+    // Revisamos si ya los tenemos guardados en la memoria del navegador
+    const cachedTeams = localStorage.getItem('mundial_teams');
+    const cachedCountries = localStorage.getItem('mundial_countries');
+
+    if (cachedTeams && cachedCountries) {
+      // Si ya existen, los cargamos instantáneamente (Toma 0.001 segundos)
+      this.teamsData.next(JSON.parse(cachedTeams));
+      this.countriesData.next(JSON.parse(cachedCountries));
+      console.log('⚡ Equipos y países cargados desde la caché local');
+    } else {
+      // Si es la primera vez que entra, los descargamos de la base de datos
+      try {
+        const [teams, countries] = await Promise.all([
+          firstValueFrom(registroService.getTeams()),
+          firstValueFrom(registroService.getCountries())
+        ]);
+
+        // Actualizamos las variables para que el HTML las pueda usar
+        if (teams) this.teamsData.next(teams as any[]);
+        if (countries) this.countriesData.next(countries as string[]);
+        // Los guardamos en localStorage para futuras visitas
+        localStorage.setItem('mundial_teams', JSON.stringify(teams));
+        localStorage.setItem('mundial_countries', JSON.stringify(countries));
+        console.log('☁️ Equipos y países descargados y guardados en caché');
+
+      } catch (error) {
+        console.error("Error descargando los catálogos estáticos", error);
+      }
+    }
+  }
+
+  // Actualiza tu método logout() para limpiar la caché si lo deseas
+
   getTeamsValue() { return this.teamsData.getValue(); }
   getCountriesValue() { return this.countriesData.getValue(); }
 
@@ -123,11 +170,10 @@ export class AuthService {
 
   logout(): void {
     this.removeToken();
-    localStorage.clear();
+    localStorage.clear(); // Esto borrará los tokens y nuestra nueva caché
     this.router.navigate(['/']);
     this.isAuthenticatedSubject.next(false);
   }
-
   saveToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);
   }

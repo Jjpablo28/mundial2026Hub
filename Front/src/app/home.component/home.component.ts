@@ -50,13 +50,13 @@ export class HomeComponent implements OnInit {
   public isStadiumModalOpen: boolean = false;
   public isBracketModalOpen: boolean = false;
 
+  public partidos: any[] = [];
 
   public isFixtureModalOpen: boolean = false;
   public fixtureGroups: { name: string, matches: any[] }[] = [];
   public fixtureKnockout: { name: string, matches: any[] }[] = [];
 
   public selectedStadium: any = null;
-  public isDropdownOpen: boolean = false;
   public selectedTeam: Team | null = null;
   public viewingTeam: any = null;
 
@@ -169,6 +169,20 @@ export class HomeComponent implements OnInit {
 
   closeFixtureModal() {
     this.isFixtureModalOpen = false;
+  }
+  cargarPartidos() {
+    this.homeService.getMatches().subscribe({
+      next: (res) => {
+        this.partidos = res;
+
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.log(err);
+        this.isLoading = false;
+      }
+    });
   }
 
   changeSort(option: 'clasificacion' | 'asc' | 'desc') {
@@ -290,6 +304,7 @@ export class HomeComponent implements OnInit {
     this.teams = this.authService.getTeamsValue() || [];
     this.loadTeams();
     this.loadCountries();
+    this.cargarPartidos()
     this.userName = this.authService.getUserName() || 'Usuario';
 
     this.authService.avatar$.subscribe(url => {
