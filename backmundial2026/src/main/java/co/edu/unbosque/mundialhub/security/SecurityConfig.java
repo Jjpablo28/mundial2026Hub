@@ -66,6 +66,7 @@ public class SecurityConfig {
 	        .authorizeHttpRequests(auth -> {
 	            auth.requestMatchers("/auth/**").permitAll();
 	            auth.requestMatchers("/teams/**").permitAll();
+	            auth.requestMatchers("/sticker/**").permitAll();
 	            auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
 	            auth.anyRequest().authenticated();
 	        })

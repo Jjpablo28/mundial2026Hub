@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import co.edu.unbosque.mundialhub.dto.TeamDTO;
-import co.edu.unbosque.mundialhub.dto.UserDTO;
 import co.edu.unbosque.mundialhub.model.GroupName;
 import co.edu.unbosque.mundialhub.model.Team;
 import co.edu.unbosque.mundialhub.repository.TeamRepository;
@@ -59,7 +58,7 @@ public class TeamService implements CRUDOperation<TeamDTO, Team> {
 			}
 
 			entity.setCreatedAt(LocalDateTime.now());
-			entity.setUpdatedAt(	null);
+			entity.setUpdatedAt(null);
 
 			teamRepo.save(entity);
 
@@ -89,12 +88,12 @@ public class TeamService implements CRUDOperation<TeamDTO, Team> {
 	public List<Team> findAllDESC() {
 		return teamRepo.findAllByOrderByNameDesc();
 	}
-	public UserDTO findById(Long id) {
+	public TeamDTO findById(Long id) {
 
 		Team entity = teamRepo.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Equipo no encontrado con ID: " + id));
 
-		UserDTO dto = modelMapper.map(entity, UserDTO.class);
+		TeamDTO dto = modelMapper.map(entity, TeamDTO.class);
 	
 		return dto;
 	}

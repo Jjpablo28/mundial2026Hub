@@ -3,8 +3,7 @@ package co.edu.unbosque.mundialhub.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import co.edu.unbosque.mundialhub.model.Bet;
-import co.edu.unbosque.mundialhub.model.BetGroup;
+
 import co.edu.unbosque.mundialhub.model.User.Role;
 
 
@@ -31,8 +30,7 @@ public class UserDTO {
     private String favoriteTeam;
     private String city;
 	
-	private List<Bet> bets;
-	private List<BetGroup> betGroups;
+
 
     
     private LocalDateTime createdAt;
@@ -58,7 +56,7 @@ public class UserDTO {
 
 	public UserDTO(String userName, String name, String email, String identification, String code,
 			LocalDateTime verificationExpires, String password, Role role, String avatarUrl, Integer totalPoints,
-			String country, String favoriteTeam, String city, List<Bet> bets, List<BetGroup> betGroups,
+			String country, String favoriteTeam, String city,
 			LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLogin) {
 		super();
 		this.userName = userName;
@@ -74,8 +72,7 @@ public class UserDTO {
 		this.country = country;
 		this.favoriteTeam = favoriteTeam;
 		this.city = city;
-		this.bets = bets;
-		this.betGroups = betGroups;
+
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 		this.lastLogin = lastLogin;
@@ -241,25 +238,6 @@ public class UserDTO {
 	}
 
 
-	public List<Bet> getBets() {
-		return bets;
-	}
-
-
-	public void setBets(List<Bet> bets) {
-		this.bets = bets;
-	}
-
-
-	public List<BetGroup> getBetGroups() {
-		return betGroups;
-	}
-
-
-	public void setBetGroups(List<BetGroup> betGroups) {
-		this.betGroups = betGroups;
-	}
-
 
 	@Override
 	public String toString() {
@@ -267,7 +245,7 @@ public class UserDTO {
 				+ ", identification=" + identification + ", code=" + code + ", verificationExpires="
 				+ verificationExpires + ", password=" + password + ", role=" + role + ", avatarUrl=" + avatarUrl
 				+ ", totalPoints=" + totalPoints + ", country=" + country + ", favoriteTeam=" + favoriteTeam + ", city="
-				+ city + ", bets=" + bets + ", betGroups=" + betGroups + ", createdAt=" + createdAt + ", updatedAt="
+				+ city  + ", createdAt=" + createdAt + ", updatedAt="
 				+ updatedAt + ", lastLogin=" + lastLogin + "]";
 	}
 

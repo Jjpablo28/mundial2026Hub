@@ -1,35 +1,55 @@
 package co.edu.unbosque.mundialhub.configuration;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import co.edu.unbosque.mundialhub.model.User;
 import co.edu.unbosque.mundialhub.model.User.Role;
 import co.edu.unbosque.mundialhub.model.Team;
 import co.edu.unbosque.mundialhub.model.GroupName;
+import co.edu.unbosque.mundialhub.model.Rarity;
+import co.edu.unbosque.mundialhub.model.Sticker;
 import co.edu.unbosque.mundialhub.repository.UserRepository;
+import co.edu.unbosque.mundialhub.service.ExternalHTTPRequestHandler;
+import co.edu.unbosque.mundialhub.repository.StickerRepository;
 import co.edu.unbosque.mundialhub.repository.TeamRepository;
 import co.edu.unbosque.mundialhub.util.AESUtil;
 
 @Service
 public class DatabaseInitializer {
+	@Value("${api-football}")
+	private String apiKey;
 
 	private static final Logger log = LoggerFactory.getLogger(DatabaseInitializer.class);
 
 	private final UserRepository userRepo;
 	private final PasswordEncoder passwordEncoder;
 	private final TeamRepository teamRepo;
+	private final StickerRepository stickerRepo;
+	private final ModelMapper modelMapper;
 
-	public DatabaseInitializer(UserRepository userRepo, PasswordEncoder passwordEncoder, TeamRepository teamRepo) {
+	public DatabaseInitializer(UserRepository userRepo, PasswordEncoder passwordEncoder, TeamRepository teamRepo,
+			StickerRepository stickerRepo, ModelMapper modelMapper) {
 		this.userRepo = userRepo;
 		this.passwordEncoder = passwordEncoder;
 		this.teamRepo = teamRepo;
+		this.stickerRepo = stickerRepo;
+		this.modelMapper = modelMapper;
 	}
 
 	@Transactional
@@ -42,11 +62,152 @@ public class DatabaseInitializer {
 		createDefaultUser("supportUser", Role.SUPPORT);
 		createDefaultUser("operatorUser", Role.OPERATOR);
 
+		createPlayers();
+
 		loadTeams();
 
 		log.info("Proceso de inicialización finalizado con éxito.");
 	}
 
+	private void createPlayers() {
+		if (stickerRepo.count() == 513) {
+			System.out.println("Los jugadores ya están precargados en la base de datos. Hay " + stickerRepo.count() + " Jugadores");
+			return;
+		}
+
+		List<Integer> teams = Arrays.asList(12, 31, 1569, 15, 13, 5529, 9, 27, 8, 26, 25, 16, 2384, 6, 2, 10, 7, 3, 1, 22);
+		String url = "https://v3.football.api-sports.io/players/squads?team=";
+
+		for (Integer teamId : teams) {
+			String fullUrl = url + teamId;
+			long team = 0;
+
+			switch (teamId) {
+				case 9:    team = 29; break;
+				case 27:   team = 41; break;
+				case 8:    team = 44; break;
+				case 26:   team = 37; break;
+				case 25:   team = 17; break;
+				case 16:   team = 1;  break;
+				case 2384: team = 13; break;
+				case 6:    team = 9;  break;
+				case 2:    team = 33; break;
+				case 10:   team = 45; break;
+				case 7:    team = 32; break;
+				case 3:    team = 46; break;
+				case 1:    team = 25; break;
+				case 22:   team = 27; break;
+				case 12:   team = 22; break;
+				case 31:   team = 10; break;
+				case 1569: team = 7;  break;
+				case 15:   team = 8;  break;
+				case 13:   team = 34; break;
+				case 5529: team = 5;  break;
+				default:   team = 0;  break;
+			}
+
+			System.out.println("Consultando equipo ID: " + teamId + " -> URL: " + fullUrl);
+
+			boolean success = false;
+			int retries = 0;
+			int maxRetries = 3; // Intentará hasta 3 veces por equipo antes de rendirse
+
+			while (!success && retries < maxRetries) {
+				try {
+					String responseBody = ExternalHTTPRequestHandler.doGetWithAuthTokenApiFootball(fullUrl, apiKey);
+
+					if (responseBody != null && !responseBody.contains("requests limit")) {
+						
+						JsonObject jsonObject = JsonParser.parseString(responseBody).getAsJsonObject();
+						JsonArray responseArray = jsonObject.getAsJsonArray("response");
+
+						for (JsonElement element : responseArray) {
+							JsonObject item = element.getAsJsonObject();
+							JsonArray playersArray = item.getAsJsonArray("players");
+
+							int countGoalkeeper = 0;
+							int countDefender = 0;
+							int countMidfielder = 0;
+							int countAttacker = 0;
+
+							for (JsonElement playerEl : playersArray) {
+								JsonObject playerObj = playerEl.getAsJsonObject();
+								String position = playerObj.get("position").getAsString();
+
+								if ("Goalkeeper".equals(position)) {
+									if (countGoalkeeper >= 3) continue;
+									countGoalkeeper++;
+								} else if ("Defender".equals(position)) {
+									if (countDefender >= 8) continue;
+									countDefender++;
+								} else if ("Midfielder".equals(position)) {
+									if (countMidfielder >= 9) continue;
+									countMidfielder++;
+								} else if ("Attacker".equals(position)) {
+									if (countAttacker >= 6) continue;
+									countAttacker++;
+								} else {
+									continue;
+								}
+
+								String playerName = playerObj.get("name").getAsString();
+								String imgUrl = playerObj.get("photo").getAsString();
+
+								System.out.println("Jugador guardado: " + playerName + " - " + position);
+
+								Sticker sticker = new Sticker();
+								sticker.setId(null);
+								sticker.setImageUrl(imgUrl);
+								sticker.setPlayerName(playerName);
+								sticker.setPosition(position);
+
+								Team teamf = teamRepo.findById(team).orElse(null);
+								sticker.setTeam(teamf);
+
+								if ("Goalkeeper".equals(position)) {
+									sticker.setRarity(Rarity.RARE);
+									sticker.setCost(30);
+								} else if ("Defender".equals(position)) {
+									sticker.setRarity(Rarity.COMMON);
+									sticker.setCost(10);
+								} else if ("Midfielder".equals(position)) {
+									sticker.setRarity(Rarity.EPIC);
+									sticker.setCost(40);
+								} else if ("Attacker".equals(position)) {
+									sticker.setRarity(Rarity.LEGENDARY);
+									sticker.setCost(50);
+								}
+
+								sticker.setCreatedAt(LocalDateTime.now());
+								stickerRepo.save(sticker);
+							}
+						}
+						
+						success = true; 
+
+					} else {
+						System.out.println("⚠️ Límite de peticiones de la API alcanzado. Esperando 60 segundos...");
+						Thread.sleep(60000); 
+						retries++;
+					}
+
+				} catch (Exception e) {
+					if (e.getMessage() != null && e.getMessage().contains("429")) {
+						System.out.println("⚠️ Error HTTP 429 detectado. Esperando 60 segundos antes de reintentar...");
+						try {
+							Thread.sleep(60000);
+						} catch (InterruptedException ie) {
+							Thread.currentThread().interrupt();
+						}
+						retries++;
+					} else {
+						System.out.println("❌ Ocurrió un error inesperado consultando el equipo " + teamId + ": " + e.getMessage());
+						break; 
+					}
+				}
+			}
+		}
+	}
 	private void createDefaultUser(String username, Role role) {
 		String encryptedUsername = AESUtil.encrypt(username);
 		Optional<User> found = userRepo.findByUserName(encryptedUsername);
@@ -55,8 +216,7 @@ public class DatabaseInitializer {
 			log.info("El usuario '{}' ya existe, omitiendo creación.", username);
 		} else {
 			User newUser = new User(null, encryptedUsername, null, null, passwordEncoder.encode("1234567890"), null,
-					null, null, null, null, null, null, null, null, null, null, null, null, null, true, true, true,
-					true);
+					null, null, null, null, null, null, null, null, null, null, null, true, true, true, true);
 			newUser.setRole(role);
 			newUser.setEnabled(true);
 			newUser.setAccountNonExpired(true);
@@ -177,5 +337,9 @@ public class DatabaseInitializer {
 		newTeam.setPoints(points);
 		newTeam.setCreatedAt(LocalDateTime.now());
 		teamRepo.save(newTeam);
+	}
+
+	public ModelMapper getModelMapper() {
+		return modelMapper;
 	}
 }

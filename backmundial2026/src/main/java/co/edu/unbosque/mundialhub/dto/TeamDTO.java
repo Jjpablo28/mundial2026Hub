@@ -6,7 +6,9 @@ import co.edu.unbosque.mundialhub.model.GroupName;
 
 
 public class TeamDTO {
-
+	
+	
+	private Long id;
    
     private String name;
 
@@ -34,9 +36,13 @@ public class TeamDTO {
 	}
 
 	
-	public TeamDTO(String name, String shortName, String crest, String country, GroupName groupName, Integer fifaRanking,
-			Integer points, LocalDateTime createdAt, LocalDateTime updatedAt) {
+
+
+
+	public TeamDTO(Long id, String name, String shortName, String crest, String country, GroupName groupName,
+			Integer fifaRanking, Integer points, LocalDateTime createdAt, LocalDateTime updatedAt) {
 		super();
+		this.id = id;
 		this.name = name;
 		this.shortName = shortName;
 		this.crest = crest;
@@ -47,6 +53,9 @@ public class TeamDTO {
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 	}
+
+
+
 
 
 	public String getName() {
@@ -122,12 +131,33 @@ public class TeamDTO {
 	}
 
 
+	public Long getId() {
+		return id;
+	}
+
+
+
+
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+
+
+
+
 	@Override
 	public String toString() {
-		return "TeamDTO [name=" + name + ", shortName=" + shortName + ", crest=" + crest + ", country=" + country
-				+ ", groupName=" + groupName + ", fifaRanking=" + fifaRanking + ", points=" + points + ", createdAt="
-				+ createdAt + ", updatedAt=" + updatedAt + "]";
+		return "TeamDTO [id=" + id + ", name=" + name + ", shortName=" + shortName + ", crest=" + crest + ", country="
+				+ country + ", groupName=" + groupName + ", fifaRanking=" + fifaRanking + ", points=" + points
+				+ ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}
-    
+
+
+
+
+
+
     
 }

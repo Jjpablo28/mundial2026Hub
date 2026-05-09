@@ -4,9 +4,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -19,12 +16,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 import co.edu.unbosque.mundialhub.dto.TeamDTO;
 import co.edu.unbosque.mundialhub.model.Team;
 import co.edu.unbosque.mundialhub.repository.TeamRepository;
 import co.edu.unbosque.mundialhub.service.ExternalHTTPRequestHandler;
+import co.edu.unbosque.mundialhub.service.StickerService;
 import co.edu.unbosque.mundialhub.service.TeamService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -39,6 +36,10 @@ public class TeamController {
 
 	@Autowired
 	private TeamRepository teamRepo;
+	
+	@Autowired
+	private StickerService stickerserv;
+	
 	@Value("${api.footbalData}")
 	private String apiKey;
 
@@ -51,6 +52,8 @@ public class TeamController {
 				.body(Map.of("message", "El equipo ha sido creado", "success", true));
 	}
 
+
+	
 	@GetMapping({ "", "/", "/{order:[a-zA-Z]+}" })
 	public ResponseEntity<?> getAll(@PathVariable(required = false) String order) {
 		try {
@@ -115,6 +118,18 @@ public class TeamController {
 	public ResponseEntity<?> countAll() {
 
 		Long count = teamServ.count();
+
+		if (count == 0) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(count);
+		}
+
+		return ResponseEntity.ok(count);
+	}
+	
+	@GetMapping("countpl")
+	public ResponseEntity<?> countAllPl() {
+
+		Long count = stickerserv.count();
 
 		if (count == 0) {
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).body(count);

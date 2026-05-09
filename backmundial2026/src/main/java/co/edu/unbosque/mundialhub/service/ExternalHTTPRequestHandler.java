@@ -144,6 +144,33 @@ public class ExternalHTTPRequestHandler {
 		return null; // Retorna null en caso de que falle la petición
 	}
 	
+	public static String doGetWithAuthTokenApiFootball(String url, String token) {
+		HttpRequest request = HttpRequest.newBuilder()
+				.GET()
+				.uri(URI.create(url))
+				.header("Content-Type", "application/json")
+				.header("x-apisports-key", token) 
+				.build();
+
+		HttpResponse<String> response = null;
+
+		try {
+			response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+			System.out.println("status code -> " + response.statusCode());
+			
+			// Usamos tu método existente para devolver el JSON bonito
+			return prettyPrintUsingGson(response.body()); 
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			Thread.currentThread().interrupt();
+		}
+		
+		return null; // Retorna null en caso de que falle la petición
+	}
+	
 
 	
 
