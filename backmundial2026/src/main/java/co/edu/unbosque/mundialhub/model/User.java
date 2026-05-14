@@ -50,6 +50,7 @@ public class User implements UserDetails {
 	private List<UserSticker> stickers;
 	
 	private Integer totalPoints;
+	private Integer packets;
 
 	private LocalDateTime verificationExpires;
 
@@ -97,7 +98,7 @@ public class User implements UserDetails {
 	}
 
 	public User(Long id, String userName, String name, String email, String password, String identification,
-			String code, String avatarUrl, Integer totalPoints, LocalDateTime verificationExpires,
+			String code, String avatarUrl, Integer totalPoints, Integer packets, LocalDateTime verificationExpires,
 			LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLogin, String favoriteTeam,
 			String country, String city,  Role role, boolean accountNonExpired,
 			boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled) {
@@ -118,7 +119,7 @@ public class User implements UserDetails {
 		this.favoriteTeam = favoriteTeam;
 		this.country = country;
 		this.city = city;
-
+		this.packets = packets;
 		this.role = role;
 		this.accountNonExpired = accountNonExpired;
 		this.accountNonLocked = accountNonLocked;
@@ -164,6 +165,24 @@ public class User implements UserDetails {
 
 	public void setIdentification(String identification) {
 		this.identification = identification;
+	}
+	
+	
+
+	public List<UserSticker> getStickers() {
+		return stickers;
+	}
+
+	public void setStickers(List<UserSticker> stickers) {
+		this.stickers = stickers;
+	}
+
+	public Integer getPackets() {
+		return packets;
+	}
+
+	public void setPackets(Integer packets) {
+		this.packets = packets;
 	}
 
 	@Override
@@ -319,17 +338,18 @@ public class User implements UserDetails {
 		this.totalPoints = totalPoints;
 	}
 
-
 	@Override
 	public String toString() {
 		return "User [id=" + id + ", userName=" + userName + ", name=" + name + ", email=" + email + ", password="
 				+ password + ", identification=" + identification + ", code=" + code + ", avatarUrl=" + avatarUrl
+				+ ", stickers=" + stickers + ", totalPoints=" + totalPoints + ", packets=" + packets
 				+ ", verificationExpires=" + verificationExpires + ", createdAt=" + createdAt + ", updatedAt="
 				+ updatedAt + ", lastLogin=" + lastLogin + ", favoriteTeam=" + favoriteTeam + ", country=" + country
 				+ ", city=" + city + ", role=" + role + ", accountNonExpired=" + accountNonExpired
 				+ ", accountNonLocked=" + accountNonLocked + ", credentialsNonExpired=" + credentialsNonExpired
 				+ ", enabled=" + enabled + "]";
 	}
-	
+
+
 
 }

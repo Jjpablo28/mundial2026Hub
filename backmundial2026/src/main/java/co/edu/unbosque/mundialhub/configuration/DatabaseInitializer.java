@@ -216,7 +216,7 @@ public class DatabaseInitializer {
 			log.info("El usuario '{}' ya existe, omitiendo creación.", username);
 		} else {
 			User newUser = new User(null, encryptedUsername, null, null, passwordEncoder.encode("1234567890"), null,
-					null, null, null, null, null, null, null, null, null, null, null, true, true, true, true);
+					null, null, null, null, null, null, null, null, null, null, null, null, true, true, true, true);
 			newUser.setRole(role);
 			newUser.setEnabled(true);
 			newUser.setAccountNonExpired(true);

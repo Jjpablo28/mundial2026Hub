@@ -25,7 +25,7 @@ public class UserDTO {
     private Role role; 
     private String avatarUrl;
 	private Integer totalPoints;
-    
+    private Integer packets;
     private String country;
     private String favoriteTeam;
     private String city;
@@ -55,7 +55,7 @@ public class UserDTO {
 
 
 	public UserDTO(String userName, String name, String email, String identification, String code,
-			LocalDateTime verificationExpires, String password, Role role, String avatarUrl, Integer totalPoints,
+			LocalDateTime verificationExpires, String password, Role role, String avatarUrl, Integer totalPoints,Integer packets, 
 			String country, String favoriteTeam, String city,
 			LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLogin) {
 		super();
@@ -72,7 +72,7 @@ public class UserDTO {
 		this.country = country;
 		this.favoriteTeam = favoriteTeam;
 		this.city = city;
-
+		this.packets = packets;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 		this.lastLogin = lastLogin;
@@ -239,19 +239,26 @@ public class UserDTO {
 
 
 
+	public Integer getPackets() {
+		return packets;
+	}
+
+
+	public void setPackets(Integer packets) {
+		this.packets = packets;
+	}
+
+
 	@Override
 	public String toString() {
 		return "UserDTO [id=" + id + ", userName=" + userName + ", name=" + name + ", email=" + email
 				+ ", identification=" + identification + ", code=" + code + ", verificationExpires="
 				+ verificationExpires + ", password=" + password + ", role=" + role + ", avatarUrl=" + avatarUrl
-				+ ", totalPoints=" + totalPoints + ", country=" + country + ", favoriteTeam=" + favoriteTeam + ", city="
-				+ city  + ", createdAt=" + createdAt + ", updatedAt="
-				+ updatedAt + ", lastLogin=" + lastLogin + "]";
+				+ ", totalPoints=" + totalPoints + ", packets=" + packets + ", country=" + country + ", favoriteTeam="
+				+ favoriteTeam + ", city=" + city + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt
+				+ ", lastLogin=" + lastLogin + "]";
 	}
 
 
-
-
-	
-    
+	    
 }
