@@ -148,6 +148,7 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 		User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 		int totalPackets = user.getPackets();
 		if (user.getTotalPoints() != 0) {
+			
 			user.setPackets(totalPackets + 1);
 			user.setTotalPoints(user.getTotalPoints() - 500);
 		} else {

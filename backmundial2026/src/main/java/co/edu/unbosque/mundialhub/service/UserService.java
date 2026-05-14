@@ -89,6 +89,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 			entity.setCity(newUserDto.getCity());
 			entity.setTotalPoints(5000);//5000 pruebas 500deploy
+			entity.setPackets(0);
 			entity.setCountry(newUserDto.getCountry());
 
 			entity.setEnabled(false);
