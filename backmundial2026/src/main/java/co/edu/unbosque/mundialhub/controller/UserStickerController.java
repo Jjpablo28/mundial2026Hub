@@ -55,4 +55,16 @@ public class UserStickerController {
                     .body(Map.of("message", e.getMessage(), "success", false));
         }
     }
+    
+    @PostMapping("/open-pack")
+    public ResponseEntity<?> createPack(@PathVariable Long id) {
+        try {
+            userStickerServ.openPack(id);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of("message", "Lámina añadida al inventario", "success", true));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
+        }
+    }
+
 }
