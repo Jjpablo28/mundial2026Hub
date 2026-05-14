@@ -56,7 +56,7 @@ public class UserStickerController {
         }
     }
     
-    @PostMapping("/open-pack")
+    @PostMapping("/open-pack/{id}")
     public ResponseEntity<?> createPack(@PathVariable Long id) {
         try {
             userStickerServ.openPack(id);
@@ -65,6 +65,16 @@ public class UserStickerController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
         }
+    }
+    @PostMapping("/buy-pack/{id}")
+    public ResponseEntity<?> buyPack(@PathVariable Long id) {
+    	try {
+    		userStickerServ.buyPack(id);
+    		return ResponseEntity.status(HttpStatus.CREATED)
+    				.body(Map.of("message", "Lámina añadida al inventario", "success", true));
+    	} catch (Exception e) {
+    		return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
+    	}
     }
 
 }

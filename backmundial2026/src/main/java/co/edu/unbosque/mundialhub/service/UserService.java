@@ -88,7 +88,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 			entity.setIdentification(AESUtil.encrypt(newUserDto.getIdentification()));
 
 			entity.setCity(newUserDto.getCity());
-			entity.setTotalPoints(500);
+			entity.setTotalPoints(5000);//5000 pruebas 500deploy
 			entity.setCountry(newUserDto.getCountry());
 
 			entity.setEnabled(false);

@@ -21,22 +21,20 @@ import co.edu.unbosque.mundialhub.repository.UserRepository;
 import co.edu.unbosque.mundialhub.repository.UserStickerRepository;
 
 @Service
-public class UserStickerService implements CRUDOperation <UserStickerDTO, UserSticker> {
+public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSticker> {
 
 	@Autowired
 	private StickerRepository stickerRepo;
 
 	@Autowired
 	private UserRepository userRepo;
-	
+
 	@Autowired
 	private UserStickerRepository userStickerRepo;
 
 	@Autowired
 	private ModelMapper modelMapper;
-	
-	
-	
+
 	@Override
 	public UserStickerDTO create(UserStickerDTO dto) {
 		UserSticker entity = modelMapper.map(dto, UserSticker.class);
@@ -67,7 +65,6 @@ public class UserStickerService implements CRUDOperation <UserStickerDTO, UserSt
 		return modelMapper.map(existing, UserStickerDTO.class);
 	}
 
-	
 	public void deleteById(Long id) {
 		UserSticker entity = userStickerRepo.findById(id)
 				.orElseThrow(() -> new RuntimeException("No se encontró el registro para eliminar"));
@@ -88,57 +85,70 @@ public class UserStickerService implements CRUDOperation <UserStickerDTO, UserSt
 	public boolean exist(Long id) {
 		return userStickerRepo.existsById(id);
 	}
-	
+
 	public List<UserStickerDTO> openPack(Long userId) {
-	    User user = userRepo.findById(userId)
-	            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-	    
-	    List<Sticker> allStickers = stickerRepo.findAll();
-	    if (allStickers.isEmpty()) throw new RuntimeException("No hay stickers configurados en el sistema");
+		User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-	    int userCoins = user.getTotalPoints(); 
-	    
-	    List<UserStickerDTO> packResult = new ArrayList<>();
-	    Random random = new Random();
+		List<Sticker> allStickers = stickerRepo.findAll();
+		if (allStickers.isEmpty())
+			throw new RuntimeException("No hay stickers configurados en el sistema");
 
-	    List<Sticker> selectedStickers = new ArrayList<>();
+		int userCoins = user.getTotalPoints();
 
-	    while (selectedStickers.size() < 7) {
-	        int index;
-	        
-	        if (userCoins > 1000 && random.nextDouble() > 0.5) {
-	            index = random.nextInt(allStickers.size() / 2) + (allStickers.size() / 2);
-	        } else {
-	            index = random.nextInt(allStickers.size());
-	        }
-	        
-	        Sticker candidate = allStickers.get(index);
+		List<UserStickerDTO> packResult = new ArrayList<>();
+		Random random = new Random();
 
-	        if (!selectedStickers.contains(candidate)) {
-	            selectedStickers.add(candidate);
-	        }
-	        
-	    for (Sticker sticker : selectedStickers) {
-	        Optional<UserSticker> existing = userStickerRepo.findByUserIdAndStickerId(userId, sticker.getId());
-	        
-	        UserSticker entity;
-	        if (existing.isPresent()) {
-	            entity = existing.get();
-	            entity.setQuantity(entity.getQuantity() + 1);
-	        } else {
-	            entity = new UserSticker();
-	            entity.setUser(user);
-	            entity.setSticker(sticker);
-	            entity.setQuantity(1);
-	            entity.setObtainedAt(LocalDateTime.now());
-	        }
-	        
-	        userStickerRepo.save(entity);
-	        packResult.add(modelMapper.map(entity, UserStickerDTO.class));
-	    }
+		List<Sticker> selectedStickers = new ArrayList<>();
 
-	    return packResult;
+		while (selectedStickers.size() < 7) {
+			int index;
+
+			if (userCoins > 1000 && random.nextDouble() > 0.5) {
+				index = random.nextInt(allStickers.size() / 2) + (allStickers.size() / 2);
+			} else {
+				index = random.nextInt(allStickers.size());
+			}
+
+			Sticker candidate = allStickers.get(index);
+
+			if (!selectedStickers.contains(candidate)) {
+				selectedStickers.add(candidate);
+			}
+		}
+
+		for (Sticker sticker : selectedStickers) {
+			Optional<UserSticker> existing = userStickerRepo.findByUserIdAndStickerId(userId, sticker.getId());
+
+			UserSticker entity;
+			if (existing.isPresent()) {
+				entity = existing.get();
+				entity.setQuantity(entity.getQuantity() + 1);
+			} else {
+				entity = new UserSticker();
+				entity.setUser(user);
+				entity.setSticker(sticker);
+				entity.setQuantity(1);
+				entity.setObtainedAt(LocalDateTime.now());
+			}
+
+			userStickerRepo.save(entity);
+			packResult.add(modelMapper.map(entity, UserStickerDTO.class));
+		}
+
+		return packResult;
 	}
-		return null;
-}
+	public void buyPack(Long userId) {
+		User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+		if (user.getTotalPoints()!=0) {
+			openPack(userId);
+			user.setTotalPoints(user.getTotalPoints()-500);
+		}else {
+			throw new RuntimeException("No hay monedas suficientes");
+		}
+		
+		
+	}
+	
+	
 }
