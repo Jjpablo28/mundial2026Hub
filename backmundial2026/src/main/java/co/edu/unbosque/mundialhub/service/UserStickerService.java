@@ -2,11 +2,9 @@ package co.edu.unbosque.mundialhub.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,6 +94,9 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 		int userCoins = user.getTotalPoints();
 		int totalPackets = user.getPackets();
 		if (totalPackets != 0) {
+			user.setPackets(totalPackets - 1);
+
+			userRepo.save(user);
 			List<UserStickerDTO> packResult = new ArrayList<>();
 			Random random = new Random();
 
@@ -115,32 +116,31 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 				if (!selectedStickers.contains(candidate)) {
 					selectedStickers.add(candidate);
 				}
+			}
 
-				for (Sticker sticker : selectedStickers) {
-					Optional<UserSticker> existing = userStickerRepo.findByUserIdAndStickerId(userId, sticker.getId());
+			for (Sticker sticker : selectedStickers) {
+				Optional<UserSticker> existing = userStickerRepo.findByUserIdAndStickerId(userId, sticker.getId());
 
-					UserSticker entity;
-					if (existing.isPresent()) {
-						entity = existing.get();
-						entity.setQuantity(entity.getQuantity() + 1);
-					} else {
-						entity = new UserSticker();
-						entity.setUser(user);
-						entity.setSticker(sticker);
-						entity.setQuantity(1);
-						entity.setObtainedAt(LocalDateTime.now());
-					}
-
-					userStickerRepo.save(entity);
-					packResult.add(modelMapper.map(entity, UserStickerDTO.class));
+				UserSticker entity;
+				if (existing.isPresent()) {
+					entity = existing.get();
+					entity.setQuantity(entity.getQuantity() + 1);
+				} else {
+					entity = new UserSticker();
+					entity.setUser(user);
+					entity.setSticker(sticker);
+					entity.setQuantity(1);
+					entity.setObtainedAt(LocalDateTime.now());
 				}
 
-				return packResult;
+				userStickerRepo.save(entity);
+				packResult.add(modelMapper.map(entity, UserStickerDTO.class));
 			}
+
+			return packResult;
 		} else {
 			return null;
 		}
-		return null;
 
 	}
 
@@ -148,9 +148,11 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 		User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 		int totalPackets = user.getPackets();
 		if (user.getTotalPoints() != 0) {
-			
+
 			user.setPackets(totalPackets + 1);
 			user.setTotalPoints(user.getTotalPoints() - 500);
+
+			userRepo.save(user);
 		} else {
 			throw new RuntimeException("No hay monedas suficientes");
 		}

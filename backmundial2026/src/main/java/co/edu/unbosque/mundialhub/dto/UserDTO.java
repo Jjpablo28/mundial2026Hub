@@ -1,7 +1,6 @@
 package co.edu.unbosque.mundialhub.dto;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 
 import co.edu.unbosque.mundialhub.model.User.Role;

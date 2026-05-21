@@ -71,7 +71,7 @@ public class UserStickerController {
     	try {
     		userStickerServ.buyPack(id);
     		return ResponseEntity.status(HttpStatus.CREATED)
-    				.body(Map.of("message", "Lámina añadida al inventario", "success", true));
+    				.body(Map.of("message", "Pack añadido al inventario", "success", true));
     	} catch (Exception e) {
     		return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
     	}

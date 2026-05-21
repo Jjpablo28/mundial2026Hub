@@ -1,0 +1,52 @@
+<div class="purchase-container">
+  <div class="card-header-decor"></div>
+
+  <h3>Comprar Tokens del Mundial</h3>
+  <p class="subtitle">Cada token cuesta $10 COP. Mínimo de compra: 500 tokens.</p>
+
+  <div *ngIf="paymentStatus === 'approved'" class="payment-banner success-banner">
+    <h4>¡Pago Aprobado! 🎉</h4>
+    <p>Tus tokens se han sumado con éxito a tu cuenta. Redirigiéndote al inicio...</p>
+  </div>
+
+  <div *ngIf="paymentStatus === 'rejected'" class="payment-banner danger-banner">
+    <h4>Pago Rechazado ❌</h4>
+    <p>La transacción no pudo completarse. Revisa los datos de tu tarjeta e intenta de nuevo.</p>
+  </div>
+
+  <div *ngIf="paymentStatus === 'in_process'" class="payment-banner warning-banner">
+    <h4>Pago en Proceso ⏳</h4>
+    <p>Mercado Pago está analizando la transacción. Te avisaremos cuando se confirme.</p>
+  </div>
+
+  <div *ngIf="paymentStatus !== 'approved'">
+    <div class="form-group">
+      <label>Cantidad de Tokens</label>
+      <div class="input-wrapper">
+        <select [(ngModel)]="tokensToBuy"
+                class="form-control select-custom"
+                [disabled]="cargandoBrick">
+          <option [ngValue]="500">500 tokens</option>
+          <option [ngValue]="1000">1.000 tokens</option>
+          <option [ngValue]="2000">2.000 tokens</option>
+          <option [ngValue]="5000">5.000 tokens</option>
+          <option [ngValue]="10000">10.000 tokens</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="total-display">
+      Total a pagar: <span class="total-price">${{ tokensToBuy * 10 | number }} COP</span>
+    </div>
+
+    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+    <button class="pay-button" (click)="prepararCompra()" [disabled]="tokensToBuy < 500 || cargandoBrick">
+      {{ cargandoBrick ? 'Procesando...' : 'Pagar con Mercado Pago' }}
+    </button>
+  </div>
+
+  <div class="payment-gateway" [hidden]="paymentStatus === 'approved'">
+    <div id="paymentCard-container"></div>
+  </div>
+</div>

@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-header',
-  standalone:false,
+  standalone: false,
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
@@ -13,39 +13,46 @@ export class HeaderComponent implements OnInit, OnDestroy {
   public isLoggedIn: boolean = false;
   public userRole: string | null = null;
   public userName: string | null = null;
+  public userPoints: number = 0; // NUEVO: Atributo para los puntos
+
   private authSubscription!: Subscription;
+  private pointsSubscription!: Subscription; // NUEVO: Suscripción de puntos
 
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    // 🔥 Nos suscribimos a tu BehaviorSubject para cambios en tiempo real
+    // Nos suscribimos a tu BehaviorSubject para cambios en tiempo real
     this.authSubscription = this.authService.isAuthenticated$.subscribe(autenticado => {
       this.isLoggedIn = autenticado;
 
       if (this.isLoggedIn) {
-        // Obtenemos el rol (ej: "ROLE_ADMIN") y le quitamos el prefijo igual que en tu Guard
         let rawRole = this.authService.getRole();
         this.userRole = rawRole ? rawRole.replace('ROLE_', '') : null;
-
-        // Obtenemos el nombre usando tu método
         this.userName = this.authService.getUserName();
       } else {
         this.userRole = null;
         this.userName = null;
       }
     });
+
+    // NUEVO: Escucha activa de los puntos desde el AuthService
+    if (this.authService.totalPoints$) {
+      this.pointsSubscription = this.authService.totalPoints$.subscribe(points => {
+        this.userPoints = points;
+      });
+    }
   }
 
   ngOnDestroy(): void {
-    // Evitamos fugas de memoria limpiando la suscripción si el componente se destruye
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
+    }
+    if (this.pointsSubscription) {
+      this.pointsSubscription.unsubscribe();
     }
   }
 
   logout(): void {
-    // Tu método logout() ya limpia el token, hace el navigate y actualiza el BehaviorSubject.
-    // ¡Así que con solo llamar a esto, el header se actualizará solo!
     this.authService.logout();
   }
 }

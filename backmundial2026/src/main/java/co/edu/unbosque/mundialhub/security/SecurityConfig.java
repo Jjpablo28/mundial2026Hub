@@ -68,6 +68,7 @@ public class SecurityConfig {
 	            auth.requestMatchers("/teams/**").permitAll();
 	            auth.requestMatchers("/sticker/**").permitAll();
 	            auth.requestMatchers("/user-stickers/**").permitAll();
+	            auth.requestMatchers("/payments/**").authenticated();
 	            auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
 	            auth.anyRequest().authenticated();
 	        })
