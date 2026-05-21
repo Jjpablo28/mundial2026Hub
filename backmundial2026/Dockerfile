@@ -3,8 +3,8 @@ FROM maven:3.9.6-eclipse-temurin-21 AS build
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Etapa 2: Ejecutar la aplicación
+# Etapa 2: Ejecutar la aplicación (Modificada para .war)
 FROM eclipse-temurin:21-jdk-alpine
-COPY --from=build /target/*.jar app.jar
+COPY --from=build /target/*.war app.war
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.war"]
