@@ -15,8 +15,8 @@ export class HomeComponentService {
   constructor(private http: HttpClient, private authService: AuthService) {
   }
 
-  private apiUrl = 'http://localhost:8080/users/';
-  private urlFootball = 'http://localhost:8080/teams/';
+  private apiUrl = 'https://mundial2026hub.onrender.com/users/';
+  private urlFootball = 'https://mundial2026hub.onrender.com/teams/';
 
 
   getUserById(id: any): Observable<any> {

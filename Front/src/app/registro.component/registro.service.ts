@@ -13,7 +13,7 @@ import { observableToBeFn } from 'rxjs/internal/testing/TestScheduler';
 export class RegistroService {
 
   private apiCountries = 'https://countriesnow.space/api/v0.1/';
-  private apiUrl = 'http://localhost:8080/';
+  private apiUrl = 'https://mundial2026hub.onrender.com/';
 
 
   constructor(private http: HttpClient) {
