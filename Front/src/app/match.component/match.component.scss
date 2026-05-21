@@ -1,0 +1,449 @@
+/* =========================================
+   ESTRUCTURA DE COLUMNAS (SPLIT LAYOUT)
+   ========================================= */
+/* 👈 Obliga al componente de Angular a comportarse como un bloque estricto */
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.dashboard-split-layout {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  align-items: flex-start;
+  margin-top: 10px;
+  box-sizing: border-box;
+}
+
+/* --- COLUMNA IZQUIERDA (Lista) --- */
+.list-column {
+  flex: 1;
+  min-width: 280px;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 75vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 10px;
+
+  /* Scrollbar personalizado */
+  &::-webkit-scrollbar { width: 5px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(225, 255, 87, 0.3); border-radius: 10px; }
+
+  .column-title {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    padding-left: 5px;
+  }
+
+  .loading-list { color: #888; padding: 10px 5px; font-size: 0.9rem; }
+}
+
+/* --- TARJETAS DE LA LISTA --- */
+.match-list-card {
+  background: #1A1C20;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 12px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &:hover {
+    background: #23252A;
+    border-color: #E1FF57;
+    transform: translateY(-2px);
+  }
+
+  .team-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0; /* MAGIA: Permite que el text-overflow funcione dentro de flexbox */
+
+    &.home { justify-content: flex-end; text-align: right; }
+    &.away { justify-content: flex-start; text-align: left; }
+
+    .team-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #ddd;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis; /* Nombres muy largos se cortan con "..." */
+    }
+
+    .list-crest {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      flex-shrink: 0; /* Evita que el escudo se aplaste */
+    }
+  }
+
+  .vs-row {
+    padding: 0 8px;
+    flex-shrink: 0;
+    .vs-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #111;
+      background: #E1FF57;
+      padding: 3px 6px;
+      border-radius: 4px;
+    }
+  }
+}
+
+/* --- COLUMNA DERECHA (Detalles) --- */
+.detail-column {
+  flex: 2;
+  min-width: 0; /* MAGIA: Evita que el detalle rompa la pantalla hacia la derecha */
+  position: sticky;
+  top: 20px;
+}
+
+
+/* =========================================
+   ESTADOS DEL DETALLE (Vacío y Cargando)
+   ========================================= */
+
+/* ESTADO VACÍO */
+.empty-state-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 500px;
+  background: rgba(26, 28, 32, 0.3);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  text-align: center;
+
+  .empty-content {
+    max-width: 320px;
+    .glowing-ball {
+      font-size: 3.5rem;
+      color: rgba(225, 255, 87, 0.4);
+      margin-bottom: 20px;
+    }
+    h3 { color: #fff; font-size: 1.4rem; margin-bottom: 12px; }
+    p { color: #888; font-size: 0.95rem; line-height: 1.5; }
+  }
+}
+
+/* LOADER */
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 500px;
+
+  .pulse-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(225, 255, 87, 0.3);
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+    margin-bottom: 25px;
+  }
+  p { color: #aaa; font-weight: 500; font-size: 1.1rem; }
+}
+
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+/* =========================================
+   BUSCADOR Y FILTROS
+   ========================================= */
+.search-filter-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .search-box {
+    position: relative;
+    i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+      font-size: 0.9rem;
+    }
+    input {
+      width: 100%;
+      background: #1A1C20;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 10px 10px 10px 35px;
+      border-radius: 8px;
+      font-family: inherit;
+      outline: none;
+      transition: 0.3s;
+      &:focus { border-color: #E1FF57; box-shadow: 0 0 5px rgba(225, 255, 87, 0.2); }
+    }
+  }
+
+  .filter-box select {
+    width: 100%;
+    background: #1A1C20;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    &:focus { border-color: #E1FF57; }
+  }
+}
+
+/* Estilos para equipos sin definir */
+.team-name.tbd {
+  color: #777 !important;
+  font-style: italic;
+  font-weight: 400 !important;
+}
+
+.placeholder-crest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  color: #555;
+  font-size: 0.8rem;
+}
+
+/* =========================================
+   PESTAÑA DE ESTADÍSTICAS (TABLAS)
+   ========================================= */
+.standings-panel {
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: 10px;
+
+  &::-webkit-scrollbar { width: 5px; }
+  &::-webkit-scrollbar-thumb { background: rgba(225, 255, 87, 0.3); border-radius: 10px; }
+}
+
+.internal-loader {
+  text-align: center;
+  padding: 40px;
+  color: #aaa;
+  font-size: 1.1rem;
+  i { color: #E1FF57; margin-right: 10px; }
+}
+
+.standings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.group-table-card {
+  background: #16181b;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+
+  .group-header {
+    background: linear-gradient(90deg, rgba(225, 255, 87, 0.1) 0%, transparent 100%);
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    h3 { margin: 0; color: #E1FF57; font-size: 1rem; font-weight: 700; }
+  }
+}
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #ccc;
+  font-size: 0.8rem;
+
+  th, td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+
+  th { color: #888; font-weight: 500; font-size: 0.75rem; text-transform: uppercase; }
+
+  .pos { font-weight: 700; color: #777; width: 25px; }
+
+  .team-info {
+    display: flex; align-items: center; gap: 8px; text-align: left;
+    img { width: 20px; height: 20px; object-fit: contain; }
+    span { font-weight: 600; color: #fff; }
+  }
+
+  .points { font-weight: 800; color: #fff; }
+
+  tbody tr {
+    transition: background 0.2s;
+    &:hover { background: #1a1c20; }
+
+    &.qualified {
+      border-left: 2px solid #E1FF57;
+      background: linear-gradient(90deg, rgba(225, 255, 87, 0.03) 0%, transparent 100%);
+      .pos { color: #E1FF57; }
+      .points { color: #E1FF57; }
+    }
+    &:last-child td { border-bottom: none; }
+  }
+}
+
+/* =========================================
+   DISEÑO DE LA TARJETA DEL PARTIDO
+   ========================================= */
+
+.match-card-container {
+  background: linear-gradient(145deg, #1E2024 0%, #121316 100%);
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  width: 100%;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+  .icon-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: color 0.3s;
+    &:hover { color: #fff; }
+    &.favorite:hover { color: #E1FF57; }
+    &.close:hover { color: #FF4C4C; }
+  }
+
+  .titles {
+    text-align: center;
+    flex: 1;
+    h2 { margin: 0; font-size: 1.2rem; font-weight: 600; color: #fff; }
+    p { margin: 4px 0 0; font-size: 0.9rem; color: #aaa; }
+  }
+}
+
+.scoreboard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 30px;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.015) 0%, transparent 75%);
+
+  .team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+
+    .crest { width: 80px; height: 80px; object-fit: contain; margin-bottom: 15px; }
+    .team-name { margin: 0; font-size: 1.2rem; font-weight: 500; text-align: center; color: #fff; }
+    .country { font-size: 0.9rem; color: #888; margin-top: 5px; }
+  }
+
+  .match-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    padding: 0 20px;
+
+    .status-badge {
+      background: #333;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+
+      &.finished { background: #444; color: #aaa; }
+      &.live { background: #FF4C4C; color: #fff; animation: pulse 2s infinite; }
+      &.scheduled { background: rgba(225, 255, 87, 0.1); color: #E1FF57; }
+    }
+
+    .score-display { font-size: 3rem; font-weight: 700; letter-spacing: 5px; margin-bottom: 8px; color: #fff; }
+    .time-display { font-size: 2.5rem; font-weight: 700; color: #E1FF57; margin-bottom: 8px; }
+    .date-display { font-size: 1rem; color: #aaa; font-weight: 500; }
+  }
+}
+
+.tabs-container {
+  display: flex;
+  background-color: #16181b;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-x: auto;
+  &::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #888;
+    padding: 18px 25px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+
+    &:hover { color: #fff; }
+    &.active { color: #fff; border-bottom-color: #E1FF57; }
+  }
+}
+
+.tab-content {
+  padding: 30px;
+  background-color: #121316;
+  min-height: 250px;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+
+  .tab-panel { color: #ccc; font-size: 1rem; line-height: 1.6; }
+}
+
+/* =========================================
+   MEDIA QUERIES (RESPONSIVE)
+   ========================================= */
+
+@media (max-width: 992px) {
+  .dashboard-split-layout { flex-direction: column; }
+  .list-column { flex: 1; max-width: 100%; max-height: 35vh; }
+  .detail-column { flex: 1; width: 100%; position: relative; top: 0; }
+}
+
+@media (max-width: 768px) {
+  .scoreboard {
+    flex-direction: column;
+    padding: 30px 15px;
+    .team { margin-bottom: 25px; .crest { width: 60px; height: 60px; } }
+    .match-info { padding: 0; .score-display { font-size: 2.5rem; } .time-display { font-size: 2rem; } }
+  }
+  .card-header .titles h2 { font-size: 1rem; }
+  .tabs-container .tab-btn { padding: 15px 20px; font-size: 0.9rem; }
+}

@@ -1,0 +1,109 @@
+<div class="auth-container">
+  <div class="auth-wrapper">
+
+    <!-- Columna izquierda: Verificación -->
+    <div class="auth-left">
+      <div class="auth-card">
+        <h2>Verificar cuenta</h2>
+        <p class="subtitle">Ingresa el código enviado a tu correo</p>
+
+        <form (ngSubmit)="verify()" #verifyForm="ngForm">
+
+          <div class="input-group">
+            <input
+              type="text"
+              [(ngModel)]="verificationCode"
+              name="code"
+              placeholder="Ej: 123456"
+              required
+              style="text-align: center; font-size: 24px; letter-spacing: 4px;"
+            />
+          </div>
+
+          <button type="submit" [disabled]="isLoading || !verifyForm.valid">
+            <span *ngIf="!isLoading">Verificar ahora</span>
+            <span *ngIf="isLoading" class="loader-container">
+              <i class="fas fa-spinner fa-spin"></i> Verificando...
+            </span>
+          </button>
+
+        </form>
+
+        <p class="link-text">
+          ¿No recibiste el código?
+          <a (click)="resendCode()"
+             [style.cursor]="isResending ? 'not-allowed' : 'pointer'"
+             [style.opacity]="isResending ? '0.6' : '1'">
+
+            <span *ngIf="!isResending">Reenviar</span>
+
+            <span *ngIf="isResending">
+      <i class="fas fa-spinner fa-spin"></i> Enviando...
+    </span>
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Columna derecha: Información -->
+    <div class="auth-right">
+      <div class="info-box">
+        <h3>¡Casi terminamos!</h3>
+        <p>Tu seguridad es lo primero. Verifica tu identidad para empezar a disfrutar de MundialHub.</p>
+        <!-- Puedes usar la misma imagen o una diferente -->
+        <img src="assets/register-image.png" alt="Verificación Info" />
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="custom-popup" *ngIf="showPopup">
+  <div class="popup-content">
+    <i class="fas fa-check-circle success-icon"></i>
+    <span>Código reenviado con éxito</span>
+    <button class="close-btn" (click)="showPopup = false">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
+<div class="custom-popup" *ngIf="showErrorPopup">
+  <div class="popup-content border-error">
+    <i class="fas fa-exclamation-circle error-icon"></i>
+    <span>Error al reenviar el codigo, contacta con soporte</span>
+    <button class="close-btn" (click)="showErrorPopup = false">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
+<div class="custom-popup" *ngIf="showErrorPopup">
+  <div class="popup-content border-error">
+    <i class="fas fa-exclamation-circle error-icon"></i>
+    <span>Error al reenviar el codigo, contacta con soporte</span>
+    <button class="close-btn" (click)="showErrorPopup = false">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showEmailModal">
+  <div class="modal-box">
+    <h3>Correo no encontrado</h3>
+    <p>No pudimos enviar el código. Por favor, verifica y escribe tu correo nuevamente.</p>
+
+    <div class="input-group">
+      <input
+        type="email"
+        [(ngModel)]="recoveryEmail"
+        placeholder="Ingresa tu correo"
+        style="text-align: left; font-size: 14px; letter-spacing: normal;"
+      />
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="showEmailModal = false">Cancelar</button>
+      <button class="btn-submit" (click)="resendWithNewEmail()" [disabled]="!recoveryEmail">
+        Reenviar
+      </button>
+    </div>
+  </div>
+</div>

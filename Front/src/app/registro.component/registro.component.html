@@ -1,0 +1,75 @@
+<div class="auth-container">
+  <div class="auth-wrapper">
+
+    <!-- Columna izquierda: Registro -->
+    <div class="auth-left">
+      <div class="auth-card">
+        <h2>Crear cuenta</h2>
+        <p class="subtitle">Regístrate para continuar</p>
+
+        <form (ngSubmit)="register()" #registerForm="ngForm">
+
+          <div class="input-group">
+            <input type="text" [(ngModel)]="userName" name="user" placeholder="Usuario" required />
+          </div>
+
+          <div class="input-group">
+            <input type="text" [(ngModel)]="name" name="name" placeholder="Nombre Completo" required />
+          </div>
+
+          <div class="input-group">
+            <input type="email" [(ngModel)]="email" name="email" placeholder="Correo electrónico" required />
+          </div>
+
+          <div class="input-group">
+            <input type="text" [(ngModel)]="id" name="id" placeholder="Identificación" required />
+          </div>
+
+          <div class="input-group">
+            <select [(ngModel)]="country" name="country" (ngModelChange)="onCountryChange($event)" required>
+              <option value="" disabled>Selecciona un país</option>
+              <option *ngFor="let c of countries" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <select [(ngModel)]="city" name="city" [disabled]="cities.length === 0" required>
+              <option value="" disabled>Selecciona una ciudad</option>
+              <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <input type="password" [(ngModel)]="password" name="password" placeholder="Contraseña" required />
+          </div>
+
+
+          <button type="submit" [disabled]="isLoading || !registerForm.valid">
+            <!-- Si NO está cargando, muestra el texto normal -->
+            <span *ngIf="!isLoading">Registrarse</span>
+
+            <!-- Si ESTÁ cargando, muestra el loader -->
+            <span *ngIf="isLoading" class="loader-container">
+    <i class="fas fa-spinner fa-spin"></i> Cargando...
+  </span>
+          </button>
+
+        </form>
+
+        <p class="link-text">
+          ¿Ya tienes cuenta? <a routerLink="/">Inicia sesión</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Columna derecha: Información / Imagen -->
+    <div class="auth-right">
+      <div class="info-box">
+
+        <img src="assets/img/ae69d8e0-e865-468d-93ec-b9263784c326.jpg" alt="Registro Info" />
+      </div>
+    </div>
+
+  </div>
+</div>
+
