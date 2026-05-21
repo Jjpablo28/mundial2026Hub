@@ -90,8 +90,14 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
+		// AQUÍ EL CAMBIO: Agregamos la URL de producción de Netlify a la lista existente
 		configuration.setAllowedOrigins(
-				Arrays.asList("http://localhost:8080", "http://localhost:8081", "http://localhost:8082"));
+				Arrays.asList(
+					"http://localhost:8080", 
+					"http://localhost:8081", 
+					"http://localhost:8082",
+					"https://mundial2026hub.netlify.app" // 👈 ¡Añade esta línea!
+				));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("*"));
 		configuration.setAllowCredentials(true);
