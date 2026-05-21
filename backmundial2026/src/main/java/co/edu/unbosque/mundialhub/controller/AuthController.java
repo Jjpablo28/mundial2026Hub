@@ -41,7 +41,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:8081", "http://localhost:8082/register" })
+@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:8081", "http://localhost:8082/register","https://mundial2026hub.netlify.app" })
 @Tag(name = "Autenticación", description = "Login and register")
 public class AuthController {
 

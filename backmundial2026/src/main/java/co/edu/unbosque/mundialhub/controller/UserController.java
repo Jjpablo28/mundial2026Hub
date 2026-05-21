@@ -29,7 +29,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/users")
-@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:8081", "http://localhost:8082" })
+@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:8081", "http://localhost:8082","https://mundial2026hub.netlify.app" })
 @Tag(name = "Users", description = "CRUD Users")
 public class UserController {
 

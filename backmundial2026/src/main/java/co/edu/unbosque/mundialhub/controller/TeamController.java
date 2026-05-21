@@ -27,7 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/teams")
-@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:8081", "http://localhost:8082" })
+@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:8081", "http://localhost:8082","https://mundial2026hub.netlify.app" })
 @Tag(name = "teams", description = "CRUD teams")
 public class TeamController {
 
