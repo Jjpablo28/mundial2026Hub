@@ -32,7 +32,7 @@ public class EmailService {
 		
 		helper.setTo(destination);
 		helper.setSubject(subject);
-		helper.setFrom("boletaje@veltrix.com"); 
+		helper.setFrom("info.mundial2026@gmail.com"); 
 		helper.setText(body, true);
 		
 		mailSender.send(message);
