@@ -26,6 +26,7 @@ import { AccountComponent } from './account.component/account.component';
 import { AuthService } from './security/AuthService';
 import { MatchComponent } from './match.component/match.component';
 import { PaymentComponent } from './payment.component/payment.component';
+import { Album } from './album/album';
 
 export function initializeApp(authService: AuthService) {
   return () => authService.cargarDatosIniciales();
@@ -43,7 +44,8 @@ export function initializeApp(authService: AuthService) {
     LandingComponent,
     AccountComponent,
     MatchComponent,
-    PaymentComponent
+    PaymentComponent,
+    Album,
   ],
   imports: [
     BrowserModule,
