@@ -13,6 +13,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
+import co.edu.unbosque.mundialhub.dto.QrDTO;
+
 
 public class ExternalHTTPRequestHandler {
 	/**
@@ -172,41 +174,37 @@ public class ExternalHTTPRequestHandler {
 	}
 	
 
-	
+	/**
+	 * Realiza una petición POST a la API externa de QR y mapea automáticamente
+	 * el JSON recibido al objeto QrDTO usando Gson.
+	 *
+	 * @param url La URL del servicio de generación de QR.
+	 * @return Un objeto QrDTO con el UUID y la imagen en Base64.
+	 */
+	public static QrDTO getQrFromQrApi(String url) {
+		// Cambiamos .GET() por .POST(HttpRequest.BodyPublishers.noBody())
+		HttpRequest request = HttpRequest.newBuilder()
+				.POST(HttpRequest.BodyPublishers.noBody())
+				.uri(URI.create(url))
+				.header("Accept", "application/json")
+				.build();
+
+		try {
+			HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+			System.out.println("API QR status code -> " + response.statusCode());
+
+			if (response.statusCode() != 200 && response.statusCode() != 201) {
+				throw new RuntimeException("Error al consultar API QR. Status: " + response.statusCode());
+			}
+
+			// Gson leerá las anotaciones @SerializedName para mapear el JSON correctamente
+			return new Gson().fromJson(response.body(), co.edu.unbosque.mundialhub.dto.QrDTO.class);
+
+		} catch (IOException | InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException("Error de comunicación con la API de QR", e);
+		}
+	}
 
 	
-	/*
-	 * public static QrDTO getUuidFromQrApi(String url) {
-	 * 
-	 * HttpRequest request = HttpRequest.newBuilder()
-	 * .POST(HttpRequest.BodyPublishers.noBody()) .uri(URI.create(url))
-	 * .header("Accept", "application/json") .build();
-	 * 
-	 * try { HttpResponse<String> response = HTTP_CLIENT.send(request,
-	 * HttpResponse.BodyHandlers.ofString());
-	 * 
-	 * if (response.statusCode() != 200) { throw new
-	 * RuntimeException("Error API QR. Status: " + response.statusCode()); }
-	 * 
-	 * return new Gson().fromJson(response.body(), QrDTO.class);
-	 * 
-	 * } catch (IOException | InterruptedException e) { throw new
-	 * RuntimeException("Error consumiendo API QR", e); } } public static QrDTO
-	 * getQrFromQrApi(String url) {
-	 * 
-	 * HttpRequest request = HttpRequest.newBuilder()
-	 * .POST(HttpRequest.BodyPublishers.noBody()) .uri(URI.create(url))
-	 * .header("Accept", "application/json") .build();
-	 * 
-	 * try { HttpResponse<String> response = HTTP_CLIENT.send(request,
-	 * HttpResponse.BodyHandlers.ofString());
-	 * 
-	 * if (response.statusCode() != 200) { throw new
-	 * RuntimeException("Error API QR. Status: " + response.statusCode()); }
-	 * 
-	 * return new Gson().fromJson(response.body(),QrDTO.class);
-	 * 
-	 * } catch (IOException | InterruptedException e) { throw new
-	 * RuntimeException("Error consumiendo API QR", e); } }
-	 */
 }

@@ -1,6 +1,6 @@
 /**
  * Paquete que contiene las clases relacionadas con la seguridad de la
- * aplicación Virus Detected backend.
+ * aplicación.
  */
 package co.edu.unbosque.mundialhub.security;
 

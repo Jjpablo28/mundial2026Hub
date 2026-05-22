@@ -9,6 +9,23 @@ import co.edu.unbosque.mundialhub.dto.UserStickerDTO;
 import co.edu.unbosque.mundialhub.service.UserStickerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+/**
+ * Controlador REST encargado de exponer y gestionar los endpoints asociados al
+ * inventario personal de láminas (cromos) que poseen los usuarios en su álbum
+ * digital de MundialHub.
+ * <p>
+ * Centraliza las operaciones transaccionales para añadir, actualizar, listar o
+ * remover láminas de las colecciones de los usuarios, además de coordinar la
+ * lógica de negocio para la compra y apertura de paquetes (sobres de láminas)
+ * consumiendo créditos del sistema.
+ * </p>
+ *
+ * @author TuNombre / Grupo de Desarrollo
+ * @version 1.0
+ * @see RestController
+ * @see CrossOrigin
+ * @see UserStickerService
+ */
 @RestController
 @RequestMapping("/user-stickers")
 @CrossOrigin(origins = { "http://localhost:8080", "http://localhost:8081", "http://localhost:8082",
@@ -19,6 +36,16 @@ public class UserStickerController {
 	@Autowired
 	private UserStickerService userStickerServ;
 
+	/**
+	 * Añade de forma explícita o manual una lámina al inventario de un usuario
+	 * específico.
+	 *
+	 * @param dto Estructura de transferencia de datos (DTO) que mapea la relación
+	 *            entre el usuario y el sticker.
+	 * @return Un objeto {@link ResponseEntity} con el mensaje JSON de confirmación
+	 *         y el estado HTTP 21 (Created), u objeto 400 (Bad Request) con el
+	 *         detalle técnico de la falla.
+	 */
 	@PostMapping
 	public ResponseEntity<?> create(@RequestBody UserStickerDTO dto) {
 		try {
@@ -30,11 +57,29 @@ public class UserStickerController {
 		}
 	}
 
+	/**
+	 * Recupera la colección completa de láminas (tanto repetidas como únicas) que
+	 * pertenecen al inventario de un usuario.
+	 *
+	 * @param userId Identificador único (llave primaria) del usuario consultado.
+	 * @return Un objeto {@link ResponseEntity} que contiene el listado de DTOs y el
+	 *         estado HTTP 200 (OK).
+	 */
 	@GetMapping("/user/{userId}")
 	public ResponseEntity<?> getByUser(@PathVariable Long userId) {
 		return ResponseEntity.ok(userStickerServ.findByUser(userId));
 	}
 
+	/**
+	 * Modifica o actualiza los metadatos o la cantidad de stock de una lámina
+	 * específica en la colección del usuario.
+	 *
+	 * @param id  Identificador único del registro de inventario a modificar.
+	 * @param dto Estructura de transferencia con los nuevos valores y cantidades a
+	 *            sobreescribir.
+	 * @return Un objeto {@link ResponseEntity} de confirmación con estado HTTP 200
+	 *         (OK), o un estado 404 (Not Found) si el registro no existe.
+	 */
 	@PutMapping("/{id}")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UserStickerDTO dto) {
 		try {
@@ -46,6 +91,15 @@ public class UserStickerController {
 		}
 	}
 
+	/**
+	 * Remueve de manera definitiva una lámina o registro de cromo del inventario de
+	 * un usuario.
+	 *
+	 * @param id Identificador único del registro de inventario (asociación) que se
+	 *           desea eliminar.
+	 * @return Un objeto {@link ResponseEntity} indicando el éxito técnico de la
+	 *         remoción con estado HTTP 200 (OK).
+	 */
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		try {
@@ -57,6 +111,19 @@ public class UserStickerController {
 		}
 	}
 
+	/**
+	 * Procesa la apertura (unboxing) de un sobre de láminas disponible en el
+	 * inventario del usuario.
+	 * <p>
+	 * Este método invoca de forma transaccional la generación aleatoria de cromos
+	 * basada en las probabilidades de la plataforma y los inyecta dentro de la
+	 * colección del cliente.
+	 * </p>
+	 *
+	 * @param id Identificador único del usuario que ejecuta la acción de apertura.
+	 * @return Un objeto {@link ResponseEntity} descriptivo indicando que las
+	 *         láminas fueron añadidas bajo estado HTTP 201 (Created).
+	 */
 	@PostMapping("/open-pack/{id}")
 	public ResponseEntity<?> createPack(@PathVariable Long id) {
 		try {
@@ -68,6 +135,19 @@ public class UserStickerController {
 		}
 	}
 
+	/**
+	 * Ejecuta el flujo transaccional para la compra de un nuevo sobre (pack) de
+	 * láminas para el usuario.
+	 * <p>
+	 * El servicio valida internamente que el usuario cuente con los tokens o
+	 * créditos de saldo suficientes, realiza el descuento correspondiente y añade
+	 * el paquete cerrado a su cuenta listo para ser abierto.
+	 * </p>
+	 *
+	 * @param id Identificador único del usuario que solicita la compra del sobre.
+	 * @return Un objeto {@link ResponseEntity} con la confirmación de la compra y
+	 *         el estado HTTP 201 (Created).
+	 */
 	@PostMapping("/buy-pack/{id}")
 	public ResponseEntity<?> buyPack(@PathVariable Long id) {
 		try {

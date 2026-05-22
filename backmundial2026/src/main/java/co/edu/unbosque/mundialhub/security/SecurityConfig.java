@@ -1,6 +1,6 @@
 /**
  * Paquete que contiene las clases relacionadas con la seguridad de la
- * aplicación Virus Detected backend.
+ * aplicación.
  */
 package co.edu.unbosque.mundialhub.security;
 
@@ -40,6 +40,7 @@ public class SecurityConfig {
 	 * token.
 	 */
 	private final JwtAuthenticationFilter jwtAuthFilter;
+
 	/**
 	 * Constructor con dependencias para {@link JwtAuthenticationFilter} y
 	 * {@link UserDetailsService}. Spring injecta automáticamente estas
@@ -60,24 +61,25 @@ public class SecurityConfig {
 	 * @throws Exception Si ocurre un error durante la configuración.
 	 */
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authProvider) throws Exception {
-	    http.csrf(csrf -> csrf.disable())
-	        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-	        .authorizeHttpRequests(auth -> {
-	            auth.requestMatchers("/auth/**").permitAll();
-	            auth.requestMatchers("/teams/**").permitAll();
-	            auth.requestMatchers("/sticker/**").permitAll();
-	            auth.requestMatchers("/user-stickers/**").permitAll();
-	            auth.requestMatchers("/payments/**").authenticated();
-	            auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
-	            auth.anyRequest().authenticated();
-	        })
-	        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-	        // AQUÍ EL CAMBIO: Usamos la variable 'authProvider' que viene por parámetro
-	        .authenticationProvider(authProvider) 
-	        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authProvider)
+			throws Exception {
+		http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.authorizeHttpRequests(auth -> {
+					auth.requestMatchers("/auth/**").permitAll();
+					auth.requestMatchers("/teams/**").permitAll();
+					auth.requestMatchers("/sticker/**").permitAll();
+					auth.requestMatchers("/trade-session/**").permitAll();
+					auth.requestMatchers("/user-stickers/**").permitAll();
+					auth.requestMatchers("/ws/**").permitAll();
+					auth.requestMatchers("/payments/**").authenticated();
+					auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
+					auth.anyRequest().authenticated();
+				}).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				// AQUÍ EL CAMBIO: Usamos la variable 'authProvider' que viene por parámetro
+				.authenticationProvider(authProvider)
+				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-	    return http.build();
+		return http.build();
 	}
 
 	/**
@@ -90,14 +92,9 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		// AQUÍ EL CAMBIO: Agregamos la URL de producción de Netlify a la lista existente
-		configuration.setAllowedOrigins(
-				Arrays.asList(
-					"http://localhost:8080", 
-					"http://localhost:8081", 
-					"http://localhost:8082",
-					"https://mundial2026hub.netlify.app" // 👈 ¡Añade esta línea!
-				));
+		configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080", "http://localhost:8081",
+				"http://localhost:8082", "https://mundial2026hub.netlify.app"// 👈 ¡Añade esta línea!
+		));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("*"));
 		configuration.setAllowCredentials(true);
@@ -116,14 +113,16 @@ public class SecurityConfig {
 	 */
 	@Bean
 	public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
-	    // 1. Pasamos el parámetro inyectado por Spring directamente al constructor
-	    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService); 
-	    
-	    // 2. Asigna el encriptador de contraseñas (asumiendo que passwordEncoder() sí es un método en esta clase)
-	    authProvider.setPasswordEncoder(passwordEncoder());
-	    
-	    return authProvider;
+		// 1. Pasamos el parámetro inyectado por Spring directamente al constructor
+		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
+
+		// 2. Asigna el encriptador de contraseñas (asumiendo que passwordEncoder() sí
+		// es un método en esta clase)
+		authProvider.setPasswordEncoder(passwordEncoder());
+
+		return authProvider;
 	}
+
 	/**
 	 * Obtiene el {@link AuthenticationManager} a partir de la configuración de
 	 * autenticación.

@@ -30,8 +30,29 @@ import co.edu.unbosque.mundialhub.repository.StickerRepository;
 import co.edu.unbosque.mundialhub.repository.TeamRepository;
 import co.edu.unbosque.mundialhub.util.AESUtil;
 
+/**
+ * Componente de servicio encargado de la precarga y semilla de datos (Data
+ * Seeding) en la base de datos relacional durante el arranque del ecosistema
+ * MundialHub.
+ * <p>
+ * Realiza tareas de aprovisionamiento cruciales que incluyen la creación de
+ * cuentas de usuario por defecto con credenciales encriptadas y roles de acceso
+ * predefinidos, el registro exhaustivo de las 48 selecciones nacionales
+ * clasificadas distribuidas por grupos de la FIFA, y la consulta e importación
+ * automatizada de las plantillas oficiales de futbolistas (cromos/stickers)
+ * consumiendo servicios externos de API-Football.
+ * </p>
+ *
+ * @author TuNombre / Grupo de Desarrollo
+ * @version 1.0
+ */
 @Service
 public class DatabaseInitializer {
+
+	/**
+	 * Token o credencial de autorización extraída de los archivos de propiedades de
+	 * Spring para interactuar con la API externa.
+	 */
 	@Value("${api-football}")
 	private String apiKey;
 
@@ -43,6 +64,21 @@ public class DatabaseInitializer {
 	private final StickerRepository stickerRepo;
 	private final ModelMapper modelMapper;
 
+	/**
+	 * Constructor único parametrizado para la inyección automática de dependencias
+	 * requeridas en los procesos de persistencia y encriptación.
+	 *
+	 * @param userRepo        Repositorio para la gestión de persistencia de
+	 *                        usuarios.
+	 * @param passwordEncoder Componente criptográfico para el hashing seguro de
+	 *                        contraseñas.
+	 * @param teamRepo        Repositorio para la gestión de las selecciones
+	 *                        nacionales de fútbol.
+	 * @param stickerRepo     Repositorio para la gestión de los cromos y
+	 *                        futbolistas.
+	 * @param modelMapper     Utilitario de transformación de estructuras DTO y
+	 *                        Entidades.
+	 */
 	public DatabaseInitializer(UserRepository userRepo, PasswordEncoder passwordEncoder, TeamRepository teamRepo,
 			StickerRepository stickerRepo, ModelMapper modelMapper) {
 		this.userRepo = userRepo;
@@ -52,6 +88,16 @@ public class DatabaseInitializer {
 		this.modelMapper = modelMapper;
 	}
 
+	/**
+	 * Orquesta y ejecuta secuencialmente todo el flujo transaccional de
+	 * inicialización de datos.
+	 * <p>
+	 * Este método asegura la existencia de los perfiles administrativos y
+	 * operativos necesarios, invoca el aprovisionamiento de las estructuras
+	 * grupales de selecciones y descarga los registros de los jugadores
+	 * garantizando la consistencia relacional.
+	 * </p>
+	 */
 	@Transactional
 	public void runDataInitialization() {
 		log.info("Iniciando la carga de datos de configuración...");
@@ -69,13 +115,29 @@ public class DatabaseInitializer {
 		log.info("Proceso de inicialización finalizado con éxito.");
 	}
 
+	/**
+	 * Procesa y descarga la nómina oficial de jugadores por cada equipo desde el
+	 * servicio web de API-Football.
+	 * <p>
+	 * Controla la cuota de stickers requerida para el álbum virtual (513
+	 * registros), realiza un mapeo de identificadores de la API hacia las llaves
+	 * primarias locales, implementa reglas estrictas de segmentación táctica por
+	 * posición (ej. máximo 3 arqueros, 8 defensas, 9 volantes y 6 delanteros por
+	 * selección), calcula dinámicamente las rarezas junto a sus costos de mercado
+	 * asociados, y provee un mecanismo de tolerancia a fallos con reintentos
+	 * exponenciales y pausas activas ante la presencia de límites de tasa de
+	 * peticiones (Errores HTTP 429).
+	 * </p>
+	 */
 	private void createPlayers() {
 		if (stickerRepo.count() == 513) {
-			System.out.println("Los jugadores ya están precargados en la base de datos. Hay " + stickerRepo.count() + " Jugadores");
+			System.out.println("Los jugadores ya están precargados en la base de datos. Hay " + stickerRepo.count()
+					+ " Jugadores");
 			return;
 		}
 
-		List<Integer> teams = Arrays.asList(12, 31, 1569, 15, 13, 5529, 9, 27, 8, 26, 25, 16, 2384, 6, 2, 10, 7, 3, 1, 22);
+		List<Integer> teams = Arrays.asList(12, 31, 1569, 15, 13, 5529, 9, 27, 8, 26, 25, 16, 2384, 6, 2, 10, 7, 3, 1,
+				22);
 		String url = "https://v3.football.api-sports.io/players/squads?team=";
 
 		for (Integer teamId : teams) {
@@ -83,41 +145,83 @@ public class DatabaseInitializer {
 			long team = 0;
 
 			switch (teamId) {
-				case 9:    team = 29; break;
-				case 27:   team = 41; break;
-				case 8:    team = 44; break;
-				case 26:   team = 37; break;
-				case 25:   team = 17; break;
-				case 16:   team = 1;  break;
-				case 2384: team = 13; break;
-				case 6:    team = 9;  break;
-				case 2:    team = 33; break;
-				case 10:   team = 45; break;
-				case 7:    team = 32; break;
-				case 3:    team = 46; break;
-				case 1:    team = 25; break;
-				case 22:   team = 27; break;
-				case 12:   team = 22; break;
-				case 31:   team = 10; break;
-				case 1569: team = 7;  break;
-				case 15:   team = 8;  break;
-				case 13:   team = 34; break;
-				case 5529: team = 5;  break;
-				default:   team = 0;  break;
+			case 9:
+				team = 29;
+				break;
+			case 27:
+				team = 41;
+				break;
+			case 8:
+				team = 44;
+				break;
+			case 26:
+				team = 37;
+				break;
+			case 25:
+				team = 17;
+				break;
+			case 16:
+				team = 1;
+				break;
+			case 2384:
+				team = 13;
+				break;
+			case 6:
+				team = 9;
+				break;
+			case 2:
+				team = 33;
+				break;
+			case 10:
+				team = 45;
+				break;
+			case 7:
+				team = 32;
+				break;
+			case 3:
+				team = 46;
+				break;
+			case 1:
+				team = 25;
+				break;
+			case 22:
+				team = 27;
+				break;
+			case 12:
+				team = 22;
+				break;
+			case 31:
+				team = 10;
+				break;
+			case 1569:
+				team = 7;
+				break;
+			case 15:
+				team = 8;
+				break;
+			case 13:
+				team = 34;
+				break;
+			case 5529:
+				team = 5;
+				break;
+			default:
+				team = 0;
+				break;
 			}
 
 			System.out.println("Consultando equipo ID: " + teamId + " -> URL: " + fullUrl);
 
 			boolean success = false;
 			int retries = 0;
-			int maxRetries = 3; // Intentará hasta 3 veces por equipo antes de rendirse
+			int maxRetries = 3;
 
 			while (!success && retries < maxRetries) {
 				try {
 					String responseBody = ExternalHTTPRequestHandler.doGetWithAuthTokenApiFootball(fullUrl, apiKey);
 
 					if (responseBody != null && !responseBody.contains("requests limit")) {
-						
+
 						JsonObject jsonObject = JsonParser.parseString(responseBody).getAsJsonObject();
 						JsonArray responseArray = jsonObject.getAsJsonArray("response");
 
@@ -135,16 +239,20 @@ public class DatabaseInitializer {
 								String position = playerObj.get("position").getAsString();
 
 								if ("Goalkeeper".equals(position)) {
-									if (countGoalkeeper >= 3) continue;
+									if (countGoalkeeper >= 3)
+										continue;
 									countGoalkeeper++;
 								} else if ("Defender".equals(position)) {
-									if (countDefender >= 8) continue;
+									if (countDefender >= 8)
+										continue;
 									countDefender++;
 								} else if ("Midfielder".equals(position)) {
-									if (countMidfielder >= 9) continue;
+									if (countMidfielder >= 9)
+										continue;
 									countMidfielder++;
 								} else if ("Attacker".equals(position)) {
-									if (countAttacker >= 6) continue;
+									if (countAttacker >= 6)
+										continue;
 									countAttacker++;
 								} else {
 									continue;
@@ -182,12 +290,12 @@ public class DatabaseInitializer {
 								stickerRepo.save(sticker);
 							}
 						}
-						
-						success = true; 
+
+						success = true;
 
 					} else {
 						System.out.println("⚠️ Límite de peticiones de la API alcanzado. Esperando 60 segundos...");
-						Thread.sleep(60000); 
+						Thread.sleep(60000);
 						retries++;
 					}
 
@@ -201,13 +309,29 @@ public class DatabaseInitializer {
 						}
 						retries++;
 					} else {
-						System.out.println("❌ Ocurrió un error inesperado consultando el equipo " + teamId + ": " + e.getMessage());
-						break; 
+						System.out.println("❌ Ocurrió un error inesperado consultando el equipo " + teamId + ": "
+								+ e.getMessage());
+						break;
 					}
 				}
 			}
 		}
 	}
+
+	/**
+	 * Registra de forma segura un usuario por defecto en el sistema, en caso de no
+	 * existir previamente.
+	 * <p>
+	 * Aplica un doble esquema de seguridad obligatoria: cifra simétricamente el
+	 * nombre de usuario utilizando {@link AESUtil#encrypt} antes de consultar o
+	 * guardar en la base de datos, y efectúa un hashing asimétrico unidireccional
+	 * sobre la contraseña mediante el componente {@link PasswordEncoder}.
+	 * </p>
+	 *
+	 * @param username Nombre legible de la cuenta que será procesada mediante
+	 *                 cifrado AES.
+	 * @param role     Nivel de autorización y permisos asignados a la nueva cuenta.
+	 */
 	private void createDefaultUser(String username, Role role) {
 		String encryptedUsername = AESUtil.encrypt(username);
 		Optional<User> found = userRepo.findByUserName(encryptedUsername);
@@ -227,10 +351,17 @@ public class DatabaseInitializer {
 		}
 	}
 
-	// ====================================================================
-	// SECCIÓN DE INICIALIZACIÓN DE EQUIPOS (DEFINITIVA)
-	// ====================================================================
-
+	/**
+	 * Carga la totalidad de los 48 seleccionados de fútbol que participan de la
+	 * fase de grupos de la Copa del Mundo.
+	 * <p>
+	 * El método actúa de forma idempotente verificando la cantidad de registros
+	 * vigentes. Cada equipo es inicializado mapeando su nombre formal, acrónimo ISO
+	 * de tres letras, enlace CDN hacia el escudo heráldico vectorial (.svg o .png),
+	 * su grupo del mundial (A-L) y sus estadísticas de Ranking e histórico de
+	 * puntajes oficiales de la FIFA.
+	 * </p>
+	 */
 	private void loadTeams() {
 		if (teamRepo.count() > 0) {
 			log.info("Los equipos ya están precargados en la base de datos. Omitiendo...");
@@ -325,6 +456,22 @@ public class DatabaseInitializer {
 		log.info("48 equipos insertados exitosamente");
 	}
 
+	/**
+	 * Instancia, parametriza y persiste un nuevo registro estructural de Selección
+	 * en el almacén de datos.
+	 *
+	 * @param name      Nombre de la selección nacional (ej. Colombia).
+	 * @param shortName Código abreviado de identificación FIFA (ej. COL).
+	 * @param crest     Dirección URL que hospeda la insignia o escudo oficial del
+	 *                  seleccionado.
+	 * @param country   Nombre geográfico del país origen.
+	 * @param groupName Enumerador representativo del sector asignado en la
+	 *                  competición (Grupos A al L).
+	 * @param ranking   Posición actual del equipo dentro del escalafón oficial de
+	 *                  selecciones masculinas de la FIFA.
+	 * @param points    Métrica total de puntos de rendimiento acumulados ante la
+	 *                  federación.
+	 */
 	private void createTeam(String name, String shortName, String crest, String country, GroupName groupName,
 			Integer ranking, Integer points) {
 		Team newTeam = new Team();
@@ -339,6 +486,12 @@ public class DatabaseInitializer {
 		teamRepo.save(newTeam);
 	}
 
+	/**
+	 * Recupera la instancia compartida y registrada del mapeador de datos de la
+	 * clase.
+	 *
+	 * @return El bean inyectado de {@link ModelMapper}.
+	 */
 	public ModelMapper getModelMapper() {
 		return modelMapper;
 	}

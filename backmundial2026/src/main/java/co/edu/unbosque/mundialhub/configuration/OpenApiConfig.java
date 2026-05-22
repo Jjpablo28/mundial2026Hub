@@ -1,5 +1,6 @@
 /**
- * Paquete que contiene las clases de configuración para la aplicación backend Virus Detected.
+ * Paquete que agrupa las clases e inicializadores de configuración técnica
+ * para la infraestructura del backend de la aplicación Mundial 2026 Hub.
  */
 package co.edu.unbosque.mundialhub.configuration;
 
@@ -15,27 +16,37 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Clase de configuración para la generación de la documentación de la API
- * utilizando OpenAPI 3.
+ * Clase de configuración dedicada a la integración y personalización de la
+ * especificación OpenAPI 3 junto con el motor interactivo de Swagger UI.
  * <p>
- * Esta clase define un bean {@code customOpenAPI} que personaliza la
- * configuración de OpenAPI, incluyendo información general de la API, esquemas
- * de seguridad y respuestas globales. Esto permite generar una documentación
- * interactiva y detallada de los endpoints de la API.
+ * Centraliza la metadata descriptiva de la API (títulos, flujos básicos de
+ * consumo, guías de roles), los requerimientos globales de seguridad para
+ * interceptores Bearer JWT y los esquemas de respuestas de error estandarizados
+ * para simplificar las pruebas e integración del equipo de frontend.
+ * </p>
+ * * @author TuNombre / Grupo de Desarrollo
+ * 
+ * @version 1.0
+ * @see Configuration
+ * @see OpenAPI
  */
 @Configuration
 public class OpenApiConfig {
+
 	/**
-	 * Define y configura el objeto {@link OpenAPI} para la documentación de la API.
+	 * Instancia, parametriza y registra el Bean global de {@link OpenAPI} que
+	 * gobierna el comportamiento técnico de Swagger UI y la documentación OpenAPI
+	 * 3.
 	 * <p>
-	 * Este bean personaliza la información general de la API (título, versión,
-	 * descripción, contacto y licencia), define el esquema de seguridad JWT
-	 * ("bearerAuth") y configura respuestas globales como "UnauthorizedError",
-	 * "ForbiddenError" y "NotFoundError" para proporcionar mensajes de error
-	 * estandarizados en la documentación.
+	 * Este método inyecta dinámicamente un manual técnico interactivo formateado en
+	 * HTML dentro de la interfaz, define el contrato de autenticación basado en
+	 * {@code bearerAuth} bajo el formato JSON Web Token (JWT) y precarga
+	 * componentes de respuestas reutilizables para los códigos de estado HTTP más
+	 * comunes en fallos de seguridad o recursos (401, 403 y 404).
+	 * </p>
 	 *
-	 * @return Un objeto {@link OpenAPI} configurado con la información de la API y
-	 *         las definiciones de seguridad y respuestas globales.
+	 * @return Una instancia completamente configurada de {@link OpenAPI} con la
+	 *         metadata de la suite y los esquemas de seguridad embebidos.
 	 */
 	@Bean
 	public OpenAPI customOpenAPI() {
@@ -88,10 +99,8 @@ public class OpenApiConfig {
 				.type(io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")
 				.description(securityDescription);
 
-		return new OpenAPI().info(info)
-				.addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
-				.components(new Components().addSecuritySchemes("bearerAuth", securityScheme).addResponses(
-						"UnauthorizedError",
+		return new OpenAPI().info(info).addSecurityItem(new SecurityRequirement().addList("bearerAuth")).components(
+				new Components().addSecuritySchemes("bearerAuth", securityScheme).addResponses("UnauthorizedError",
 						new ApiResponse().description("Unauthorized - Invalid or expired JWT token")
 								.content(new Content().addMediaType("application/json",
 										new MediaType().addExamples("error", new Example().value(
