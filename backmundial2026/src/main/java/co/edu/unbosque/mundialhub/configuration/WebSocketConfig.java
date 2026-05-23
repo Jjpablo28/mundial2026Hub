@@ -49,7 +49,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Esto permite que Render y otros proxies no bloqueen el handshake por CORS
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns(allowedOrigins)
-                .withSockJS();
+                .withSockJS()
+                .setSessionCookieNeeded(false);
     }
 
     @Override
