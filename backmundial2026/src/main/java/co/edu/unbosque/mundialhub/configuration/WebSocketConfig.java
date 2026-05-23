@@ -46,8 +46,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     "http://localhost:8081",
                     "http://localhost:8082",
                     "https://mundial2026hub.netlify.app"
-                )
-                .withSockJS();
+                );
     }
 
     @Override
