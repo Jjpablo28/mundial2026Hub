@@ -61,4 +61,19 @@ public class StickerTradeWebSocketController {
             );
         }
     }
+    @MessageMapping("/trade/join")
+    public void notifyJoin(TradeRequestDTO tradeRequest) {
+        // Notificar al Usuario A que el B ya está conectado y listo
+        messagingTemplate.convertAndSendToUser(
+            tradeRequest.getToUserId().toString(),
+            "/queue/trade-notifications",
+            "JOINED:" + tradeRequest.getFromUserId()
+        );
+        // Notificar al Usuario B con el ID del A
+        messagingTemplate.convertAndSendToUser(
+            tradeRequest.getFromUserId().toString(),
+            "/queue/trade-notifications",
+            "JOINED:" + tradeRequest.getToUserId()
+        );
+    }
 }

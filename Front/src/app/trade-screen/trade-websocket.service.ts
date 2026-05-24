@@ -131,6 +131,24 @@ export class TradeWebSocketService {
     return this.errors$.asObservable();
   }
 
+  notifyJoin(sessionUuid: string, fromUserId: number, toUserId: number): void {
+    if (this.stompClient && this.stompClient.active) {
+      this.stompClient.publish({
+        destination: '/app/trade/join',
+        body: JSON.stringify({
+          sessionUuid: sessionUuid,
+          fromUserId: fromUserId,
+          toUserId: toUserId,
+          fromStickerIds: [],
+          toStickerIds: []
+        })
+      });
+      console.log('[STOMP] 📤 notifyJoin enviado al servidor');
+    }
+  }
+
+
+
   disconnect(): void {
     if (this.stompClient) {
       this.stompClient.deactivate();
