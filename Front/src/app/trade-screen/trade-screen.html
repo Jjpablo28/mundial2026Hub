@@ -6,36 +6,24 @@
       <p class="session-label">Token de Transacción: <span>{{ sessionUuid }}</span></p>
     </div>
 
-    <!-- Pantalla de espera -->
+    <!-- ✅ Pantalla de espera mientras la contraparte no se conecta -->
     <div *ngIf="esperandoContraparte" class="waiting-overlay">
       <div class="spinner-mini"></div>
       <p>Esperando a que tu contraparte se conecte a la mesa...</p>
     </div>
 
-    <!-- Contenido del intercambio -->
+    <!-- El contenido de intercambio solo se muestra cuando ambos están conectados -->
     <div *ngIf="!esperandoContraparte">
 
-      <!-- Selected stickers inputs -->
       <div class="layout-split">
         <div class="trade-card">
           <h3><i class="fas fa-sync-alt"></i> Tus Láminas a Entregar</h3>
           <input
             type="text"
             [(ngModel)]="misStickersInput"
-            placeholder="Clic en tus láminas para agregar..."
+            placeholder="IDs separadas por comas (Ej: 1, 2, 3)"
             class="input-box"
           />
-          <!-- Selected chips -->
-          <div class="selected-chips" *ngIf="getMisIds().length > 0">
-            <span
-              *ngFor="let id of getMisIds()"
-              class="selected-chip"
-              (click)="removerMiLamina(id)"
-              title="Clic para quitar"
-            >
-              #{{ id }} <i class="fas fa-times"></i>
-            </span>
-          </div>
         </div>
 
         <div class="trade-card">
@@ -43,59 +31,35 @@
           <input
             type="text"
             [(ngModel)]="susStickersInput"
-            placeholder="Clic en las láminas del contraparte..."
+            placeholder="IDs separadas por comas (Ej: 4, 5, 6)"
             class="input-box"
           />
-          <!-- Selected chips -->
-          <div class="selected-chips" *ngIf="getSusIds().length > 0">
-            <span
-              *ngFor="let id of getSusIds()"
-              class="selected-chip"
-              (click)="removerSuLamina(id)"
-              title="Clic para quitar"
-            >
-              #{{ id }} <i class="fas fa-times"></i>
-            </span>
-          </div>
         </div>
       </div>
 
-      <!-- Sticker inventories -->
       <div class="layout-split">
 
-        <!-- Own repeated stickers -->
+        <!-- Inventario propio: solo láminas repetidas disponibles para dar -->
         <div class="trade-card">
-          <h3><i class="fas fa-list"></i> Tus Láminas Disponibles <span class="hint-label">(clic para agregar)</span></h3>
+          <h3><i class="fas fa-list"></i> Tus Láminas Disponibles</h3>
           <div *ngIf="misStickersDisponibles.length === 0" class="sticker-empty-msg">
             No tienes láminas repetidas para intercambiar.
           </div>
           <div class="sticker-grid">
-            <div
-              *ngFor="let s of misStickersDisponibles"
-              class="sticker-chip clickable"
-              [class.selected]="getMisIds().includes(s.stickerId)"
-              (click)="agregarMiLamina(s.stickerId)"
-              title="Agregar al intercambio"
-            >
+            <div *ngFor="let s of misStickersDisponibles" class="sticker-chip">
               # {{ s.stickerId }} {{ s.playerName || '...' }} (x{{ s.quantity }})
             </div>
           </div>
         </div>
 
-        <!-- Counterpart repeated stickers only -->
+        <!-- Inventario de la contraparte -->
         <div class="trade-card">
-          <h3><i class="fas fa-list"></i> Láminas del Contraparte <span class="hint-label">(clic para pedir)</span></h3>
+          <h3><i class="fas fa-list"></i> Láminas del Contraparte</h3>
           <div *ngIf="susStickersDisponibles.length === 0" class="sticker-empty-msg">
-            Cargando láminas repetidas de tu contraparte...
+            Cargando inventario de tu contraparte...
           </div>
           <div class="sticker-grid">
-            <div
-              *ngFor="let s of susStickersDisponibles"
-              class="sticker-chip clickable"
-              [class.selected]="getSusIds().includes(s.stickerId)"
-              (click)="agregarSuLamina(s.stickerId)"
-              title="Solicitar en el intercambio"
-            >
+            <div *ngFor="let s of susStickersDisponibles" class="sticker-chip">
               ID: {{ s.stickerId }} {{ s.playerName || '...' }} (x{{ s.quantity }})
             </div>
           </div>
@@ -103,30 +67,15 @@
 
       </div>
 
-      <!-- Ready button section -->
       <div class="trade-footer">
-        <div class="ready-status">
-          <span class="ready-indicator" [class.active]="myReady">
-            <i class="fas fa-check-circle"></i> Tú: {{ myReady ? 'Listo' : 'Pendiente' }}
-          </span>
-          <span class="ready-indicator" [class.active]="counterpartReady">
-            <i class="fas fa-check-circle"></i> Contraparte: {{ counterpartReady ? 'Listo' : 'Pendiente' }}
-          </span>
-        </div>
-        <button
-          (click)="marcarListo()"
-          class="btn-trade-submit"
-          [class.btn-ready]="myReady"
-          [disabled]="myReady"
-        >
-          <i class="fas fa-hand-paper"></i>
-          {{ myReady ? '✅ Esperando contraparte...' : 'Estoy Listo' }}
+        <button (click)="enviarPropuestaFinal()" class="btn-trade-submit">
+          Confirmar e Intercambiar
         </button>
       </div>
 
     </div>
 
-    <!-- Log console -->
+    <!-- Consola de logs siempre visible -->
     <div class="log-console">
       <h4>Estado del Intercambio</h4>
       <ul class="log-list">
@@ -134,23 +83,5 @@
       </ul>
     </div>
 
-  </div>
-</div>
-
-<!-- ✅ Success Popup -->
-<div *ngIf="showSuccessPopup" class="popup-overlay">
-  <div class="popup-card">
-    <div class="popup-icon">🎉</div>
-    <h2>¡Intercambio Exitoso!</h2>
-    <p>Recibiste las siguientes láminas:</p>
-    <div class="popup-sticker-list">
-      <div *ngFor="let s of receivedStickers" class="popup-sticker-chip">
-        <i class="fas fa-star"></i>
-        #{{ s.stickerId }} {{ s.playerName || '' }}
-      </div>
-    </div>
-    <button (click)="cerrarPopupYRedirigir()" class="btn-popup-close">
-      <i class="fas fa-home"></i> Ir al Inicio
-    </button>
   </div>
 </div>
