@@ -1,0 +1,175 @@
+.trade-container {
+  background-color: #121212;
+  min-height: 100vh;
+  padding: 4rem 2rem 2rem 2rem; // Alineación superior idéntica para mantener el paralelismo alto en la pantalla
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+.sticker-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sticker-chip {
+  background: #2A2A2A;
+  border: 1px solid #444444;
+  color: #E1FF57;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  font-family: monospace;
+}
+.trade-wrapper {
+  width: 100%;
+  max-width: 950px; // Mismo ancho máximo exacto que las tarjetas del generador QR
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.trade-header {
+  border-bottom: 2px solid #E1FF57;
+  padding-bottom: 12px;
+
+  h2 {
+    color: #ffffff;
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .session-label {
+    color: #AAAAAA;
+    font-size: 0.9rem;
+    margin-top: 6px;
+
+    span {
+      color: #ffffff;
+      font-weight: bold;
+    }
+  }
+}
+
+.layout-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.trade-card {
+  background: #1E1E1E;
+  border: 1px solid #333333;
+  padding: 30px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  h3 {
+    color: #ffffff;
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    i {
+      color: #E1FF57;
+    }
+  }
+
+  .input-box {
+    background: #141414;
+    color: #ffffff;
+    border: 1px solid #333333;
+    padding: 14px;
+    border-radius: 6px;
+    outline: none;
+    font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: #E1FF57;
+    }
+  }
+}
+
+.log-console {
+  background-color: #141414;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 20px;
+  box-sizing: border-box;
+
+  h4 {
+    color: #E1FF57;
+    margin: 0 0 12px 0;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+
+  .log-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: monospace;
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+}
+
+.trade-footer {
+  text-align: right;
+
+  .btn-trade-submit {
+    background: #E1FF57;
+    color: #121212;
+    font-weight: bold;
+    padding: 14px 40px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s ease;
+    width: auto;
+
+    &:hover {
+      background: #ffffff;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .trade-container {
+    padding: 1.5rem 1rem;
+    align-items: center;
+  }
+
+  .layout-split {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .trade-footer {
+    text-align: center;
+
+    .btn-trade-submit {
+      width: 100%;
+    }
+  }
+}

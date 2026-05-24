@@ -26,6 +26,8 @@ import { AccountComponent } from './account.component/account.component';
 import { AuthService } from './security/AuthService';
 import { MatchComponent } from './match.component/match.component';
 import { PaymentComponent } from './payment.component/payment.component';
+import { QrGenerator } from './qr-generator/qr-generator';
+import { TradeScreen } from './trade-screen/trade-screen';
 
 export function initializeApp(authService: AuthService) {
   return () => authService.cargarDatosIniciales();
@@ -43,7 +45,9 @@ export function initializeApp(authService: AuthService) {
     LandingComponent,
     AccountComponent,
     MatchComponent,
-    PaymentComponent
+    PaymentComponent,
+    QrGenerator,
+    TradeScreen,
   ],
   imports: [
     BrowserModule,

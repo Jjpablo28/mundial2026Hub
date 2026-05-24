@@ -27,18 +27,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
-    // ✅ FIX: Excluir rutas WebSocket del filtro JWT
-    // Sin esto, el filtro intenta procesar el handshake WS como HTTP normal
-    // y puede interferir con el upgrade de conexión
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-        // Excluimos /ws/** pero NO con shouldNotFilter vacío — 
-        // el SecurityConfig ya tiene permitAll() para /ws/**
-        // así que el filtro puede pasar sin hacer nada (no tiene token)
-        return path.startsWith("/ws");
-    }
-
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,

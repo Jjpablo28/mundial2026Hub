@@ -1,0 +1,76 @@
+<div class="main-area">
+  <div class="layout-split">
+
+    <!-- Panel del Usuario A: Genera la sala y muestra el QR -->
+    <div class="trade-card-panel">
+      <h2 class="qr-title">Opción 1: Tu Código de Intercambio</h2>
+      <p class="qr-description">
+        Crea una sala de intercambio única para que tu contraparte escanee tus láminas en tiempo real.
+      </p>
+
+      <div *ngIf="!qrCode; else conQr">
+        <div *ngIf="!cargandoSala" class="qr-action-container">
+          <button (click)="generarSala()" class="btn-generate-sala">
+            🚀 Generar Sala Segura
+          </button>
+        </div>
+
+        <div *ngIf="cargandoSala" class="qr-loading-status-active">
+          <div class="spinner-mini"></div>
+          <p>Sincronizando mesa...</p>
+        </div>
+      </div>
+
+      <ng-template #conQr>
+        <div class="qr-result-container">
+          <div class="qr-image-wrapper">
+            <img [src]="'data:image/png;base64,' + qrCode" alt="Código QR MundialHub">
+          </div>
+          <p class="qr-uuid-display">
+            ID DE SESIÓN: <span>{{ qrData?.uuid }}</span>
+          </p>
+          <!-- ✅ Mensaje de espera mientras el Usuario B no llega -->
+          <div class="qr-waiting-status">
+            <div class="spinner-mini"></div>
+            <p>Esperando a tu contraparte...</p>
+          </div>
+          <button (click)="cargarNuevoQr()" class="btn-qr-refresh">
+            🔄 Forzar Nuevo Código
+          </button>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Panel del Usuario B: Se conecta a una sala existente -->
+    <div class="trade-card-panel">
+      <h2 class="qr-title">Opción 2: Conectarse a una Mesa Existente</h2>
+      <p class="qr-description">
+        Ingresa el ID de la sesión de tu contraparte para unirte de inmediato a su mesa de negociación.
+      </p>
+
+      <div class="connect-form">
+        <input
+          type="text"
+          [(ngModel)]="sessionUuidInput"
+          placeholder="Pega el ID de sesión aquí..."
+          class="input-box"
+          [disabled]="uniendose"
+        />
+
+        <!-- ✅ Botón con estado de carga para el join -->
+        <button
+          (click)="unirseAIntercambio()"
+          class="btn-qr-connect"
+          [disabled]="uniendose">
+          {{ uniendose ? '⏳ Conectando...' : 'Vincularse e Intercambiar' }}
+        </button>
+
+        <div *ngIf="uniendose" class="qr-loading-status-active">
+          <div class="spinner-mini"></div>
+          <p>Uniéndote a la mesa...</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
