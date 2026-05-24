@@ -19,6 +19,10 @@
         <i class="fas fa-random"></i> Intercambios
       </a>
 
+      <a class="nav-link" [class.active]="menuActivo === 'album'" (click)="cambiarMenu('album')">
+        <i class="fas fa-chart-bar"></i> Reportes
+      </a>
+
       <a class="nav-link" [class.active]="menuActivo === 'reportes'" (click)="cambiarMenu('reportes')">
         <i class="fas fa-chart-bar"></i> Reportes
       </a>
@@ -426,6 +430,14 @@
             </div>
           </div>
         </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'album'">
+        <button class="btn-back" (click)="cambiarMenu('dashboard')">
+          <i class="fas fa-arrow-left"></i> Volver al Inicio
+        </button>
+        <app-album></app-album>
+
       </ng-container>
 
       <ng-container *ngSwitchCase="'inter'">
