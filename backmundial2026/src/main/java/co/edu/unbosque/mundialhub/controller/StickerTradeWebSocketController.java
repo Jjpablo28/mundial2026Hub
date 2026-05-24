@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.Map;
+import org.springframework.messaging.handler.annotation.Payload;
 
 import co.edu.unbosque.mundialhub.dto.TradeRequestDTO;
 import co.edu.unbosque.mundialhub.service.TradeService;
@@ -62,18 +64,21 @@ public class StickerTradeWebSocketController {
         }
     }
     @MessageMapping("/trade/join")
-    public void notifyJoin(TradeRequestDTO tradeRequest) {
-        // Notificar al Usuario A que el B ya está conectado y listo
+    public void notifyJoin(@Payload Map<String, Object> payload) {
+        String fromUserId = payload.get("fromUserId").toString();
+        String toUserId = payload.get("toUserId").toString();
+        
+        System.out.println("[TRADE-JOIN] B=" + fromUserId + " notifica a A=" + toUserId);
+        
         messagingTemplate.convertAndSendToUser(
-            tradeRequest.getToUserId().toString(),
+            toUserId,
             "/queue/trade-notifications",
-            "JOINED:" + tradeRequest.getFromUserId()
+            "JOINED:" + fromUserId
         );
-        // Notificar al Usuario B con el ID del A
         messagingTemplate.convertAndSendToUser(
-            tradeRequest.getFromUserId().toString(),
-            "/queue/trade-notifications",
-            "JOINED:" + tradeRequest.getToUserId()
+            fromUserId,
+            "/queue/trade-notifications", 
+            "JOINED:" + toUserId
         );
     }
 }
