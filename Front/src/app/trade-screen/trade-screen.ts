@@ -55,7 +55,7 @@ export class TradeScreen implements OnInit, OnDestroy {
 
         this.addLog(`¡Contraparte conectada (ID: ${contraparteId})! Cargando inventarios...`, '#E1FF57');
         this.cargarInventario(this.myUserId, true);
-        this.cargarInventario(this.toUserId, false);
+        this.cargarInventarioB(this.toUserId, false);
         this.cdr.detectChanges();
       }
 
@@ -97,7 +97,22 @@ export class TradeScreen implements OnInit, OnDestroy {
             });
           });
         } else {
-          this.susStickersDisponibles = res;
+          alert("No hay fichas disponibles")
+        }
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        console.error("Error al cargar inventario:", err);
+        this.addLog(`Error al cargar inventario del usuario ${userId}.`, '#ff4d4d');
+      }
+    });
+  }
+
+  cargarInventarioB(userId: number, esMio: boolean): void {
+    this.wsService.getStickersId(userId).subscribe({
+      next: (res: any[]) => {
+        if (esMio) {
+          this.susStickersDisponibles = res.filter(s => s && s.quantity > 1);
           this.susStickersDisponibles.forEach((sticker, index) => {
             if (!sticker?.stickerId) return;
             this.wsService.getStickerInfo(sticker.stickerId).subscribe({
@@ -107,6 +122,8 @@ export class TradeScreen implements OnInit, OnDestroy {
               }
             });
           });
+        } else {
+          alert("No hay fichas disponibles")
         }
         this.cdr.detectChanges();
       },
