@@ -1,143 +1,154 @@
-import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
-import { TradeHttpService } from './trade-http.service';
-import { TradeWebSocketService } from '../trade-screen/trade-websocket.service';
-import { Router } from '@angular/router';
-import { AuthService } from '../security/AuthService';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { TradeWebSocketService } from "../trade-screen/trade-websocket.service";
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { AuthService } from '../security/AuthService';
 
 @Component({
-  selector: 'app-qr-generator',
-  templateUrl: './qr-generator.html',
-  styleUrls: ['./qr-generator.scss'],
-  standalone: false
+  selector: 'app-trade-screen',
+  standalone: false,
+  templateUrl: './trade-screen.html',
+  styleUrl: './trade-screen.scss',
 })
-export class QrGenerator implements OnInit, OnDestroy {
-  myUserId!: number;
-  qrData: any = null;
-  sessionUuidInput: string = '';
-  qrCode: string = '';
-  cargandoSala: boolean = false;
-  uniendose: boolean = false;
+export class TradeScreen implements OnInit, OnDestroy {
 
-  private userAId: number = 0;
-  private sessionUuidDestino: string = '';
+  sessionUuid: string = '';
+  myUserId: number = 0;
+  toUserId: number = 0;
 
-  private notificationSub!: Subscription;
+  misStickersInput: string = '';
+  susStickersInput: string = '';
+
+  misStickersDisponibles: any[] = [];
+  susStickersDisponibles: any[] = [];
+
+  esperandoContraparte: boolean = true;
+  logs: Array<{ text: string, color: string }> = [];
+
+  private subNotifications!: Subscription;
+  private subErrors!: Subscription;
 
   constructor(
-    private httpService: TradeHttpService,
     private wsService: TradeWebSocketService,
     private authService: AuthService,
-    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.myUserId = this.authService.getUserId() || 1;
+    this.sessionUuid = this.wsService.getSessionUuid();
+    this.myUserId = this.authService.getUserId() || this.wsService.getMyUserId();
 
-    this.notificationSub = this.wsService.getNotifications().pipe(
+    this.addLog('Conectado a la mesa segura. Esperando contraparte...', '#AAAAAA');
+
+    // ✅ Escuchamos notificaciones — BehaviorSubject emite el último valor al suscribirse
+    // Si JOINED ya llegó antes de navegar aquí, lo procesamos de inmediato
+    this.subNotifications = this.wsService.getNotifications().pipe(
       filter(msg => !!msg)
-    ).subscribe({
-      next: (notificacion) => {
-        console.log("✉️ Notificación recibida del servidor:", notificacion);
-        if (notificacion.includes("JOINED")) {
-          console.log("🚀 Navegando a la mesa de intercambio...");
-          this.router.navigate(['/websocket']);
-        }
+    ).subscribe((msg: string) => {
+      console.log('[TradeScreen] Notificación:', msg);
+      this.addLog(`[INFO] ${msg}`, '#AAAAAA');
+
+      if (msg.startsWith("JOINED:")) {
+        const contraparteId = Number(msg.split(":")[1]);
+        this.toUserId = contraparteId;
+        this.esperandoContraparte = false;
+
+        this.addLog(`¡Contraparte conectada (ID: ${contraparteId})! Cargando inventarios...`, '#E1FF57');
+        this.cargarInventario(this.myUserId, true);
+        this.cargarInventario(this.toUserId, false);
+        this.cdr.detectChanges();
+      }
+
+      if (msg.includes("exitoso")) {
+        this.addLog(`✅ ${msg}`, '#00FF99');
+        this.cargarInventario(this.myUserId, true);
+        this.cdr.detectChanges();
       }
     });
+
+    this.subErrors = this.wsService.getErrors().subscribe(err => {
+      this.addLog(`[ERROR] ${err}`, '#ff4d4d');
+      this.cdr.detectChanges();
+    });
+
+    // ✅ Si el usuario es B, ya sabe que está en la mesa — carga su inventario
+    if (this.myUserId && this.myUserId !== 0) {
+      this.cargarInventario(this.myUserId, true);
+    }
   }
 
-  generarSala(): void {
-    console.log("⏳ Disparando creación de sala bajo demanda...");
-
-    this.qrCode = '';
-    this.qrData = null;
-    this.cargandoSala = true;
+  addLog(text: string, color: string): void {
+    this.logs.push({ text: `[${new Date().toLocaleTimeString()}] ${text}`, color });
     this.cdr.detectChanges();
+  }
 
-    this.httpService.createSession(this.myUserId).subscribe({
-      next: (response: any) => {
-        this.qrData = response;
-        this.qrCode = response.qrBase64;
-        this.cargandoSala = false;
-
-        console.log("✅ Código QR generado:", response.uuid);
+  cargarInventario(userId: number, esMio: boolean): void {
+    this.wsService.getStickersId(userId).subscribe({
+      next: (res: any[]) => {
+        if (esMio) {
+          this.misStickersDisponibles = res.filter(s => s && s.quantity > 1);
+          this.misStickersDisponibles.forEach((sticker, index) => {
+            if (!sticker?.stickerId) return;
+            this.wsService.getStickerInfo(sticker.stickerId).subscribe({
+              next: (info: any) => {
+                this.misStickersDisponibles[index] = { ...sticker, playerName: info.playerName };
+                this.cdr.detectChanges();
+              }
+            });
+          });
+        } else {
+          this.susStickersDisponibles = res;
+          this.susStickersDisponibles.forEach((sticker, index) => {
+            if (!sticker?.stickerId) return;
+            this.wsService.getStickerInfo(sticker.stickerId).subscribe({
+              next: (info: any) => {
+                this.susStickersDisponibles[index] = { ...sticker, playerName: info.playerName };
+                this.cdr.detectChanges();
+              }
+            });
+          });
+        }
         this.cdr.detectChanges();
-
-        this.wsService.setSessionData(response.uuid, this.myUserId);
-        const token = this.authService.getToken() || '';
-
-        this.wsService.connect(token, this.myUserId, (status) => {
-          console.log("🟢 Túnel WebSocket abierto, esperando contraparte:", status);
-          this.cdr.detectChanges();
-        });
       },
-      error: (err) => {
-        console.error("❌ Error HTTP al crear sesión:", err);
-        this.cargandoSala = false;
-        this.cdr.detectChanges();
-        alert("Error de comunicación con MundialHub. Intenta de nuevo.");
+      error: (err: any) => {
+        console.error("Error al cargar inventario:", err);
+        this.addLog(`Error al cargar inventario del usuario ${userId}.`, '#ff4d4d');
       }
     });
   }
 
-  cargarNuevoQr(): void {
-    this.generarSala();
-  }
-
-  unirseAIntercambio(): void {
-    if (!this.sessionUuidInput.trim()) {
-      alert("Por favor ingresa un ID de sesión válido.");
+  enviarPropuestaFinal(): void {
+    if (this.toUserId === 0) {
+      alert("Todavía no hay contraparte conectada.");
+      return;
+    }
+    if (!this.misStickersInput || !this.susStickersInput) {
+      alert("Por favor ingresa los códigos de las láminas.");
       return;
     }
 
-    const uuidDestino = this.sessionUuidInput.trim();
-    this.uniendose = true;
-    this.cdr.detectChanges();
+    const myStickers = this.misStickersInput.split(',').map(id => Number(id.trim())).filter(n => !isNaN(n) && n > 0);
+    const theirStickers = this.susStickersInput.split(',').map(id => Number(id.trim())).filter(n => !isNaN(n) && n > 0);
 
-    this.httpService.joinSession(uuidDestino, this.myUserId).subscribe({
-      next: (mensaje: string) => {
-        console.log("✅ Unión HTTP exitosa:", mensaje);
+    if (myStickers.length !== theirStickers.length) {
+      alert(`Paridad incorrecta: ofreces ${myStickers.length} pero recibirías ${theirStickers.length}.`);
+      return;
+    }
 
-        const match = mensaje.match(/ID:\s*(\d+)/);
-        this.userAId = match ? Number(match[1]) : 0;
-        this.sessionUuidDestino = uuidDestino;
+    const payload = {
+      sessionUuid: this.sessionUuid,
+      fromUserId: this.myUserId,
+      toUserId: this.toUserId,
+      fromStickerIds: myStickers,
+      toStickerIds: theirStickers
+    };
 
-        console.log("👤 Usuario A identificado:", this.userAId);
-
-        this.wsService.setSessionData(uuidDestino, this.myUserId);
-        const token = this.authService.getToken() || '';
-
-        this.wsService.connect(token, this.myUserId, (status) => {
-          console.log("🟢 WebSocket conectado como Usuario B:", status);
-
-          // ✅ Delay de 500ms para asegurar que las suscripciones del A
-          // estén completamente registradas antes de enviar el notifyJoin
-          setTimeout(() => {
-            console.log("📤 Enviando notifyJoin con delay...");
-            this.wsService.notifyJoin(uuidDestino, this.myUserId, this.userAId);
-          }, 500);
-
-          this.uniendose = false;
-          this.cdr.detectChanges();
-          this.router.navigate(['/websocket']);
-        });
-      },
-      error: (err) => {
-        console.error("❌ Error al unirse a la sesión:", err);
-        this.uniendose = false;
-        this.cdr.detectChanges();
-        const mensaje = err?.error || err?.message || "Error desconocido al unirse a la sesión.";
-        alert(mensaje);
-      }
-    });
+    this.addLog("Enviando propuesta al servidor...", '#ffffff');
+    this.wsService.sendProposal(payload);
   }
 
   ngOnDestroy(): void {
-    if (this.notificationSub) {
-      this.notificationSub.unsubscribe();
-    }
+    if (this.subNotifications) this.subNotifications.unsubscribe();
+    if (this.subErrors) this.subErrors.unsubscribe();
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Client, Message } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import {Subject, Observable, BehaviorSubject} from 'rxjs';
+import { Subject, Observable, BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({
@@ -15,9 +15,6 @@ export class TradeWebSocketService {
 
   private currentSessionUuid: string = '';
   private currentUserId: number = 0;
-
-  // ✅ Guardamos token y userId como variables de clase
-  // para que estén disponibles en reconexiones automáticas
   private currentToken: string = '';
   private connectedUserId: number = 0;
 
@@ -47,24 +44,20 @@ export class TradeWebSocketService {
   }
 
   connect(token: string, userId: number, onConnectedCallback?: (status: string) => void): void {
-    // ✅ Guardamos para reconexiones
     this.currentToken = token;
     this.connectedUserId = userId;
 
+    // Si ya hay conexión activa del mismo usuario, reutilizarla
     if (this.stompClient && this.stompClient.active) {
-      this.stompClient.deactivate().then(() => {
-        this.stompClient = null;
-        this.doConnect(onConnectedCallback);
-      });
-    } else {
-      this.stompClient = null;
-      this.doConnect(onConnectedCallback);
+      console.log('[STOMP] Reutilizando conexión activa para userId:', userId);
+      if (onConnectedCallback) onConnectedCallback("CONNECTED");
+      return;
     }
+
+    this.doConnect(onConnectedCallback);
   }
 
   private doConnect(onConnectedCallback?: (status: string) => void): void {
-    // ✅ Usamos las variables de clase en lugar de parámetros
-    // Así la reconexión automática también usa los valores correctos
     const token = this.currentToken;
     const userId = this.connectedUserId;
 
@@ -74,7 +67,7 @@ export class TradeWebSocketService {
         Authorization: `Bearer ${token}`
       },
       debug: (str) => console.log('[STOMP DEBUG]', str),
-      reconnectDelay: 5000,
+      reconnectDelay: 0, // Sin reconexión automática para evitar loops con token expirado
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
     });
@@ -83,7 +76,7 @@ export class TradeWebSocketService {
       console.log('[STOMP] ✅ Conectado como userId:', userId);
       if (onConnectedCallback) onConnectedCallback("CONNECTED");
 
-      // ✅ FIX: Suscripción con userId explícito en la ruta
+      // ✅ Suscripción a la cola directa por userId (igual que el amigo pero con ID)
       this.stompClient?.subscribe(
         `/user/${userId}/queue/trade-notifications`,
         (msg: Message) => {
@@ -123,14 +116,6 @@ export class TradeWebSocketService {
     }
   }
 
-  getNotifications(): Observable<string> {
-    return this.notifications$.asObservable();
-  }
-
-  getErrors(): Observable<string> {
-    return this.errors$.asObservable();
-  }
-
   notifyJoin(sessionUuid: string, fromUserId: number, toUserId: number): void {
     if (this.stompClient && this.stompClient.active) {
       this.stompClient.publish({
@@ -138,16 +123,22 @@ export class TradeWebSocketService {
         body: JSON.stringify({
           sessionUuid: sessionUuid,
           fromUserId: fromUserId,
-          toUserId: toUserId,
-          fromStickerIds: [],
-          toStickerIds: []
+          toUserId: toUserId
         })
       });
       console.log('[STOMP] 📤 notifyJoin enviado al servidor');
+    } else {
+      console.warn('[STOMP] ⚠️ No se puede enviar notifyJoin sin conexión.');
     }
   }
 
+  getNotifications(): Observable<string> {
+    return this.notifications$.asObservable();
+  }
 
+  getErrors(): Observable<string> {
+    return this.errors$.asObservable();
+  }
 
   disconnect(): void {
     if (this.stompClient) {
