@@ -63,22 +63,26 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authProvider)
 			throws Exception {
-		http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
-				.authorizeHttpRequests(auth -> {
-					auth.requestMatchers("/auth/**").permitAll();
-					auth.requestMatchers("/teams/**").permitAll();
-					auth.requestMatchers("/sticker/**").permitAll();
-					auth.requestMatchers("/trade-session/**").permitAll();
-					auth.requestMatchers("/user-stickers/**").permitAll();
-					auth.requestMatchers("/ws/**").permitAll();
-					auth.requestMatchers("/payments/**").authenticated();
-					auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
-					auth.anyRequest().authenticated();
-				}).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				// AQUÍ EL CAMBIO: Usamos la variable 'authProvider' que viene por parámetro
-				.authenticationProvider(authProvider)
-				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+		http.csrf(csrf -> csrf.disable())
+	    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
+	    .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+	    .authorizeHttpRequests(auth -> {
+	        auth.requestMatchers("/auth/**").permitAll();
+	        auth.requestMatchers("/teams/**").permitAll();
+	        auth.requestMatchers("/sticker/**").permitAll();
+	        auth.requestMatchers("/trade-session/**").permitAll();
+	        auth.requestMatchers("/user-stickers/**").permitAll();
+
+	        auth.requestMatchers("/ws/**", "/ws/info/**", "/ws/iframe.html").permitAll();
+	        auth.requestMatchers("/payments/**").authenticated();
+	        auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
+	        auth.anyRequest().authenticated();
+	    })
+	    .sessionManagement(session -> session
+	        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+	    .authenticationProvider(authProvider)
+	    .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
 

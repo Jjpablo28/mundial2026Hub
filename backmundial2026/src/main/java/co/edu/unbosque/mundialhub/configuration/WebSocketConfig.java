@@ -32,7 +32,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Autowired
     private UserDetailsService userDetailsService;
 
-    // ✅ Leer orígenes desde application.properties para flexibilidad por entorno
     @Value("${websocket.allowed-origins:*}")
     private String allowedOrigins;
 
@@ -45,12 +44,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // ✅ FIX: setAllowedOriginPatterns en lugar de setAllowedOrigins
-        // Esto permite que Render y otros proxies no bloqueen el handshake por CORS
+        // ✅ Igual que el amigo: setAllowedOriginPatterns + withSockJS, sin nada más
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns(allowedOrigins)
-                .withSockJS()
-                .setSessionCookieNeeded(false);
+                .withSockJS();
     }
 
     @Override
@@ -64,66 +61,39 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     return message;
                 }
 
-                try {
-                    String authHeader = accessor.getFirstNativeHeader("Authorization");
-
-                    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                        System.out.println("[WS-AUTH] ⚠️ Conexión sin token. Se permite sin autenticar.");
-                        return message;
-                    }
-
+                String authHeader = accessor.getFirstNativeHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
                     String token = authHeader.substring(7);
                     String encryptedUsername = jwtUtil.extractUsername(token);
 
-                    if (encryptedUsername == null) {
-                        System.out.println("[WS-AUTH] ⚠️ Username nulo en token. Se permite sin autenticar.");
-                        return message;
-                    }
+                    if (encryptedUsername != null) {
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(encryptedUsername);
+                        if (jwtUtil.validateToken(token, userDetails)) {
 
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(encryptedUsername);
+                            // ✅ FIX CRÍTICO: El Principal debe ser el userId numérico (String)
+                            // porque TradeSessionController hace convertAndSendToUser(userId.toString(), ...)
+                            // Spring rutea el mensaje buscando Principal.getName() == userId
+                            String principalName;
+                            try {
+                                Object userIdClaim = jwtUtil.extractUserId(token);
+                                if (userIdClaim != null) {
+                                    principalName = userIdClaim.toString();
+                                } else {
+                                    principalName = AESUtil.decrypt(encryptedUsername);
+                                }
+                            } catch (Exception e) {
+                                principalName = AESUtil.decrypt(encryptedUsername);
+                            }
 
-                    if (!jwtUtil.validateToken(token, userDetails)) {
-                        System.out.println("[WS-AUTH] ⚠️ Token inválido o expirado. Se permite sin autenticar.");
-                        return message;
-                    }
+                            System.out.println("[WS-AUTH] ✅ Principal: " + principalName);
 
-                    // ✅ FIX CRÍTICO: El Principal debe ser el userId numérico (como String)
-                    // porque el frontend llama convertAndSendToUser con el ID numérico.
-                    // Si el Principal fuera el username, los mensajes nunca llegarían.
-                    String principalName;
-                    try {
-                        // Intentamos descifrar el username (puede fallar si AES falla)
-                        String cleanUsername = AESUtil.decrypt(encryptedUsername);
-                        System.out.println("[WS-AUTH] ✅ Username descifrado: " + cleanUsername);
-                        principalName = cleanUsername;
-                    } catch (Exception aesEx) {
-                        principalName = encryptedUsername;
-                        System.out.println("[WS-AUTH] ⚠️ AES decrypt falló, usando raw: " + principalName);
-                    }
+                            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                                    principalName, null, userDetails.getAuthorities());
 
-                    // ✅ Extraemos el userId del claim "id" del JWT para usarlo como Principal
-                    // Spring usa Principal.getName() para rutear /user/{id}/queue/...
-                    try {
-                        Object userIdClaim = jwtUtil.extractUserId(token);
-                        if (userIdClaim != null) {
-                            principalName = userIdClaim.toString();
-                            System.out.println("[WS-AUTH] ✅ Principal seteado como userId: " + principalName);
+                            SecurityContextHolder.getContext().setAuthentication(auth);
+                            accessor.setUser(auth);
                         }
-                    } catch (Exception ex) {
-                        System.out.println("[WS-AUTH] ⚠️ No se pudo extraer userId del token, usando username: " + principalName);
                     }
-
-                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                            principalName, null, userDetails.getAuthorities());
-
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                    accessor.setUser(auth);
-
-                } catch (Exception e) {
-                    // ✅ FIX: Nunca propagar la excepción — si falla, dejamos pasar sin autenticar
-                    // Antes, cualquier excepción aquí cerraba la conexión silenciosamente
-                    System.err.println("[WS-AUTH] ❌ Error inesperado en interceptor: " + e.getMessage());
-                    e.printStackTrace();
                 }
 
                 return message;
