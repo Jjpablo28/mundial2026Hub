@@ -4,6 +4,7 @@ import { TradeWebSocketService } from '../trade-screen/trade-websocket.service';
 import { Router } from '@angular/router';
 import { AuthService } from '../security/AuthService';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-qr-generator',
@@ -17,7 +18,7 @@ export class QrGenerator implements OnInit, OnDestroy {
   sessionUuidInput: string = '';
   qrCode: string = '';
   cargandoSala: boolean = false;
-  uniendose: boolean = false; // ✅ Estado de carga para el join
+  uniendose: boolean = false;
 
   private notificationSub!: Subscription;
 
@@ -32,11 +33,16 @@ export class QrGenerator implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.myUserId = this.authService.getUserId() || 1;
 
-    this.notificationSub = this.wsService.getNotifications().subscribe({
+    // ✅ FIX: filter(msg => !!msg) descarta el string vacío inicial del BehaviorSubject
+    // Sin esto, '' se emite al suscribirse y aunque no navega, puede causar problemas
+    // Con BehaviorSubject, si JOINED llegó antes de navegar aquí, se emite de inmediato
+    this.notificationSub = this.wsService.getNotifications().pipe(
+      filter(msg => !!msg) // Descarta string vacío ''
+    ).subscribe({
       next: (notificacion) => {
         console.log("✉️ Notificación recibida del servidor:", notificacion);
-        // El Usuario A recibe este evento cuando el B se une
         if (notificacion.includes("JOINED") || notificacion.includes("conectado") || notificacion.includes("START")) {
+          console.log("🚀 Navegando a la mesa de intercambio...");
           this.router.navigate(['/websocket']);
         }
       }
@@ -60,7 +66,6 @@ export class QrGenerator implements OnInit, OnDestroy {
         console.log("✅ Código QR generado:", response.uuid);
         this.cdr.detectChanges();
 
-        // Guardamos la sesión y conectamos el WebSocket para esperar al Usuario B
         this.wsService.setSessionData(response.uuid, this.myUserId);
         const token = this.authService.getToken() || '';
 
@@ -82,7 +87,6 @@ export class QrGenerator implements OnInit, OnDestroy {
     this.generarSala();
   }
 
-  // ✅ FIX CRÍTICO: El join ahora hace primero el HTTP y luego abre el WebSocket
   unirseAIntercambio(): void {
     if (!this.sessionUuidInput.trim()) {
       alert("Por favor ingresa un ID de sesión válido.");
@@ -93,16 +97,13 @@ export class QrGenerator implements OnInit, OnDestroy {
     this.uniendose = true;
     this.cdr.detectChanges();
 
-    // Paso 1: Registrar al Usuario B en la sesión vía HTTP
     this.httpService.joinSession(uuidDestino, this.myUserId).subscribe({
       next: (mensaje: string) => {
         console.log("✅ Unión HTTP exitosa:", mensaje);
 
-        // Paso 2: Guardar datos de sesión en el servicio compartido
         this.wsService.setSessionData(uuidDestino, this.myUserId);
         const token = this.authService.getToken() || '';
 
-        // Paso 3: Conectar WebSocket y luego navegar a la mesa
         this.wsService.connect(token, this.myUserId, (status) => {
           console.log("🟢 WebSocket conectado como Usuario B:", status);
           this.uniendose = false;
