@@ -1,0 +1,124 @@
+<div class="album-dashboard">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h2>Mundial HUB 2026</h2>
+      <p>Álbum Virtual</p>
+    </div>
+
+    <nav class="team-nav">
+      <span class="nav-section-title">SELECCIONES</span>
+      <ul>
+        <li [class.active]="currentTeamId === 22" (click)="loadTeamStickers(22)">
+          <span class="team-icon">🇯🇵</span> Japón (Team 22)
+        </li>
+        <li [class.active]="currentTeamId === 1" (click)="loadTeamStickers(1)">
+          <span class="team-icon">🇨🇴</span> Colombia (Team 1)
+        </li>
+        <li [class.active]="currentTeamId === 2" (click)="loadTeamStickers(2)">
+          <span class="team-icon">🇦🇷</span> Argentina (Team 2)
+        </li>
+        <li [class.active]="currentTeamId === 5" (click)="loadTeamStickers(5)">
+          <span class="team-icon">🇫🇷</span> Francia (Team 5)
+        </li>
+        <li [class.active]="currentTeamId === 10" (click)="loadTeamStickers(10)">
+          <span class="team-icon">🇪🇸</span> España (Team 10)
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="album-main-content">
+    <div class="album-page animate-fade-in">
+
+      <div class="team-section">
+        <h2 class="position-title">Porteros</h2>
+        <div class="stickers-grid">
+          <div class="sticker-card" *ngFor="let player of getPlayersByPosition('Goalkeeper')"
+               [ngClass]="[player.rarity, getStickerQuantity(player.id) === 0 ? 'locked' : 'unlocked']">
+            <div class="card-locked-state" *ngIf="getStickerQuantity(player.id) === 0">
+              <span class="lock-icon">🔒</span>
+              <span class="player-id-locked">N° {{ player.id }}</span>
+              <h3 class="player-name-locked">{{ player.playerName }}</h3>
+              <p class="missing-text">Falta en el álbum</p>
+            </div>
+            <div class="card-unlocked-state" *ngIf="getStickerQuantity(player.id) >= 1">
+              <span class="repeat-badge" *ngIf="getStickerQuantity(player.id) > 1">+{{ getStickerQuantity(player.id) - 1 }} Repetida</span>
+              <span class="rarity-badge">{{ player.rarity | titlecase }}</span>
+              <div class="sticker-meta"><span class="player-id">N° {{ player.id }}</span><span class="team-id">T-{{ player.teamId }}</span></div>
+              <div class="player-image-container"><img class="player-img" [src]="player.imageUrl" [alt]="player.playerName" loading="lazy"></div>
+              <div class="player-info"><h3 class="player-name">{{ player.playerName }}</h3><div class="player-stats"><span class="player-cost">{{ player.cost }} pts</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-section">
+        <h2 class="position-title">Defensas</h2>
+        <div class="stickers-grid">
+          <div class="sticker-card" *ngFor="let player of getPlayersByPosition('Defender')"
+               [ngClass]="[player.rarity, getStickerQuantity(player.id) === 0 ? 'locked' : 'unlocked']">
+            <div class="card-locked-state" *ngIf="getStickerQuantity(player.id) === 0">
+              <span class="lock-icon">🔒</span>
+              <span class="player-id-locked">N° {{ player.id }}</span>
+              <h3 class="player-name-locked">{{ player.playerName }}</h3>
+              <p class="missing-text">Falta en el álbum</p>
+            </div>
+            <div class="card-unlocked-state" *ngIf="getStickerQuantity(player.id) >= 1">
+              <span class="repeat-badge" *ngIf="getStickerQuantity(player.id) > 1">+{{ getStickerQuantity(player.id) - 1 }} Repetida</span>
+              <span class="rarity-badge">{{ player.rarity | titlecase }}</span>
+              <div class="sticker-meta"><span class="player-id">N° {{ player.id }}</span><span class="team-id">T-{{ player.teamId }}</span></div>
+              <div class="player-image-container"><img class="player-img" [src]="player.imageUrl" [alt]="player.playerName" loading="lazy"></div>
+              <div class="player-info"><h3 class="player-name">{{ player.playerName }}</h3><div class="player-stats"><span class="player-cost">{{ player.cost }} pts</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-section">
+        <h2 class="position-title">Mediocampistas</h2>
+        <div class="stickers-grid">
+          <div class="sticker-card" *ngFor="let player of getPlayersByPosition('Midfielder')"
+               [ngClass]="[player.rarity, getStickerQuantity(player.id) === 0 ? 'locked' : 'unlocked']">
+            <div class="card-locked-state" *ngIf="getStickerQuantity(player.id) === 0">
+              <span class="lock-icon">🔒</span>
+              <span class="player-id-locked">N° {{ player.id }}</span>
+              <h3 class="player-name-locked">{{ player.playerName }}</h3>
+              <p class="missing-text">Falta en el álbum</p>
+            </div>
+            <div class="card-unlocked-state" *ngIf="getStickerQuantity(player.id) >= 1">
+              <span class="repeat-badge" *ngIf="getStickerQuantity(player.id) > 1">+{{ getStickerQuantity(player.id) - 1 }} Repetida</span>
+              <span class="rarity-badge">{{ player.rarity | titlecase }}</span>
+              <div class="sticker-meta"><span class="player-id">N° {{ player.id }}</span><span class="team-id">T-{{ player.teamId }}</span></div>
+              <div class="player-image-container"><img class="player-img" [src]="player.imageUrl" [alt]="player.playerName" loading="lazy"></div>
+              <div class="player-info"><h3 class="player-name">{{ player.playerName }}</h3><div class="player-stats"><span class="player-cost">{{ player.cost }} pts</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-section">
+        <h2 class="position-title">Delanteros</h2>
+        <div class="stickers-grid">
+          <div class="sticker-card" *ngFor="let player of getPlayersByPosition('Attacker')"
+               [ngClass]="[player.rarity, getStickerQuantity(player.id) === 0 ? 'locked' : 'unlocked']">
+            <div class="card-locked-state" *ngIf="getStickerQuantity(player.id) === 0">
+              <span class="lock-icon">🔒</span>
+              <span class="player-id-locked">N° {{ player.id }}</span>
+              <h3 class="player-name-locked">{{ player.playerName }}</h3>
+              <p class="missing-text">Falta en el álbum</p>
+            </div>
+            <div class="card-unlocked-state" *ngIf="getStickerQuantity(player.id) >= 1">
+              <span class="repeat-badge" *ngIf="getStickerQuantity(player.id) > 1">+{{ getStickerQuantity(player.id) - 1 }} Repetida</span>
+              <span class="rarity-badge">{{ player.rarity | titlecase }}</span>
+              <div class="sticker-meta"><span class="player-id">N° {{ player.id }}</span><span class="team-id">T-{{ player.teamId }}</span></div>
+              <div class="player-image-container"><img class="player-img" [src]="player.imageUrl" [alt]="player.playerName" loading="lazy"></div>
+              <div class="player-info"><h3 class="player-name">{{ player.playerName }}</h3><div class="player-stats"><span class="player-cost">{{ player.cost }} pts</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
