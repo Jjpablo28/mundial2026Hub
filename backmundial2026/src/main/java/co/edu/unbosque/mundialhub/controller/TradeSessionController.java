@@ -31,55 +31,44 @@ public class TradeSessionController {
     @Autowired
     private TradeSessionRepository sessionRepo;
 
-    // ✅ NUEVO: Inyectamos el template de mensajería para notificar por WebSocket
+    // ✅ Inyectamos el template de mensajería para notificar por WebSocket
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
     /**
-     * Paso 1: El Usuario A solicita iniciar un intercambio.
-     * Retorna el JSON con el uuid y el base64 del QR generado por la API externa.
+     * Crea una nueva sesión de intercambio bajo demanda para el Host (Usuario A).
      */
-    @PostMapping("/create/{userId}")
-    public ResponseEntity<?> createSession(@PathVariable Long userId) {
+    @PostMapping("/create")
+    public ResponseEntity<?> createSession(@RequestParam Long userId) {
         try {
             QrDTO qrData = sessionService.createTradeSession(userId);
             return ResponseEntity.ok(qrData);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error al crear sesión: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("Error al crear la sesión de intercambio: " + e.getMessage());
         }
     }
 
     /**
-     * Paso 2: El Usuario B escanea el código QR (o pega el UUID) y se une a la sesión.
-     *
-     * ✅ FIX CRÍTICO: Una vez que el Usuario B se registra correctamente,
-     * se notifica al Usuario A por WebSocket con el formato "JOINED:{userBId}"
-     * para que el frontend del Usuario A sepa quién es su contraparte y
-     * pueda cargar los inventarios y navegar a la pantalla de intercambio.
+     * Endpoint HTTP que procesa la entrada del Invitado (Usuario B) a la sala segura.
      */
-    @PostMapping("/join/{uuid}/user/{userBId}")
-    public ResponseEntity<String> joinSession(
-            @PathVariable String uuid,
-            @PathVariable Long userBId) {
+    @PostMapping("/join")
+    public ResponseEntity<?> joinSession(@RequestParam String sessionUuid, @RequestParam Long userBId) {
         try {
-            TradeSession session = sessionRepo.findByUuid(uuid)
-                    .orElseThrow(() -> new RuntimeException(
-                        "La sesión de intercambio no existe o el QR ha expirado."));
-
-            if (!"PENDING".equals(session.getStatus())) {
-                return ResponseEntity.badRequest()
-                        .body("Esta sesión ya se encuentra activa o ha finalizado.");
-            }
+            TradeSession session = sessionRepo.findByUuid(sessionUuid)
+                    .orElseThrow(() -> new RuntimeException("Sesión no encontrada con el UUID proporcionado."));
 
             if (session.getUserAId().equals(userBId)) {
                 return ResponseEntity.badRequest()
                         .body("Operación inválida: No puedes realizar un intercambio contigo mismo.");
             }
 
-            // Actualizamos el estado de la sesión
+            // Actualizamos las propiedades de la sesión con los datos de la contraparte
             session.setUserBId(userBId);
             session.setStatus("NEGOTIATING");
-            sessionRepo.save(session);
+            
+            // ✅ FIX: Guardado síncrono inmediato (Flush) para escribir directo en la base de datos
+            sessionRepo.saveAndFlush(session);
 
             // ✅ NOTIFICACIÓN AL USUARIO A: Le avisamos que su contraparte llegó
             // El frontend detecta el prefijo "JOINED:" y extrae el ID del Usuario B
