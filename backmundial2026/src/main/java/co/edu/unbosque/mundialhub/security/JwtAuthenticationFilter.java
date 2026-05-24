@@ -1,7 +1,3 @@
-/**
- * Paquete que contiene las clases relacionadas con la seguridad de la
- * aplicación.
- */
 package co.edu.unbosque.mundialhub.security;
 
 import jakarta.servlet.FilterChain;
@@ -19,47 +15,30 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.ExpiredJwtException;
 
 import java.io.IOException;
-/**
- * Filtro de autenticación JWT que se ejecuta una vez por cada petición.
- * <p>
- * Este filtro intercepta las peticiones entrantes, extrae el token JWT del
- * encabezado de autorización, valida el token y, si es válido, autentica al
- * usuario configurando el {@code SecurityContextHolder} con la información
- * del usuario autenticado.
- */
+
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-	/**
-	 * Utilidad para la manipulación y validación de tokens JWT.
-	 */
+
     private final JwtUtil jwtUtil;
-    /**
-	 * Servicio para cargar los detalles del usuario a partir del nombre de
-	 * usuario (generalmente desde la base de datos).
-	 */
     private final UserDetailsService userDetailsService;
-    /**
-	 * Constructor con dependencias para {@link JwtUtil} y
-	 * {@link UserDetailsService}. Spring injecta automáticamente estas
-	 * dependencias.
-	 *
-	 * @param jwtUtil          Utilidad para la gestión de JWT.
-	 * @param userDetailsService Servicio para cargar los detalles del usuario.
-	 */
+
     public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
-    /**
-	 * Método principal del filtro que se ejecuta para cada petición.
-	 *
-	 * @param request     La petición HTTP entrante.
-	 * @param response    La respuesta HTTP saliente.
-	 * @param filterChain Cadena de filtros para continuar el procesamiento de la
-	 * petición.
-	 * @throws ServletException Si ocurre un error a nivel de servlet.
-	 * @throws IOException      Si ocurre un error de entrada/salida.
-	 */
+
+    // ✅ FIX: Excluir rutas WebSocket del filtro JWT
+    // Sin esto, el filtro intenta procesar el handshake WS como HTTP normal
+    // y puede interferir con el upgrade de conexión
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        // Excluimos /ws/** pero NO con shouldNotFilter vacío — 
+        // el SecurityConfig ya tiene permitAll() para /ws/**
+        // así que el filtro puede pasar sin hacer nada (no tiene token)
+        return path.startsWith("/ws");
+    }
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
