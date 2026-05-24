@@ -47,7 +47,6 @@ export class TradeWebSocketService {
     this.currentToken = token;
     this.connectedUserId = userId;
 
-    // Si ya hay conexión activa del mismo usuario, reutilizarla
     if (this.stompClient && this.stompClient.active) {
       console.log('[STOMP] Reutilizando conexión activa para userId:', userId);
       if (onConnectedCallback) onConnectedCallback("CONNECTED");
@@ -67,7 +66,7 @@ export class TradeWebSocketService {
         Authorization: `Bearer ${token}`
       },
       debug: (str) => console.log('[STOMP DEBUG]', str),
-      reconnectDelay: 0, // Sin reconexión automática para evitar loops con token expirado
+      reconnectDelay: 0,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
     });
@@ -76,7 +75,6 @@ export class TradeWebSocketService {
       console.log('[STOMP] ✅ Conectado como userId:', userId);
       if (onConnectedCallback) onConnectedCallback("CONNECTED");
 
-      // ✅ Suscripción a la cola directa por userId (igual que el amigo pero con ID)
       this.stompClient?.subscribe(
         `/user/queue/trade-notifications`,
         (msg: Message) => {
@@ -129,6 +127,26 @@ export class TradeWebSocketService {
       console.log('[STOMP] 📤 notifyJoin enviado al servidor');
     } else {
       console.warn('[STOMP] ⚠️ No se puede enviar notifyJoin sin conexión.');
+    }
+  }
+
+  /**
+   * Notifica a la contraparte que este usuario está listo para el intercambio.
+   * El backend retransmite "READY:TRUE" al toUserId.
+   */
+  notifyReady(sessionUuid: string, fromUserId: number, toUserId: number): void {
+    if (this.stompClient && this.stompClient.active) {
+      this.stompClient.publish({
+        destination: '/app/trade/ready',
+        body: JSON.stringify({
+          sessionUuid: sessionUuid,
+          fromUserId: fromUserId,
+          toUserId: toUserId
+        })
+      });
+      console.log('[STOMP] 📤 notifyReady enviado al servidor');
+    } else {
+      console.warn('[STOMP] ⚠️ No se puede enviar notifyReady sin conexión.');
     }
   }
 

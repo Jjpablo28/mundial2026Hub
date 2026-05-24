@@ -81,4 +81,29 @@ public class StickerTradeWebSocketController {
             "JOINED:" + toUserId
         );
     }
+    
+    @MessageMapping("/trade/sync-offer")
+    public void syncOffer(@Payload Map<String, Object> payload) {
+        String toUserId = payload.get("toUserId").toString();
+        String offerStr = payload.get("offer").toString();
+        
+        // Retransmite la oferta al receptor en tiempo real
+        messagingTemplate.convertAndSendToUser(
+            toUserId,
+            "/queue/trade-notifications",
+            "SYNC_OFFER:" + offerStr
+        );
+    }
+
+    @MessageMapping("/trade/ready")
+    public void tradeReady(@Payload Map<String, Object> payload) {
+        String toUserId = payload.get("toUserId").toString();
+        
+        // Le avisa a la contraparte que este usuario ya está listo
+        messagingTemplate.convertAndSendToUser(
+            toUserId,
+            "/queue/trade-notifications",
+            "READY:TRUE"
+        );
+    }
 }
