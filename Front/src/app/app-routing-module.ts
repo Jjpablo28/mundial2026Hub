@@ -8,6 +8,8 @@ import { Forbidden } from './statusCode/forbidden/forbidden';
 import { AuthGuard } from './security/AuthGuard';
 import { LandingComponent } from './landing.component/landing.component';
 import { PaymentComponent } from './payment.component/payment.component';
+import {QrGenerator} from './qr-generator/qr-generator';
+import {TradeScreen} from './trade-screen/trade-screen';
 
 
 const routes: Routes = [
@@ -19,6 +21,9 @@ const routes: Routes = [
   { path: 'home', component: HomeComponent,  canActivate: [AuthGuard], data: { rolesPermitidos: ['TEMPORAL','USER'] }},
   {path:'landing',component: LandingComponent},
   { path: 'payment', component: PaymentComponent },
+  { path: 'qr', component: QrGenerator },
+  { path: 'websocket', component: TradeScreen },
+
 ];
 
 @NgModule({

@@ -13,7 +13,7 @@ export class PaymentService {
   private mp: any;
   private bricksBuilder: any;
   private publicKey = 'TEST-f4351136-6c27-483f-99b5-7466c1737b30';
-  private apiUrl = 'http://localhost:8080/payments';
+  private apiUrl = 'https://mundial2026hub.onrender.com/payments';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -117,7 +117,7 @@ export class PaymentService {
                     this.authService.setTotalPoints(res.user.totalPoints);
                   } else {
                     // 2. Si el backend no devuelve el usuario completo, recalculamos sumando al flujo actual
-                    this.http.get<any>(`http://localhost:8080/users/${this.authService.getUserId()}`).subscribe({
+                    this.http.get<any>(`https://mundial2026hub.onrender.com/users/${this.authService.getUserId()}`).subscribe({
                       next: (user) => this.authService.setTotalPoints(user.totalPoints)
                     });
                   }

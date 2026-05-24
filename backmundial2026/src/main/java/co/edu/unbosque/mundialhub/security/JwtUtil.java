@@ -1,6 +1,6 @@
 /**
  * Paquete que contiene las clases relacionadas con la seguridad de la
- * aplicación Virus Detected backend.
+ * aplicación.
  */
 package co.edu.unbosque.mundialhub.security;
 
@@ -96,7 +96,7 @@ public class JwtUtil {
 	 * @return Un objeto {@link Claims} que contiene todas las reclamaciones del
 	 *         token.
 	 */
-	private Claims extractAllClaims(String token) {
+	public Claims extractAllClaims(String token) {
 		return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
 	}
 
@@ -160,5 +160,9 @@ public class JwtUtil {
 	public Boolean validateToken(String token, UserDetails userDetails) {
 		final String username = extractUsername(token);
 		return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+	}
+
+	public Object extractUserId(String token) {
+	    return extractAllClaims(token).get("id");
 	}
 }

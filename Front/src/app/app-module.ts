@@ -27,6 +27,8 @@ import { AuthService } from './security/AuthService';
 import { MatchComponent } from './match.component/match.component';
 import { PaymentComponent } from './payment.component/payment.component';
 import { Album } from './album/album';
+import { QrGenerator } from './qr-generator/qr-generator';
+import { TradeScreen } from './trade-screen/trade-screen';
 
 export function initializeApp(authService: AuthService) {
   return () => authService.cargarDatosIniciales();
@@ -46,6 +48,8 @@ export function initializeApp(authService: AuthService) {
     MatchComponent,
     PaymentComponent,
     Album,
+    QrGenerator,
+    TradeScreen,
   ],
   imports: [
     BrowserModule,

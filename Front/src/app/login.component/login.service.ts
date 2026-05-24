@@ -8,7 +8,7 @@ import { HttpParams } from '@angular/common/http';
 })
 export class LoginService {
 
-  private apiUrl = 'http://localhost:8080/auth/';
+  private apiUrl = 'https://mundial2026hub.onrender.com/auth/';
 
   constructor(private http: HttpClient) {}
 
