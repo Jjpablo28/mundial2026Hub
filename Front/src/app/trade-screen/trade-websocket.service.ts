@@ -72,7 +72,7 @@ export class TradeWebSocketService {
 
       // Suscripción a notificaciones del intercambio
       this.stompClient?.subscribe(
-        `/user/${userId}/queue/trade-notifications`,
+        `/user/queue/trade-notifications`,
         (msg: Message) => {
           console.log('[STOMP] 📨 Notificación recibida:', msg.body);
           this.notifications$.next(msg.body);
@@ -81,7 +81,7 @@ export class TradeWebSocketService {
 
       // Suscripción a errores del intercambio
       this.stompClient?.subscribe(
-        `/user/${userId}/queue/trade-errors`,
+        `/user/queue/trade-errors`,
         (msg: Message) => {
           console.log('[STOMP] ⚠️ Error recibido:', msg.body);
           this.errors$.next(msg.body);
