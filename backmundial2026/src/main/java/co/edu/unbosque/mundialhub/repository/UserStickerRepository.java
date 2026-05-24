@@ -1,8 +1,11 @@
 package co.edu.unbosque.mundialhub.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import co.edu.unbosque.mundialhub.dto.UserStickerDTO;
 import co.edu.unbosque.mundialhub.model.UserSticker;
 
 /**
@@ -47,4 +50,6 @@ public interface UserStickerRepository extends JpaRepository<UserSticker, Long> 
 	 *         vacío si el usuario no posee dicha lámina.
 	 */
 	Optional<UserSticker> findByUserIdAndStickerId(Long userId, Long stickerId);
+
+	Collection<UserStickerDTO> findByUserIdAndStickerTeamId(Long userId, Long teamId);
 }

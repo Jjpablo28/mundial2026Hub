@@ -158,5 +158,14 @@ public class UserStickerController {
 			return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
 		}
 	}
+	@GetMapping("/user/{userId}/team/{teamId}")
+	public ResponseEntity<?> getByUserAndTeam(@PathVariable Long userId, @PathVariable Long teamId) {
+	    try {
+	        return ResponseEntity.ok(userStickerServ.findByUserAndTeam(userId, teamId));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    }
+	}
 
 }

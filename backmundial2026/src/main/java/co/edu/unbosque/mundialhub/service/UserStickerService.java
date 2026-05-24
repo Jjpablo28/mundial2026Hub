@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -277,4 +278,11 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 	    userStickerRepo.save(toUserSticker);
 	    return true;
 	}
+	@Transactional(readOnly = true)
+	public List<UserStickerDTO> findByUserAndTeam(Long userId, Long teamId) {
+	    return userStickerRepo.findByUserIdAndStickerTeamId(userId, teamId).stream()
+	            .map(entity -> modelMapper.map(entity, UserStickerDTO.class))
+	            .collect(Collectors.toList());
+	}
+
 }
