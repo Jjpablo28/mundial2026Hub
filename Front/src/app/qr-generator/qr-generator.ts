@@ -20,7 +20,6 @@ export class QrGenerator implements OnInit, OnDestroy {
   cargandoSala: boolean = false;
   uniendose: boolean = false;
 
-  // ✅ Guardamos el userAId para poder notificarle cuando B conecte el WS
   private userAId: number = 0;
   private sessionUuidDestino: string = '';
 
@@ -37,7 +36,6 @@ export class QrGenerator implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.myUserId = this.authService.getUserId() || 1;
 
-    // ✅ filter descarta el '' inicial del BehaviorSubject
     this.notificationSub = this.wsService.getNotifications().pipe(
       filter(msg => !!msg)
     ).subscribe({
@@ -99,13 +97,10 @@ export class QrGenerator implements OnInit, OnDestroy {
     this.uniendose = true;
     this.cdr.detectChanges();
 
-    // Paso 1: HTTP join para registrar al Usuario B en la sesión
     this.httpService.joinSession(uuidDestino, this.myUserId).subscribe({
       next: (mensaje: string) => {
         console.log("✅ Unión HTTP exitosa:", mensaje);
 
-        // Extraemos el userAId del mensaje del servidor
-        // "Te has unido exitosamente a la sesión de intercambio con el usuario ID: 15"
         const match = mensaje.match(/ID:\s*(\d+)/);
         this.userAId = match ? Number(match[1]) : 0;
         this.sessionUuidDestino = uuidDestino;
@@ -115,13 +110,15 @@ export class QrGenerator implements OnInit, OnDestroy {
         this.wsService.setSessionData(uuidDestino, this.myUserId);
         const token = this.authService.getToken() || '';
 
-        // Paso 2: Conectar WebSocket
         this.wsService.connect(token, this.myUserId, (status) => {
           console.log("🟢 WebSocket conectado como Usuario B:", status);
 
-          // ✅ Paso 3: AHORA que el WS está listo, notificamos al Usuario A por STOMP
-          // Esto garantiza que el mensaje llega DESPUÉS de que ambos están suscritos
-          this.wsService.notifyJoin(uuidDestino, this.myUserId, this.userAId);
+          // ✅ Delay de 500ms para asegurar que las suscripciones del A
+          // estén completamente registradas antes de enviar el notifyJoin
+          setTimeout(() => {
+            console.log("📤 Enviando notifyJoin con delay...");
+            this.wsService.notifyJoin(uuidDestino, this.myUserId, this.userAId);
+          }, 500);
 
           this.uniendose = false;
           this.cdr.detectChanges();
