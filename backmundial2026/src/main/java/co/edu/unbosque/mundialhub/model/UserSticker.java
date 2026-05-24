@@ -48,6 +48,9 @@ public class UserSticker {
 	@ManyToOne
 	private Sticker sticker;
 
+	private Team team;
+
+	
 	/**
 	 * Volumen o cantidad total de copias que posee el usuario de esta lámina en
 	 * particular.
@@ -79,11 +82,12 @@ public class UserSticker {
 	 * @param quantity   Cantidad total de ejemplares de este cromo.
 	 * @param obtainedAt Fecha y hora de la última actualización de esta posesión.
 	 */
-	public UserSticker(Long id, User user, Sticker sticker, Integer quantity, LocalDateTime obtainedAt) {
+	public UserSticker(Long id, User user, Sticker sticker, Integer quantity,Team team, LocalDateTime obtainedAt) {
 		super();
 		this.id = id;
 		this.user = user;
 		this.sticker = sticker;
+		this.team=team;
 		this.quantity = quantity;
 		this.obtainedAt = obtainedAt;
 	}
@@ -178,4 +182,15 @@ public class UserSticker {
 	public void setObtainedAt(LocalDateTime obtainedAt) {
 		this.obtainedAt = obtainedAt;
 	}
+
+	public Team getTeam() {
+		return team;
+	}
+
+	public void setTeam(Team team) {
+		this.team = team;
+	}
+	
+	
+	
 }

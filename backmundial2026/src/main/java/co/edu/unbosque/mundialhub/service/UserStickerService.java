@@ -191,6 +191,7 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 	            entity = new UserSticker();
 	            entity.setUser(user);
 	            entity.setSticker(sticker);
+	            entity.setTeam(sticker.getTeam());
 	            entity.setQuantity(1);
 	            entity.setObtainedAt(LocalDateTime.now());
 	        }

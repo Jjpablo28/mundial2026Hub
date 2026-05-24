@@ -31,6 +31,8 @@ public class UserStickerDTO {
 
 	/** Identificador único (ID) de la lámina o cromo que posee el usuario. */
 	private Long stickerId;
+	
+	private Long teamId;
 
 	/**
 	 * Cantidad total de ejemplares o stock físico que posee el usuario del mismo
@@ -64,15 +66,18 @@ public class UserStickerDTO {
 	 * @param quantity   Volumen o cantidad de copias del mismo cromo.
 	 * @param obtainedAt Fecha y hora exacta de adquisición del elemento.
 	 */
-	public UserStickerDTO(Long id, Long userId, Long stickerId, Integer quantity, LocalDateTime obtainedAt) {
+	public UserStickerDTO(Long id, Long userId, Long stickerId, Long teamId, Integer quantity,
+			LocalDateTime obtainedAt) {
 		super();
 		this.id = id;
 		this.userId = userId;
 		this.stickerId = stickerId;
+		this.teamId = teamId;
 		this.quantity = quantity;
 		this.obtainedAt = obtainedAt;
 	}
 
+	
 	/**
 	 * Obtiene el identificador numérico de la relación de inventario.
 	 * 
@@ -81,6 +86,7 @@ public class UserStickerDTO {
 	public Long getId() {
 		return id;
 	}
+
 
 	/**
 	 * Define o modifica el identificador numérico de la relación de inventario.
@@ -167,6 +173,18 @@ public class UserStickerDTO {
 		this.obtainedAt = obtainedAt;
 	}
 
+	
+	
+	public Long getTeamId() {
+		return teamId;
+	}
+
+	public void setTeamId(Long teamId) {
+		this.teamId = teamId;
+	}
+
+
+
 	/**
 	 * Genera una representación en formato de texto claro que detalla los valores
 	 * en tiempo real de todas las variables de instancia encapsuladas en este DTO
@@ -176,7 +194,9 @@ public class UserStickerDTO {
 	 */
 	@Override
 	public String toString() {
-		return "UserStickerDTO [id=" + id + ", userId=" + userId + ", stickerId=" + stickerId + ", quantity=" + quantity
-				+ ", obtainedAt=" + obtainedAt + "]";
+		return "UserStickerDTO [id=" + id + ", userId=" + userId + ", stickerId=" + stickerId + ", teamId=" + teamId
+				+ ", quantity=" + quantity + ", obtainedAt=" + obtainedAt + "]";
 	}
+
+
 }
