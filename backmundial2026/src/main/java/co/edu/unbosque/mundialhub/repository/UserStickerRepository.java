@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import co.edu.unbosque.mundialhub.dto.UserStickerDTO;
 import co.edu.unbosque.mundialhub.model.UserSticker;
 
 /**
@@ -50,5 +49,5 @@ public interface UserStickerRepository extends JpaRepository<UserSticker, Long> 
 	 */
 	Optional<UserSticker> findByUserIdAndStickerId(Long userId, Long stickerId);
 
-	Optional<UserStickerDTO> findByUserIdAndStickerTeamId(Long userId, Long teamId);
+	List<UserSticker> findByUserIdAndTeamId(Long userId, Long teamId);
 }

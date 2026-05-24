@@ -281,9 +281,9 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 	}
 	@Transactional(readOnly = true)
 	public List<UserStickerDTO> findByUserAndTeam(Long userId, Long teamId) {
-	    return userStickerRepo.findByUserIdAndStickerTeamId(userId, teamId).stream()
-	            .map(entity -> modelMapper.map(entity, UserStickerDTO.class))
-	            .collect(Collectors.toList());
+	    return userStickerRepo.findByUserIdAndTeamId(userId,teamId).stream()
+				.map(entity -> modelMapper.map(entity, UserStickerDTO.class))
+				.collect(Collectors.toList());
 	}
 
 }
