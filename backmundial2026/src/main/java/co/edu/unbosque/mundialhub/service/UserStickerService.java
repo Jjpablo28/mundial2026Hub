@@ -155,46 +155,40 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 	        throw new Exceptions.ValidationException("No hay stickers configurados en el sistema global.");
 	    }
 
-	    int totalPackets = user.getPackets();
-	    if (totalPackets <= 0) {
-	        throw new Exceptions.ValidationException("No tienes sobres disponibles para abrir. Compra más sobres en la tienda.");
+	    if (user.getPackets() <= 0) {
+	        throw new Exceptions.ValidationException("No tienes sobres disponibles para abrir.");
 	    }
-	    
-	    int userCoins = user.getTotalPoints() != null ? user.getTotalPoints() : 0;
-	    user.setPackets(totalPackets - 1);
-	    userRepo.save(user);
-	    
-	    List<UserStickerDTO> packResult = new ArrayList<>();
-	    List<Sticker> selectedStickers = new ArrayList<>();
 
-	    while (selectedStickers.size() < 7) {
+	    user.setPackets(user.getPackets() - 1);
+	    userRepo.save(user);
+
+	    int userCoins = user.getTotalPoints() != null ? user.getTotalPoints() : 0;
+	    List<UserStickerDTO> packResult = new ArrayList<>();
+
+	    for (int i = 0; i < 7; i++) {
 	        int index;
-	        // Algoritmo probabilístico controlado por SecureRandom
 	        if (userCoins > 1000 && secureRandom.nextDouble() > 0.5) {
 	            index = secureRandom.nextInt(allStickers.size() / 2) + (allStickers.size() / 2);
 	        } else {
 	            index = secureRandom.nextInt(allStickers.size());
 	        }
 
-	        Sticker candidate = allStickers.get(index);
-	        selectedStickers.add(candidate);
-	    }
+	        Sticker selectedSticker = allStickers.get(index);
 
-	    for (Sticker sticker : selectedStickers) {
-	        Optional<UserSticker> existing = userStickerRepo.findByUserIdAndStickerId(userId, sticker.getId());
-
-	        UserSticker entity;
-	        if (existing.isPresent()) {
-	            entity = existing.get();
-	            entity.setQuantity(entity.getQuantity() + 1);
-	        } else {
-	            entity = new UserSticker();
-	            entity.setUser(user);
-	            entity.setSticker(sticker);
-	            entity.setTeam(sticker.getTeam());
-	            entity.setQuantity(1);
-	            entity.setObtainedAt(LocalDateTime.now());
-	        }
+	        UserSticker entity = userStickerRepo.findByUserIdAndStickerId(userId, selectedSticker.getId())
+	                .map(existing -> {
+	                    existing.setQuantity(existing.getQuantity() + 1);
+	                    return existing;
+	                })
+	                .orElseGet(() -> {
+	                    UserSticker newSticker = new UserSticker();
+	                    newSticker.setUser(user);
+	                    newSticker.setSticker(selectedSticker);
+	                    newSticker.setTeam(selectedSticker.getTeam());
+	                    newSticker.setQuantity(1);
+	                    newSticker.setObtainedAt(LocalDateTime.now());
+	                    return newSticker;
+	                });
 
 	        UserSticker savedEntity = userStickerRepo.save(entity);
 	        packResult.add(modelMapper.map(savedEntity, UserStickerDTO.class));

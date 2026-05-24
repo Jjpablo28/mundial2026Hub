@@ -1,5 +1,6 @@
 package co.edu.unbosque.mundialhub.controller;
 
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -126,15 +127,21 @@ public class UserStickerController {
 	 */
 	@PostMapping("/open-pack/{id}")
 	public ResponseEntity<?> createPack(@PathVariable Long id) {
-		try {
-			userStickerServ.openPack(id);
-			return ResponseEntity.status(HttpStatus.CREATED)
-					.body(Map.of("message", "Lámina añadida al inventario", "success", true));
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
-		}
+	    try {
+	        List<UserStickerDTO> stickers = userStickerServ.openPack(id);
+	        return ResponseEntity.status(HttpStatus.CREATED)
+	                .body(Map.of(
+	                    "message", "Sobre abierto exitosamente", 
+	                    "success", true, 
+	                    "data", stickers
+	                ));
+	    } catch (Exception e) {
+	        return ResponseEntity.badRequest().body(Map.of(
+	            "message", e.getMessage(), 
+	            "success", false
+	        ));
+	    }
 	}
-
 	/**
 	 * Ejecuta el flujo transaccional para la compra de un nuevo sobre (pack) de
 	 * láminas para el usuario.
