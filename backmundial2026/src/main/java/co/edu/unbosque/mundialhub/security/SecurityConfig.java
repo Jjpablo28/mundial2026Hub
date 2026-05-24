@@ -69,7 +69,7 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of("*"));
         // ✅ FIX: false para el handshake WebSocket de SockJS en Render
         // true causaba conflictos con el upgrade HTTP->WS
-        configuration.setAllowCredentials(false);
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
