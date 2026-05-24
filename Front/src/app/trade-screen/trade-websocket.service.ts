@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Client, Message } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { Subject, Observable } from 'rxjs';
+import {Subject, Observable, BehaviorSubject} from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({
@@ -10,11 +10,17 @@ import { HttpClient } from '@angular/common/http';
 export class TradeWebSocketService {
 
   private stompClient: Client | null = null;
-  private notifications$ = new Subject<string>();
+  private notifications$ = new BehaviorSubject<string>('');
   private errors$ = new Subject<string>();
 
   private currentSessionUuid: string = '';
   private currentUserId: number = 0;
+
+  // ✅ Guardamos token y userId como variables de clase
+  // para que estén disponibles en reconexiones automáticas
+  private currentToken: string = '';
+  private connectedUserId: number = 0;
+
   private apiUrl = 'https://mundial2026hub.onrender.com/';
 
   constructor(private http: HttpClient) {}
@@ -41,20 +47,27 @@ export class TradeWebSocketService {
   }
 
   connect(token: string, userId: number, onConnectedCallback?: (status: string) => void): void {
-    // ✅ Si ya hay una conexión activa, desconectamos primero
+    // ✅ Guardamos para reconexiones
+    this.currentToken = token;
+    this.connectedUserId = userId;
+
     if (this.stompClient && this.stompClient.active) {
       this.stompClient.deactivate().then(() => {
         this.stompClient = null;
-        this.doConnect(token, userId, onConnectedCallback);
+        this.doConnect(onConnectedCallback);
       });
     } else {
       this.stompClient = null;
-      this.doConnect(token, userId, onConnectedCallback);
+      this.doConnect(onConnectedCallback);
     }
   }
 
-  private doConnect(token: string, userId: number, onConnectedCallback?: (status: string) => void): void {
-    // ✅ Usando @stomp/stompjs con Client moderno — igual que el proyecto del amigo
+  private doConnect(onConnectedCallback?: (status: string) => void): void {
+    // ✅ Usamos las variables de clase en lugar de parámetros
+    // Así la reconexión automática también usa los valores correctos
+    const token = this.currentToken;
+    const userId = this.connectedUserId;
+
     this.stompClient = new Client({
       webSocketFactory: () => new SockJS(this.apiUrl + 'ws'),
       connectHeaders: {
@@ -67,21 +80,20 @@ export class TradeWebSocketService {
     });
 
     this.stompClient.onConnect = (frame) => {
-      console.log('[STOMP] ✅ Conectado:', frame);
+      console.log('[STOMP] ✅ Conectado como userId:', userId);
       if (onConnectedCallback) onConnectedCallback("CONNECTED");
 
-      // Suscripción a notificaciones del intercambio
+      // ✅ FIX: Suscripción con userId explícito en la ruta
       this.stompClient?.subscribe(
-        `/user/queue/trade-notifications`,
+        `/user/${userId}/queue/trade-notifications`,
         (msg: Message) => {
           console.log('[STOMP] 📨 Notificación recibida:', msg.body);
           this.notifications$.next(msg.body);
         }
       );
 
-      // Suscripción a errores del intercambio
       this.stompClient?.subscribe(
-        `/user/queue/trade-errors`,
+        `/user/${userId}/queue/trade-errors`,
         (msg: Message) => {
           console.log('[STOMP] ⚠️ Error recibido:', msg.body);
           this.errors$.next(msg.body);
@@ -97,7 +109,6 @@ export class TradeWebSocketService {
       console.log('[STOMP] 🔌 Desconectado');
     };
 
-    // ✅ activate() en lugar de connect() — API moderna de @stomp/stompjs
     this.stompClient.activate();
   }
 
