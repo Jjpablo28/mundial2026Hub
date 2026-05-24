@@ -55,7 +55,7 @@ export class TradeScreen implements OnInit, OnDestroy {
 
         this.addLog(`¡Contraparte conectada (ID: ${contraparteId})! Cargando inventarios...`, '#E1FF57');
         this.cargarInventario(this.myUserId, true);
-        this.cargarInventarioB(this.toUserId, false);
+        this.cargarInventarioB(this.toUserId, true);
         this.cdr.detectChanges();
       }
 
