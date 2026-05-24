@@ -46,7 +46,10 @@ public class UserSticker {
 
 	/** Referencia a la entidad del cromo o lámina específica poseída. */
 	@ManyToOne
+
 	private Sticker sticker;
+
+	@ManyToOne
 
 	private Team team;
 
