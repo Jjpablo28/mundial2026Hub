@@ -132,6 +132,32 @@ export class TradeWebSocketService {
     }
   }
 
+  syncOffer(sessionUuid: string, fromUserId: number, toUserId: number, offer: { fromIds: number[], toIds: number[] }): void {
+    if (this.stompClient && this.stompClient.active) {
+      this.stompClient.publish({
+        destination: '/app/trade/sync-offer',
+        body: JSON.stringify({
+          sessionUuid,
+          fromUserId,
+          toUserId,
+          offer: JSON.stringify(offer)
+        })
+      });
+    }
+  }
+
+  notifyReady(sessionUuid: string, fromUserId: number, toUserId: number): void {
+    if (this.stompClient && this.stompClient.active) {
+      this.stompClient.publish({
+        destination: '/app/trade/ready',
+        body: JSON.stringify({ sessionUuid, fromUserId, toUserId })
+      });
+      console.log('[STOMP] 📤 notifyReady enviado al servidor');
+    } else {
+      console.warn('[STOMP] ⚠️ No se puede enviar notifyReady sin conexión.');
+    }
+  }
+
   getNotifications(): Observable<string> {
     return this.notifications$.asObservable();
   }

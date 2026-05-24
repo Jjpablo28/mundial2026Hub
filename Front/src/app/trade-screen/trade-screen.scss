@@ -409,3 +409,37 @@
     }
   }
 }
+
+// Disconnect button in header
+.trade-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .header-text {
+    flex: 1;
+  }
+
+  .btn-disconnect {
+    background: transparent;
+    border: 1px solid #ff4d4d;
+    color: #ff4d4d;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+
+    &:hover {
+      background: #ff4d4d;
+      color: #ffffff;
+    }
+  }
+}
