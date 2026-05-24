@@ -78,7 +78,7 @@ export class TradeWebSocketService {
 
       // ✅ Suscripción a la cola directa por userId (igual que el amigo pero con ID)
       this.stompClient?.subscribe(
-        `/user/${userId}/queue/trade-notifications`,
+        `/user/queue/trade-notifications`,
         (msg: Message) => {
           console.log('[STOMP] 📨 Notificación recibida:', msg.body);
           this.notifications$.next(msg.body);
@@ -86,7 +86,7 @@ export class TradeWebSocketService {
       );
 
       this.stompClient?.subscribe(
-        `/user/${userId}/queue/trade-errors`,
+        `/user/queue/trade-errors`,
         (msg: Message) => {
           console.log('[STOMP] ⚠️ Error recibido:', msg.body);
           this.errors$.next(msg.body);
