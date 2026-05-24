@@ -51,5 +51,5 @@ public interface UserStickerRepository extends JpaRepository<UserSticker, Long> 
 	 */
 	Optional<UserSticker> findByUserIdAndStickerId(Long userId, Long stickerId);
 
-	Collection<UserStickerDTO> findByUserIdAndStickerTeamId(Long userId, Long teamId);
+	Optional<UserStickerDTO> findByUserIdAndStickerTeamId(Long userId, Long teamId);
 }
