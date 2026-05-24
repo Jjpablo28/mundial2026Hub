@@ -16,15 +16,15 @@ export class TradeHttpService {
 
   constructor(private http: HttpClient) {}
 
-  // El AuthInterceptor adjunta el Bearer Token automáticamente
+  // ✅ CORRECCIÓN: Se envía como Query Param (?userId=15)
   createSession(userId: number): Observable<QrResponse> {
-    return this.http.post<QrResponse>(`${this.apiUrl}/create/${userId}`, {});
+    return this.http.post<QrResponse>(`${this.apiUrl}/create?userId=${userId}`, {});
   }
 
-  // ✅ NUEVO: El Usuario B se une a la sesión del Usuario A vía HTTP
+  // ✅ CORRECCIÓN: Se envían ambos datos como Query Params para coincidir con el backend
   joinSession(uuid: string, userId: number): Observable<string> {
     return this.http.post(
-      `${this.apiUrl}/join/${uuid}/user/${userId}`,
+      `${this.apiUrl}/join?sessionUuid=${uuid}&userBId=${userId}`,
       {},
       { responseType: 'text' } // El backend retorna un String plano, no JSON
     );
