@@ -287,7 +287,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 			throw new Exceptions.ValidationException("El ID del usuario no puede ser nulo.");
 		}
 		paymentRepository.deleteByUserId(id);
-		userStickerRepo.deleyeByUserId(id);
+		userStickerRepo.deleteByUserId(id);
 		
 		
 		

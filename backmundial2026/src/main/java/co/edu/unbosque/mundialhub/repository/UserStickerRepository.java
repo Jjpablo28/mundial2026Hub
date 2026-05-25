@@ -51,5 +51,5 @@ public interface UserStickerRepository extends JpaRepository<UserSticker, Long> 
 
 	List<UserSticker> findByUserIdAndTeamId(Long userId, Long teamId);
 
-	void deleyeByUserId(Long id);
+	void deleteByUserId(Long id);
 }
