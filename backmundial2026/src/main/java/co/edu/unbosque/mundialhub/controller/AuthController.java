@@ -132,7 +132,7 @@ public class AuthController {
 	                .body(Map.of("message", "La contraseña debe tener mínimo 8 caracteres, mayúscula, minúscula, número y símbolo especial", "success", false));
 	    }
 
-	    if (!exValidator.isGmailValid(registerRequest.getEmail().toLowerCase())) {
+	    if (!exValidator.isGmailValid(registerRequest.getEmail())) {
 	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 	                .body(Map.of("message", "Solo se permiten correos Gmail válidos", "success", false));
 	    }
@@ -242,44 +242,45 @@ public class AuthController {
 	 */
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody LoguinRequestDTO loginRequest) {
-		try {
-			String identifier = loginRequest.getIdentifier();
+	    try {
+	        String identifier = loginRequest.getIdentifier();
 
-			Optional<User> userOpt = identifier.contains("@") ? userRepo.findByEmail(AESUtil.encrypt(identifier))
-					: userRepo.findByUserName(AESUtil.encrypt(identifier.toLowerCase()));
+	        Optional<User> userOpt = identifier.contains("@")
+	                ? userRepo.findByEmail(AESUtil.encrypt(identifier.toLowerCase()))
+	                : userRepo.findByUserName(AESUtil.encrypt(identifier));
 
-			if (userOpt.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-						.body("Nombre de usuario o contraseña inválidos o usuario no encontrado");
-			}
+	        if (userOpt.isEmpty()) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	                    .body("Nombre de usuario o contraseña inválidos o usuario no encontrado");
+	        }
 
-			User userFound = userOpt.get();
+	        User userFound = userOpt.get();
 
-			Authentication authentication = authenticationManager.authenticate(
-					new UsernamePasswordAuthenticationToken(userFound.getUserName(), loginRequest.getPassword()));
+	        Authentication authentication = authenticationManager.authenticate(
+	                new UsernamePasswordAuthenticationToken(userFound.getUserName(), loginRequest.getPassword()));
 
-			UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+	        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-			String userNameDecrypted = userFound.getUsername() != null ? AESUtil.decrypt(userFound.getUsername())
-					: null;
-			String emailDecrypted = userFound.getEmail() != null ? AESUtil.decrypt(userFound.getEmail()) : null;
+	        String userNameDecrypted = userFound.getUsername() != null ? AESUtil.decrypt(userFound.getUsername())
+	                : null;
+	        String emailDecrypted = userFound.getEmail() != null ? AESUtil.decrypt(userFound.getEmail()) : null;
 
-			String jwt = jwtUtil.generateToken(userDetails, userNameDecrypted, userFound.getId(), emailDecrypted);
+	        String jwt = jwtUtil.generateToken(userDetails, userNameDecrypted, userFound.getId(), emailDecrypted);
 
-			userFound.setLastLogin(LocalDateTime.now());
-			userRepo.save(userFound);
+	        userFound.setLastLogin(LocalDateTime.now());
+	        userRepo.save(userFound);
 
-			String role = null;
-			if (userDetails instanceof User) {
-				role = ((User) userDetails).getRole().name();
-			}
+	        String role = null;
+	        if (userDetails instanceof User) {
+	            role = ((User) userDetails).getRole().name();
+	        }
 
-			return ResponseEntity.ok(new AuthResponse(jwt, role));
+	        return ResponseEntity.ok(new AuthResponse(jwt, role));
 
-		} catch (AuthenticationException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body("Nombre de usuario o contraseña inválidos o usuario no encontrado");
-		}
+	    } catch (AuthenticationException e) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	                .body("Nombre de usuario o contraseña inválidos o usuario no encontrado");
+	    }
 	}
 
 	/**
