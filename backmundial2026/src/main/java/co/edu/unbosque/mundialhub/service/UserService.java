@@ -88,6 +88,11 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		findEmailAlreadyTaken(newUserDto.getEmail());
 
 		try {
+			
+			 if (newUserDto.getEmail() != null) {
+			        newUserDto.setEmail(newUserDto.getEmail().toLowerCase());
+			    }
+			 
 			User entity = modelMapper.map(newUserDto, User.class);
 			entity.setId(null);
 
