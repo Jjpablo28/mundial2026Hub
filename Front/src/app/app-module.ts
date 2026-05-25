@@ -59,6 +59,7 @@ export function initializeApp(authService: AuthService) {
     ReactiveFormsModule,
     HttpClientModule,
     NgForOf,
+
     /*TranslateModule.forRoot({
 
       loader: {

@@ -1,6 +1,7 @@
 <header class="header">
   <div class="header-container">
-    <div class="logo" routerLink="/dashboard" style="cursor: pointer;">
+    <!-- ✅ routerLink dinámico usando urlRedi -->
+    <div class="logo" [routerLink]="'/' + urlRedi">
       <img src="assets/img/favicon.ico" alt="Logo">
       <span>Mundial 2026</span>
     </div>
@@ -20,15 +21,12 @@
           <a routerLink="/admin/configuracion" routerLinkActive="active">Sistema</a>
         </ng-container>
 
-        <div class="user-menu" style="display: flex; align-items: center; gap: 15px; margin-left: 15px; height: 100%;">
+        <div class="user-menu">
           <span class="tokens-badge">
             🪙 {{ userPoints }} Pts
           </span>
-
-          <span style="color: #E1FF57; font-weight: 600;">
-            {{ userName || 'Usuario' }}
-          </span>
-          <button (click)="logout()" style="background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: 0.3s;">
+          <span class="user-name">{{ userName || 'Usuario' }}</span>
+          <button (click)="logout()" class="btn-logout">
             Cerrar Sesión
           </button>
         </div>

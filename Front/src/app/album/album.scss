@@ -1,155 +1,992 @@
-$bg-main: #0a0a0a;
-$bg-surface: #121212;
-$bg-card: #1a1a1a;
-$border-color: #262626;
-$text-primary: #ffffff;
-$text-secondary: #8c8c8c;
+// ============================================================
+// TOKENS — consistentes con el home
+// ============================================================
+$bg-main:    #0a0a0a;
+$bg-surface: #111111;
+$bg-card:    #1a1a1a;
+$bg-lift:    #202020;
+$border:     #262626;
+$border-mid: #333333;
+$text:       #ffffff;
+$muted:      #6b6b6b;
+$muted-mid:  #999999;
+$accent:     #d4f000;
+$accent-dim: rgba(#d4f000, 0.08);
+$accent-glow: rgba(#d4f000, 0.25);
 
-$common: #4a4a4a;
-$rare: #3a86ff;
-$epic: #8338ec;
-$legendary: #ff006e;
+$common:     #4a4a6a;
+$rare:       #3a86ff;
+$epic:       #8338ec;
+$legendary:  #ff006e;
 
-.album-dashboard {
-  display: flex;
-  min-height: 100vh;
-  background-color: $bg-main;
-  color: $text-primary;
-  font-family: 'Segoe UI', Roboto, sans-serif;
-}
+$font-display: 'Georgia', 'Times New Roman', serif;
+$font-body:    'Segoe UI', system-ui, sans-serif;
 
-/* --- SIDEBAR --- */
-.sidebar {
-  width: 280px;
-  background-color: $bg-surface;
-  border-right: 1px solid $border-color;
+* { box-sizing: border-box; }
+
+// ============================================================
+// RAÍZ — sin sidebar propio, fluye dentro del home
+// ============================================================
+.album-root {
+  width: 100%;
+  min-height: 60vh;
+  font-family: $font-body;
+  color: $text;
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
+  gap: 0;
+  animation: fadeIn 0.3s ease-out;
+}
 
-  .sidebar-brand {
-    padding: 30px 24px;
-    border-bottom: 1px solid $border-color;
-    h2 { margin: 0; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 1px; }
-    p { margin: 5px 0 0 0; color: $text-secondary; font-size: 0.85rem; }
+// ============================================================
+// HEADER
+// ============================================================
+.album-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 18px;
+  border-bottom: 1px solid $border;
+  margin-bottom: 0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.album-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.album-title-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  .album-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 10px rgba($accent, 0.45));
   }
 
-  .team-nav {
-    padding: 20px 0;
-    .nav-section-title { display: block; padding: 0 24px 10px 24px; font-size: 0.75rem; font-weight: bold; color: $text-secondary; letter-spacing: 2px; }
-    ul {
-      list-style: none; padding: 0; margin: 0;
-      li {
-        padding: 14px 24px; display: flex; align-items: center; cursor: pointer; font-size: 0.95rem; transition: all 0.2s ease; border-left: 4px solid transparent; color: rgba($text-primary, 0.7);
-        .team-icon { margin-right: 12px; font-size: 1.1rem; }
-        &:hover { background-color: rgba($border-color, 0.5); color: $text-primary; }
-        &.active { background-color: rgba($border-color, 0.8); color: $text-primary; border-left-color: $text-primary; font-weight: bold; }
-      }
+  .album-title {
+    font-family: $font-display;
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.3px;
+    background: linear-gradient(135deg, $text 60%, $muted-mid);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .album-subtitle {
+    margin: 3px 0 0;
+    font-size: 0.7rem;
+    color: $muted;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+}
+
+.album-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pack-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: $bg-surface;
+  border: 1px solid $border-mid;
+  border-radius: 99px;
+  padding: 6px 16px;
+
+  .pack-pill-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: $muted;
+  }
+
+  .pack-pill-count {
+    font-family: $font-display;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: $accent;
+    line-height: 1;
+    text-shadow: 0 0 14px $accent-glow;
+  }
+}
+
+.btn-buy-inline {
+  background: $accent;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px $accent-glow;
+  }
+  &:active { transform: translateY(0); }
+}
+
+// ============================================================
+// TABS
+// ============================================================
+.album-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 0;
+  border-bottom: 1px solid $border;
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: $muted-mid;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+
+  .tab-icon { font-size: 1rem; }
+
+  &:hover {
+    background: $bg-surface;
+    color: $text;
+    border-color: $border;
+  }
+
+  &.active {
+    background: $accent-dim;
+    color: $accent;
+    border-color: rgba($accent, 0.3);
+  }
+}
+
+// Separador visual entre tabs y chips de equipo
+.team-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid $border;
+
+  @media (max-width: 700px) {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    padding-top: 4px;
+    width: 100%;
+  }
+}
+
+.team-chip {
+  background: $bg-surface;
+  border: 1px solid $border;
+  color: $muted-mid;
+  border-radius: 99px;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: $border-mid;
+    color: $text;
+  }
+
+  &.active {
+    background: $accent;
+    border-color: $accent;
+    color: #000;
+    font-weight: 800;
+  }
+}
+
+// ============================================================
+// VISTA: SOBRES
+// ============================================================
+.packs-view {
+  padding: 28px 0;
+}
+
+.packs-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 780px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.split-card {
+  background: $bg-surface;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 460px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba($accent, 0.35), transparent);
+  }
+}
+
+.split-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid $border;
+
+  h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: $text;
+  }
+}
+
+.split-num {
+  font-size: 0.62rem;
+  font-weight: 900;
+  color: $accent;
+  letter-spacing: 1px;
+  background: $accent-dim;
+  border: 1px solid rgba($accent, 0.2);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.split-desc {
+  margin: 0;
+  font-size: 0.83rem;
+  color: $muted-mid;
+  line-height: 1.65;
+}
+
+// ============================================================
+// SOBRE ANIMADO
+// ============================================================
+.pack-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  padding: 8px 0;
+}
+
+.pack-envelope {
+  position: relative;
+  width: 195px;
+  height: 275px;
+  cursor: pointer;
+  perspective: 800px;
+  transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+
+  &.idle:hover { transform: scale(1.05) translateY(-6px); }
+  &.shaking { animation: shake 0.55s ease-in-out; }
+  &.opening {
+    .envelope-flap { animation: open-flap 0.65s ease-out forwards; }
+    .envelope-body { animation: pack-glow 0.65s ease-out; }
+  }
+  &.revealed {
+    opacity: 0.3;
+    pointer-events: none;
+    transform: scale(0.95);
+    transition: all 0.5s ease;
+  }
+}
+
+.envelope-body {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(155deg, #12122a 0%, #0c1630 40%, #091840 70%, #0e2055 100%);
+  border: 1.5px solid rgba($accent, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 16px 48px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(255,255,255,0.03),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+
+  .envelope-shine {
+    position: absolute;
+    top: -50px; left: -50px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent, transparent 20px,
+        rgba(255,255,255,0.01) 20px, rgba(255,255,255,0.01) 21px
+    );
+    pointer-events: none;
+  }
+}
+
+.pack-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 1;
+
+  .pack-ball {
+    font-size: 2.4rem;
+    filter: drop-shadow(0 0 12px rgba($accent, 0.4));
+  }
+
+  .pack-brand {
+    font-family: $font-display;
+    font-size: 0.62rem;
+    text-align: center;
+    letter-spacing: 3px;
+    color: rgba($text, 0.5);
+    text-transform: uppercase;
+
+    strong {
+      display: block;
+      font-size: 0.8rem;
+      letter-spacing: 4px;
+      color: $text;
+      margin-top: 3px;
+    }
+  }
+
+  .pack-stars {
+    display: flex;
+    gap: 5px;
+    color: $accent;
+    font-size: 0.9rem;
+    text-shadow: 0 0 8px rgba($accent, 0.8);
+  }
+}
+
+.pack-hint {
+  font-size: 0.63rem;
+  color: $muted;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin: 0;
+  animation: pulse-text 2.5s ease-in-out infinite;
+
+  &.loading { color: $accent; animation: none; }
+}
+
+.envelope-flap {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  transform-origin: top center;
+  transform-style: preserve-3d;
+  z-index: 10;
+
+  .flap-inner {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #0e2055 0%, #0c1630 100%);
+    border-radius: 12px 12px 0 0;
+    border: 1.5px solid rgba($accent, 0.2);
+    border-bottom: none;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 65%, 0% 100%);
+  }
+}
+
+.pack-available-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: $muted;
+  justify-content: center;
+  letter-spacing: 0.5px;
+}
+
+.dot-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: $border-mid;
+  transition: all 0.3s;
+
+  &.has-packs {
+    background: $accent;
+    box-shadow: 0 0 8px rgba($accent, 0.6);
+  }
+}
+
+.error-msg {
+  font-size: 0.8rem;
+  color: $legendary;
+  text-align: center;
+  margin: 0;
+}
+
+// ============================================================
+// CARRUSEL
+// ============================================================
+.results-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: $muted;
+
+  .empty-icon { font-size: 2.8rem; opacity: 0.18; }
+  p { font-size: 0.83rem; text-align: center; margin: 0; line-height: 1.6; max-width: 200px; }
+}
+
+.results-carousel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.carousel-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  .carousel-counter {
+    font-size: 0.78rem;
+    color: $muted-mid;
+    min-width: 50px;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+}
+
+.nav-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: $bg-card;
+  border: 1px solid $border-mid;
+  color: $text;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+
+  &:hover:not(:disabled) { background: $border-mid; border-color: $accent; color: $accent; }
+  &:disabled { opacity: 0.2; cursor: default; }
+}
+
+.carousel-track {
+  position: relative;
+  width: 205px;
+  height: 275px;
+}
+
+.result-card {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateX(60px) scale(0.9);
+  transition: all 0.38s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+
+  &.active { opacity: 1; transform: translateX(0) scale(1); pointer-events: auto; }
+  &.past { opacity: 0; transform: translateX(-60px) scale(0.9); }
+  &.future { opacity: 0; transform: translateX(60px) scale(0.9); }
+}
+
+.result-card-inner {
+  height: 100%;
+  background: linear-gradient(155deg, #12122a 0%, #0c1630 50%, #091840 100%);
+  border: 1.5px solid rgba($accent, 0.28);
+  border-radius: 12px;
+  padding: 13px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
+  position: relative;
+  overflow: hidden;
+
+  // Esquinas tipo cromo
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    border-color: rgba($accent, 0.25);
+    border-style: solid;
+  }
+  &::before { top: 5px; left: 5px; border-width: 1px 0 0 1px; }
+  &::after  { bottom: 5px; right: 5px; border-width: 0 1px 1px 0; }
+}
+
+.result-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+
+  .result-id { color: $accent; }
+  .result-team { color: $muted-mid; }
+}
+
+.result-img-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  .result-ball { font-size: 2.5rem; opacity: 0.12; }
+
+  .result-player-img {
+    width: 100px; height: 100px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 14px rgba(0,0,0,0.5));
+  }
+
+  .result-player-name {
+    font-weight: 700;
+    font-size: 0.86rem;
+    color: $text;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .result-player-pos {
+    font-size: 0.63rem;
+    color: $muted-mid;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .result-rarity-badge {
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    &.rarity-COMMON   { background: rgba($common, 0.25);    color: #aaa;     border: 1px solid $common; }
+    &.rarity-RARE     { background: rgba($rare, 0.14);      color: $rare;    border: 1px solid rgba($rare, 0.5); }
+    &.rarity-EPIC     { background: rgba($epic, 0.14);      color: lighten($epic, 20%); border: 1px solid rgba($epic, 0.5); }
+    &.rarity-LEGENDARY {
+      background: linear-gradient(135deg, rgba($legendary, 0.18), rgba(#ff8c00, 0.18));
+      color: #ff8c00;
+      border: 1px solid rgba($legendary, 0.45);
+      animation: cromo-pulse 2s infinite;
     }
   }
 }
 
-/* --- CONTENEDOR PRINCIPAL --- */
-.album-main-content {
-  flex-grow: 1;
-  padding: 40px;
-  overflow-y: auto;
-  max-height: 100vh;
+.result-footer {
+  text-align: center;
+  min-height: 20px;
+
+  .repeat-badge-result {
+    display: inline-block;
+    background: #ffb703;
+    color: #000;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  .new-badge {
+    display: inline-block;
+    background: $accent-dim;
+    color: $accent;
+    border: 1px solid rgba($accent, 0.3);
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+}
+
+.carousel-dots {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 200px;
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: $border-mid;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &.active {
+      background: $accent;
+      transform: scale(1.5);
+      box-shadow: 0 0 6px rgba($accent, 0.5);
+    }
+  }
+}
+
+.btn-open-another {
+  background: transparent;
+  border: 1px solid rgba($text, 0.18);
+  color: $muted-mid;
+  padding: 9px 22px;
+  border-radius: 6px;
+  font-size: 0.77rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { border-color: $accent; color: $accent; background: $accent-dim; }
+}
+
+// ============================================================
+// VISTA: ÁLBUM
+// ============================================================
+.album-page {
+  padding: 28px 0;
+}
+
+.album-team-header {
+  margin-bottom: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .team-info {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .album-team-name {
+    font-family: $font-display;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.3px;
+    background: linear-gradient(135deg, $text 50%, $muted-mid);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .album-team-stats {
+    margin: 0;
+    font-size: 0.83rem;
+    color: $muted-mid;
+
+    .progress-pct { color: $accent; font-weight: 600; }
+  }
+}
+
+.album-progress-bar {
+  height: 3px;
+  background: $border;
+  border-radius: 2px;
+  overflow: hidden;
+  max-width: 320px;
+
+  .album-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, $accent, rgba($accent, 0.5));
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
 }
 
 .team-section {
-  margin-bottom: 50px;
-  .position-title { font-size: 1.4rem; text-transform: uppercase; color: $text-secondary; border-left: 4px solid $text-primary; padding-left: 12px; margin-bottom: 25px; letter-spacing: 1px; }
+  margin-bottom: 44px;
+
+  .position-title {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: $muted;
+    border-left: 3px solid $accent;
+    padding-left: 10px;
+    margin: 0 0 20px;
+  }
 }
 
+// ============================================================
+// GRID DE CROMOS
+// ============================================================
 .stickers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
 }
 
-/* --- TARJETA DE CROMO --- */
+// ============================================================
+// TARJETA DE CROMO
+// ============================================================
 .sticker-card {
-  background-color: $bg-card;
-  border: 1px solid $border-color;
-  border-radius: 8px;
+  background: $bg-card;
+  border-radius: 10px;
   overflow: hidden;
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 285px;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  min-height: 248px;
+  transition: transform 0.22s cubic-bezier(.4,0,.2,1), box-shadow 0.22s;
 
-  /* --- ESTADO BLOQUEADO (LOCKED) --- */
+  // BLOQUEADA
   &.locked {
-    border-top: 4px solid #262626 !important;
-    background-color: #0b0b0b;
-    border: 1px dashed #2d2d2d;
+    background: #0b0b0b;
+    border: 1px dashed #1f1f1f;
+    border-top: 3px solid #1f1f1f !important;
+    opacity: 0.28;
     justify-content: center;
     align-items: center;
-    opacity: 0.35;
-    box-shadow: none !important;
-    transform: none !important;
 
     .card-locked-state {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
-      .lock-icon { font-size: 1.4rem; margin-bottom: 8px; color: #444; }
-      .player-id-locked { font-size: 0.8rem; font-weight: bold; color: $text-secondary; margin-bottom: 4px; }
-      .player-name-locked { font-size: 0.95rem; font-weight: 500; color: #ffffff; margin: 0; }
-      .missing-text { font-size: 0.65rem; color: #555; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px; }
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 14px;
+      text-align: center;
+      gap: 4px;
+
+      .lock-icon { font-size: 1.2rem; color: #2a2a2a; }
+      .player-id-locked { font-size: 0.68rem; color: $muted; font-weight: 700; letter-spacing: 1px; }
+      .player-name-locked { font-size: 0.85rem; color: rgba($text, 0.45); margin: 0; }
+      .missing-text { font-size: 0.58rem; color: #333; text-transform: uppercase; letter-spacing: 0.5px; margin: 4px 0 0; }
     }
   }
 
-  /* --- ESTADO DESBLOQUEADO (UNLOCKED) --- */
+  // DESBLOQUEADA
   &.unlocked {
-    opacity: 1;
-    &:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6); }
+    border: 1px solid $border-mid;
 
-    &.COMMON { border-top: 5px solid $common; }
-    &.RARE { border-top: 5px solid $rare; }
-    &.EPIC { border-top: 5px solid $epic; }
-    &.LEGENDARY { border-top: 5px solid $legendary; }
+    &:hover { transform: translateY(-5px) scale(1.01); z-index: 2; }
 
-    .card-unlocked-state { display: flex; flex-direction: column; height: 100%; width: 100%; }
-
-    .rarity-badge {
-      position: absolute; top: 10px; right: 10px; font-size: 0.65rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; z-index: 2;
-    }
-    &.COMMON .rarity-badge { background-color: #2c2c2c; color: $text-secondary; }
-    &.RARE .rarity-badge { background-color: rgba($rare, 0.15); color: $rare; border: 1px solid $rare; }
-    &.EPIC .rarity-badge { background-color: rgba($epic, 0.15); color: $epic; border: 1px solid $epic; }
-    &.LEGENDARY .rarity-badge { background-color: rgba($legendary, 0.15); color: $legendary; border: 1px solid $legendary; animation: cromo-pulse 2s infinite; }
-
-    .repeat-badge {
-      position: absolute; bottom: 60px; left: 12px; background-color: #ffb703; color: #000000; font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; z-index: 3; box-shadow: 0 4px 10px rgba(0,0,0,0.5); text-transform: uppercase;
-    }
-
-    .sticker-meta {
-      display: flex; justify-content: space-between; padding: 12px 12px 6px 12px; font-size: 0.75rem; color: #555555; font-weight: bold;
-      .player-id { background-color: $border-color; color: $text-primary; padding: 2px 6px; border-radius: 3px; }
-    }
-
-    .player-image-container {
-      background: radial-gradient(circle, #222222 0%, $bg-card 100%); height: 170px; display: flex; justify-content: center; align-items: flex-end;
-      .player-img { max-height: 95%; max-width: 95%; object-fit: contain; filter: drop-shadow(0px 5px 10px rgba(0,0,0,0.6)); }
-    }
-
-    .player-info {
-      padding: 15px 12px; background-color: #141414; border-top: 1px solid $border-color; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;
-      .player-name { font-size: 1rem; font-weight: 600; margin: 0 0 10px 0; color: $text-primary; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .player-stats {
-        display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;
-        .player-cost { background-color: $bg-surface; padding: 4px 10px; border-radius: 4px; color: $text-primary; font-weight: bold; }
+    &.COMMON    { border-top: 4px solid $common;    &:hover { box-shadow: 0 10px 24px rgba($common, 0.2); } }
+    &.RARE      { border-top: 4px solid $rare;      &:hover { box-shadow: 0 10px 28px rgba($rare, 0.3); } }
+    &.EPIC      { border-top: 4px solid $epic;      &:hover { box-shadow: 0 10px 28px rgba($epic, 0.35); } }
+    &.LEGENDARY {
+      border-top: 4px solid $legendary;
+      &:hover { box-shadow: 0 10px 30px rgba($legendary, 0.4); }
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(110deg, transparent 20%, rgba($legendary, 0.04) 50%, transparent 80%);
+        animation: shimmer-legendary 3s ease-in-out infinite;
+        pointer-events: none;
       }
     }
 
-    &.RARE .player-cost { color: $rare; border: 1px solid rgba($rare, 0.2); }
-    &.EPIC .player-cost { color: $epic; border: 1px solid rgba($epic, 0.2); }
-    &.LEGENDARY .player-cost { color: $legendary; border: 1px solid rgba($legendary, 0.2); }
+    .card-unlocked-state { display: flex; flex-direction: column; height: 100%; }
+
+    .rarity-badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      font-size: 0.57rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 2;
+    }
+
+    &.COMMON    .rarity-badge { background: #1e1e1e; color: $muted; }
+    &.RARE      .rarity-badge { background: rgba($rare, 0.1); color: $rare; border: 1px solid rgba($rare, 0.35); }
+    &.EPIC      .rarity-badge { background: rgba($epic, 0.1); color: lighten($epic, 20%); border: 1px solid rgba($epic, 0.35); }
+    &.LEGENDARY .rarity-badge { background: rgba($legendary, 0.1); color: lighten($legendary, 20%); border: 1px solid rgba($legendary, 0.35); animation: cromo-pulse 2s infinite; }
+
+    .repeat-badge {
+      position: absolute;
+      bottom: 46px; left: 8px;
+      background: #ffb703;
+      color: #000;
+      font-size: 0.58rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 3px;
+      z-index: 3;
+      text-transform: uppercase;
+    }
+
+    .sticker-meta {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 10px 3px;
+      font-size: 0.63rem;
+      color: $muted;
+      font-weight: 700;
+
+      .player-id {
+        background: $bg-surface;
+        color: $muted-mid;
+        padding: 1px 5px;
+        border-radius: 3px;
+        border: 1px solid $border-mid;
+      }
+    }
+
+    .player-image-container {
+      background: radial-gradient(ellipse at 50% 80%, #1a1a28 0%, $bg-card 100%);
+      height: 134px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+
+      .player-img {
+        max-height: 95%;
+        max-width: 90%;
+        object-fit: contain;
+        filter: drop-shadow(0 5px 10px rgba(0,0,0,0.6));
+        transition: transform 0.28s;
+      }
+    }
+
+    &:hover .player-img { transform: translateY(-3px) scale(1.04); }
+
+    .player-info {
+      padding: 10px;
+      background: $bg-surface;
+      border-top: 1px solid $border;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+
+      .player-name {
+        font-size: 0.82rem;
+        font-weight: 700;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: $text;
+        flex: 1;
+      }
+
+      .player-cost {
+        font-size: 0.68rem;
+        font-weight: 700;
+        background: $bg-lift;
+        padding: 2px 7px;
+        border-radius: 3px;
+        border: 1px solid $border-mid;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+    }
+
+    &.RARE      .player-cost { color: $rare; }
+    &.EPIC      .player-cost { color: lighten($epic, 20%); }
+    &.LEGENDARY .player-cost { color: lighten($legendary, 20%); }
   }
 }
 
-/* --- ANIMACIONES --- */
-.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes cromo-pulse { 0% { box-shadow: 0 0 0 0 rgba($legendary, 0.4); } 70% { box-shadow: 0 0 0 6px rgba($legendary, 0); } 100% { box-shadow: 0 0 0 0 rgba($legendary, 0); } }
+// ============================================================
+// ANIMACIONES
+// ============================================================
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+
+@keyframes shake {
+  0%,100% { transform: translate(0,0) rotate(0deg); }
+  15%     { transform: translate(-6px,2px) rotate(-2.5deg); }
+  30%     { transform: translate(6px,-2px) rotate(2.5deg); }
+  45%     { transform: translate(-4px,1px) rotate(-1.5deg); }
+  60%     { transform: translate(4px,-1px) rotate(1.5deg); }
+  75%     { transform: translate(-2px,0) rotate(-0.5deg); }
+}
+
+@keyframes open-flap {
+  0%   { transform: rotateX(0deg); }
+  100% { transform: rotateX(-175deg); }
+}
+
+@keyframes pack-glow {
+  0%   { box-shadow: 0 16px 48px rgba(0,0,0,0.7); }
+  40%  { box-shadow: 0 0 70px rgba($accent, 0.5), 0 0 120px rgba($accent, 0.18); }
+  100% { box-shadow: 0 16px 48px rgba(0,0,0,0.7); }
+}
+
+@keyframes pulse-text {
+  0%,100% { opacity: 0.35; }
+  50%      { opacity: 0.9; }
+}
+
+@keyframes cromo-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba($legendary, 0.5); }
+  70%  { box-shadow: 0 0 0 5px rgba($legendary, 0); }
+  100% { box-shadow: 0 0 0 0 rgba($legendary, 0); }
+}
+
+@keyframes shimmer-legendary {
+  0%,100% { opacity: 0; }
+  50%     { opacity: 1; }
+}

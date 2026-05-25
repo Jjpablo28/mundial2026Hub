@@ -1,6 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { AlbumService, Player, UserStickerResponse } from './album.service';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {AlbumService, Player, UserStickerResponse} from './album.service';
+import {AuthService} from '../security/AuthService';
+import {HomeComponentService} from '../home.component/home.component.service';
+
+type View = 'packs' | 'album';
+type PackPhase = 'idle' | 'shaking' | 'opening' | 'revealed';
 
 @Component({
   selector: 'app-album',
@@ -10,62 +15,207 @@ import { AlbumService, Player, UserStickerResponse } from './album.service';
 })
 export class Album implements OnInit {
 
+  public currentView: View = 'packs';
+
+  // ===== ÁLBUM =====
   public currentTeamId: number = 22;
-  private userInventory: UserStickerResponse[] = [];
 
-  // Lista maestra fija de los 25 jugadores para armar las casillas
-  public allTeamPlayers: Player[] = [
-    { "id": 1, "playerName": "T. Hayakawa", "rarity": "RARE", "teamId": 22, "position": "Goalkeeper", "cost": 30, "imageUrl": "https://media.api-sports.io/football/players/304782.png" },
-    { "id": 2, "playerName": "L. Kokubo", "rarity": "RARE", "teamId": 22, "position": "Goalkeeper", "cost": 30, "imageUrl": "https://media.api-sports.io/football/players/162482.png" },
-    { "id": 3, "playerName": "T. Nozawa", "rarity": "RARE", "teamId": 22, "position": "Goalkeeper", "cost": 30, "imageUrl": "https://media.api-sports.io/football/players/109381.png" },
-    { "id": 4, "playerName": "T. Ando", "rarity": "COMMON", "teamId": 22, "position": "Defender", "cost": 10, "imageUrl": "https://media.api-sports.io/football/players/307929.png" },
-    { "id": 5, "playerName": "D. Hashioka", "rarity": "COMMON", "teamId": 22, "position": "Defender", "cost": 10, "imageUrl": "https://media.api-sports.io/football/players/33095.png" },
-    { "id": 6, "playerName": "K. Itakura", "rarity": "COMMON", "teamId": 22, "position": "Defender", "cost": 10, "imageUrl": "https://media.api-sports.io/football/players/38114.png" },
-    { "id": 7, "playerName": "H. Mochizuki", "rarity": "COMMON", "teamId": 22, "position": "Defender", "cost": 10, "imageUrl": "https://media.api-sports.io/football/players/455193.png" },
-    { "id": 8, "playerName": "Y. Nagatomo", "rarity": "COMMON", "teamId": 22, "position": "Defender", "cost": 10, "imageUrl": "https://media.api-sports.io/football/players/440.png" },
-    { "id": 9, "playerName": "A. Seko", "rarity": "COMMON", "teamId": 22, "position": "Defender", "cost": 10, "imageUrl": "https://media.api-sports.io/football/players/33165.png" },
-    { "id": 10, "playerName": "Y. Sugawara", "rarity": "COMMON", "teamId": 22, "position": "Defender", "cost": 10, "imageUrl": "https://media.api-sports.io/football/players/32887.png" },
-    { "id": 11, "playerName": "J. Suzuki", "rarity": "COMMON", "teamId": 22, "position": "Defender", "cost": 10, "imageUrl": "https://media.api-sports.io/football/players/351014.png" },
-    { "id": 12, "playerName": "R. Dōan", "rarity": "EPIC", "teamId": 22, "position": "Midfielder", "cost": 40, "imageUrl": "https://media.api-sports.io/football/players/2598.png" },
-    { "id": 13, "playerName": "W. Endo", "rarity": "EPIC", "teamId": 22, "position": "Midfielder", "cost": 40, "imageUrl": "https://media.api-sports.io/football/players/8500.png" },
-    { "id": 14, "playerName": "J. Fujita", "rarity": "EPIC", "teamId": 22, "position": "Midfielder", "cost": 40, "imageUrl": "https://media.api-sports.io/football/players/146586.png" },
-    { "id": 15, "playerName": "D. Kamada", "rarity": "EPIC", "teamId": 22, "position": "Midfielder", "cost": 40, "imageUrl": "https://media.api-sports.io/football/players/2601.png" },
-    { "id": 16, "playerName": "S. Kitano", "rarity": "EPIC", "teamId": 22, "position": "Midfielder", "cost": 40, "imageUrl": "https://media.api-sports.io/football/players/288073.png" },
-    { "id": 17, "playerName": "K. Sano", "rarity": "EPIC", "teamId": 22, "position": "Midfielder", "cost": 40, "imageUrl": "https://media.api-sports.io/football/players/33889.png" },
-    { "id": 18, "playerName": "R. Sato", "rarity": "EPIC", "teamId": 22, "position": "Midfielder", "cost": 40, "imageUrl": "https://media.api-sports.io/football/players/542861.png" },
-    { "id": 19, "playerName": "A. Tanaka", "rarity": "EPIC", "teamId": 22, "position": "Midfielder", "cost": 40, "imageUrl": "https://media.api-sports.io/football/players/32966.png" },
-    { "id": 20, "playerName": "K. Goto", "rarity": "LEGENDARY", "teamId": 22, "position": "Attacker", "cost": 50, "imageUrl": "https://media.api-sports.io/football/players/375930.png" },
-    { "id": 21, "playerName": "J. Ito", "rarity": "LEGENDARY", "teamId": 22, "position": "Attacker", "cost": 50, "imageUrl": "https://media.api-sports.io/football/players/1942.png" },
-    { "id": 22, "playerName": "T. Kubo", "rarity": "LEGENDARY", "teamId": 22, "position": "Attacker", "cost": 50, "imageUrl": "https://media.api-sports.io/football/players/32862.png" },
-    { "id": 23, "playerName": "S. Machino", "rarity": "LEGENDARY", "teamId": 22, "position": "Attacker", "cost": 50, "imageUrl": "https://media.api-sports.io/football/players/106851.png" },
-    { "id": 24, "playerName": "D. Maeda", "rarity": "LEGENDARY", "teamId": 22, "position": "Attacker", "cost": 50, "imageUrl": "https://media.api-sports.io/football/players/33224.png" },
-    { "id": 25, "playerName": "T. Minamino", "rarity": "LEGENDARY", "teamId": 22, "position": "Attacker", "cost": 50, "imageUrl": "https://media.api-sports.io/football/players/1101.png" }
-  ];
+  // ✅ Inventario global: se carga UNA vez al iniciar, cubre todos los equipos
+  private globalInventory: UserStickerResponse[] = [];
+  public isLoadingInventory: boolean = false;
 
-  constructor(private albumService: AlbumService) { }
+  // ===== SOBRES =====
+  public packCount: number = 0;
+  public packPhase: PackPhase = 'idle';
+  public newStickers: UserStickerResponse[] = [];
+  public currentCardIndex: number = 0;
+  public packError: string = '';
 
-  ngOnInit(): void {
-    this.loadTeamStickers(this.currentTeamId);
+
+  public teamIds: number[] = [];
+  private teamNamesMap: Record<number, string> = {};
+
+
+  public allTeamPlayers: Player[] = [];
+  private stickerMap: Map<number, Player> = new Map();
+
+  constructor(private albumService: AlbumService,
+              private authService: AuthService,
+              private cdr: ChangeDetectorRef,
+              private homeService: HomeComponentService) {
   }
 
-  public loadTeamStickers(teamId: number): void {
-    this.currentTeamId = teamId;
-    this.albumService.getUserStickersByTeam(teamId).subscribe({
+
+  // ===========================
+  // INVENTARIO GLOBAL
+  // ===========================
+
+  private loadAllStickers(): void {
+    this.albumService.getAllStickers().subscribe({
+      next: (players) => {
+        this.allTeamPlayers = players;
+        this.stickerMap = new Map(players.map(p => [p.id, p]));
+
+        // ✅ Extrae teamIds únicos desde la API (sin hardcodear)
+        this.teamIds = [...new Set(players.map(p => p.teamId))].sort((a, b) => a - b);
+      },
+      error: (err) => console.error('Error cargando stickers:', err)
+    });
+  }
+
+  private loadTeams(): void {
+    this.albumService.getAllTeams().subscribe({
+      next: (teams) => {
+        this.teamIds = teams.map(t => t.id);
+        teams.forEach(t => {
+          this.teamNamesMap[t.id] = t.name;
+        });
+      },
+      error: (err) => console.error('Error cargando equipos:', err)
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadAllStickers();
+    this.loadGlobalInventory();
+    this.loadTeams();
+    this.setPacks()// ← agrega esta línea
+  }
+
+// Helper para enriquecer un sticker del sobre con su Player data
+  public getStickerPlayer(stickerId: number): Player | undefined {
+    return this.stickerMap.get(stickerId);
+  }
+
+  private loadGlobalInventory(): void {
+    this.isLoadingInventory = true;
+    this.albumService.getAllUserStickers().subscribe({
       next: (data) => {
-        this.userInventory = data;
+        this.globalInventory = data;
+        this.isLoadingInventory = false;
       },
       error: (err) => {
-        console.error('Error cargando inventario de cromos:', err);
+        console.error('Error cargando inventario global:', err);
+        this.isLoadingInventory = false;
       }
     });
   }
 
+  // ===========================
+  // ÁLBUM
+  // ===========================
+
+  // ✅ Ya no hace HTTP — solo cambia el equipo activo y filtra el master list
+  public loadTeamStickers(teamId: number): void {
+    this.currentTeamId = teamId;
+    this.currentView = 'album';
+  }
+
+  public setPacks() {
+    let id: number | null = this.authService.getUserId();
+
+    this.homeService.getUserById(id).subscribe({
+      next: (data) => {
+        this.packCount = data.packets;
+        this.cdr.detectChanges();
+
+        console.log(this.packCount)
+      },
+      error: (err) => {
+
+      }
+    })
+  }
+
+  // ✅ Busca en el inventario global (cubre todos los equipos)
   public getStickerQuantity(playerStickerId: number): number {
-    const record = this.userInventory.find(item => item.sticker.id === playerStickerId);
+    const record = this.globalInventory.find(item => item.stickerId === playerStickerId);
     return record ? record.quantity : 0;
   }
 
-  public getPlayersByPosition(position: 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Attacker'): Player[] {
-    return this.allTeamPlayers.filter(player => player.position === position);
+  public getPlayersByPosition(position: string): Player[] {
+    return this.allTeamPlayers.filter(p => p.position === position && p.teamId === this.currentTeamId);
+  }
+
+  public getTeamName(teamId: number): string {
+    return this.teamNamesMap[teamId] ?? `Equipo ${teamId}`;
+  }
+
+  public getCollectedCount(): number {
+    return this.allTeamPlayers
+      .filter(p => p.teamId === this.currentTeamId && this.getStickerQuantity(p.id) > 0)
+      .length;
+  }
+
+  public getProgressPercent(): number {
+    const total = this.allTeamPlayers.filter(p => p.teamId === this.currentTeamId).length;
+    return total > 0 ? Math.round((this.getCollectedCount() / total) * 100) : 0;
+  }
+
+  // ===========================
+  // SOBRES
+  // ===========================
+
+  public onPackClick(): void {
+    if (this.packPhase !== 'idle') return;
+    if (this.packCount <= 0) {
+      this.packError = 'No tienes sobres disponibles. ¡Compra más!';
+      return;
+    }
+    this.packError = '';
+    this.packPhase = 'shaking';
+
+    setTimeout(() => {
+      this.packPhase = 'opening';
+      this.albumService.openPack().subscribe({
+        next: (response) => {
+          this.newStickers = response.data;
+          this.currentCardIndex = 0;
+          this.packCount = Math.max(0, this.packCount - 1);
+
+          // ✅ Refrescar inventario global para que el álbum refleje los nuevos cromos
+          this.loadGlobalInventory();
+
+          setTimeout(() => {
+            this.packPhase = 'revealed';
+          }, 700);
+        },
+        error: (err) => {
+          console.error('Error abriendo sobre:', err);
+          this.packError = 'No se pudo abrir el sobre. Intenta de nuevo.';
+          this.packPhase = 'idle';
+        }
+      });
+    }, 600);
+  }
+
+  public resetPack(): void {
+    this.packPhase = 'idle';
+    this.newStickers = [];
+    this.currentCardIndex = 0;
+    this.packError = '';
+  }
+
+  public nextCard(): void {
+    if (this.currentCardIndex < this.newStickers.length - 1) this.currentCardIndex++;
+  }
+
+  public prevCard(): void {
+    if (this.currentCardIndex > 0) this.currentCardIndex--;
+  }
+
+  public buyPack(): void {
+    this.albumService.buyPack().subscribe({
+      next: (data) => {
+        if (data.success) {
+          // ✅ Refresca desde el servidor en vez de confiar en data.cantity
+          this.setPacks();
+          this.authService.cargarDatosIniciales();
+        }
+      },
+      error: (err) => {
+        console.error('Error comprando sobre:', err);
+      }
+    });
   }
 }

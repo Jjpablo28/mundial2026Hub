@@ -13,6 +13,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   public isLoggedIn: boolean = false;
   public userRole: string | null = null;
   public userName: string | null = null;
+  public urlRedi: string | null = null;
   public userPoints: number = 0; // NUEVO: Atributo para los puntos
 
   private authSubscription!: Subscription;
@@ -29,8 +30,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
         let rawRole = this.authService.getRole();
         this.userRole = rawRole ? rawRole.replace('ROLE_', '') : null;
         this.userName = this.authService.getUserName();
+        this.urlRedi='home';
       } else {
         this.userRole = null;
+        this.urlRedi='dashboard';
         this.userName = null;
       }
     });

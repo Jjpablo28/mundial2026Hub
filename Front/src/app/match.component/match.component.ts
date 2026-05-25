@@ -28,7 +28,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   // Pestañas
   public activeTab: string = 'Partido';
-  public tabs: string[] = ['Partido', 'Alineaciones', 'Estadísticas', 'Tendencias', 'Noticias', 'Probabilidades', 'Jugadores'];
+  public tabs: string[] = ['Partido', 'Alineaciones', 'Estadísticas',  'Jugadores'];
 
   constructor(
     private homeService: HomeComponentService,

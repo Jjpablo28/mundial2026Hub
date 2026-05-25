@@ -113,6 +113,14 @@
           <p>Resumen del partido entre {{ match.homeTeam.name || 'Local' }} y {{ match.awayTeam.name || 'Visitante' }}.</p>
         </div>
 
+       <div *ngIf="activeTab === 'Alineaciones'" class="tab-panel">
+          <p>Aún no hay alineaciones disponibles.</p>
+        </div>
+
+        <div *ngIf="activeTab === 'Jugadores'" class="tab-panel">
+          <p>Aún no hay jugadores disponibles.</p>
+        </div>
+
         <div *ngIf="activeTab === 'Estadísticas'" class="tab-panel standings-panel">
 
           <div class="internal-loader" *ngIf="isLoadingStandings">

@@ -29,7 +29,6 @@
           <p class="qr-uuid-display">
             ID DE SESIÓN: <span>{{ qrData?.uuid }}</span>
           </p>
-          <!-- ✅ Mensaje de espera mientras el Usuario B no llega -->
           <div class="qr-waiting-status">
             <div class="spinner-mini"></div>
             <p>Esperando a tu contraparte...</p>
@@ -51,13 +50,14 @@
       <div class="connect-form">
         <input
           type="text"
-          [(ngModel)]="sessionUuidInput"
+          name="sessionUuidInput"
+          [value]="sessionUuidInput"
+          (input)="sessionUuidInput = $any($event.target).value"
           placeholder="Pega el ID de sesión aquí..."
           class="input-box"
           [disabled]="uniendose"
         />
 
-        <!-- ✅ Botón con estado de carga para el join -->
         <button
           (click)="unirseAIntercambio()"
           class="btn-qr-connect"
@@ -69,6 +69,36 @@
           <div class="spinner-mini"></div>
           <p>Uniéndote a la mesa...</p>
         </div>
+
+        <div class="scan-divider">
+          <span>o escanea el QR</span>
+        </div>
+
+        <button
+          class="btn-qr-scan"
+          (click)="toggleScanner()"
+          [disabled]="uniendose">
+          📷 {{ escaneando ? 'Cerrar escáner' : 'Escanear código QR' }}
+        </button>
+
+        <div class="qr-scanner-container" *ngIf="escaneando">
+          <div class="scanner-viewport">
+            <video #scannerVideo autoplay playsinline></video>
+            <div class="scan-line"></div>
+            <div class="scan-corner tl"></div>
+            <div class="scan-corner tr"></div>
+            <div class="scan-corner bl"></div>
+            <div class="scan-corner br"></div>
+          </div>
+          <button class="btn-scanner-close" (click)="detenerScanner()">
+            ✕ Cancelar escaneo
+          </button>
+        </div>
+
+        <div class="scan-result" *ngIf="scannedUuid && !escaneando">
+          ✅ <span>{{ scannedUuid }}</span>
+        </div>
+
       </div>
     </div>
 

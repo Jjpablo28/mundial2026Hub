@@ -158,9 +158,9 @@ public class UserStickerController {
 	@PostMapping("/buy-pack/{id}")
 	public ResponseEntity<?> buyPack(@PathVariable Long id) {
 		try {
-			userStickerServ.buyPack(id);
+			int cantity=userStickerServ.buyPack(id);
 			return ResponseEntity.status(HttpStatus.CREATED)
-					.body(Map.of("message", "Pack añadido al inventario", "success", true));
+					.body(Map.of("message", "Pack añadido al inventario", "success", true,"cantity",cantity));
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
 		}

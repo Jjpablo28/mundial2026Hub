@@ -130,10 +130,9 @@ public class DatabaseInitializer {
 	 * </p>
 	 */
 	private void createPlayers() {
-		if (stickerRepo.count() == 513) {
-			System.out.println("Los jugadores ya están precargados en la base de datos. Hay " + stickerRepo.count()
-					+ " Jugadores");
-			return;
+		if (stickerRepo.count() > 0) {
+		    System.out.println("Los jugadores ya están precargados en la base de datos. Hay " + stickerRepo.count() + " Jugadores");
+		    return;
 		}
 
 		List<Integer> teams = Arrays.asList(12, 31, 1569, 15, 13, 5529, 9, 27, 8, 26, 25, 16, 2384, 6, 2, 10, 7, 3, 1,

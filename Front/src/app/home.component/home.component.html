@@ -20,7 +20,7 @@
       </a>
 
       <a class="nav-link" [class.active]="menuActivo === 'album'" (click)="cambiarMenu('album')">
-        <i class="fas fa-chart-bar"></i> Reportes
+        <i class="fas fa-book"></i> Albúm
       </a>
 
       <a class="nav-link" [class.active]="menuActivo === 'reportes'" (click)="cambiarMenu('reportes')">
@@ -57,9 +57,7 @@
         <h1 class="page-title">
           {{ menuActivo === 'cuenta' ? 'Configuración de Cuenta' : 'Bienvenido de nuevo, ' + userName }}
         </h1>
-        <p class="role-badge" *ngIf="menuActivo !== 'cuenta'">
-          <span [ngClass]="userRole === 'admin' ? 'admin' : 'user'"></span>
-        </p>
+
       </div>
 
       <div class="top-avatar" *ngIf="menuActivo !== 'cuenta'">

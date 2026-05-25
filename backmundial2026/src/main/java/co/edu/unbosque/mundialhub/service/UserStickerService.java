@@ -206,7 +206,7 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 	 * @throws Exceptions.ValidationException       Si el balance de monedas es inferior a 500 puntos.
 	 */
 	@Transactional
-	public void buyPack(Long userId) {
+	public int buyPack(Long userId) {
 		User user = userRepo.findById(userId)
 				.orElseThrow(() -> new Exceptions.ResourceNotFoundException("Usuario no encontrado con ID: " + userId));
 		
@@ -221,6 +221,7 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 		user.setTotalPoints(tokensActuales - 500);
 
 		userRepo.save(user);
+		return user.getPackets();
 	}
 
 	/**
