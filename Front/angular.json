@@ -53,6 +53,12 @@
                   "type": "anyComponentStyle",
                   "maximumWarning": "30kB",
                   "maximumError": "34kB"
+                },
+                {
+                  "type": "bundle",
+                  "name": "css-inline-fonts",
+                  "maximumWarning": "40kb",
+                  "maximumError": "50kb"
                 }
               ],
               "outputHashing": "all"
