@@ -39,14 +39,9 @@ export class PaymentComponent implements OnInit {
 
     this.paymentService.createPreference(this.tokensToBuy, this.currency).subscribe({
       next: async (res) => {
-        console.log("Respuesta del backend:", res);
-
         const container = document.getElementById('paymentCard-container');
-        if (container) {
-          container.innerHTML = '';
-        }
+        if (container) container.innerHTML = '';
 
-        // Llamamos al método pasando exactamente los 4 parámetros definidos en tu archivo de servicio
         await this.paymentService.renderPaymentBrick(
           'paymentCard-container',
           res.id,
@@ -54,12 +49,12 @@ export class PaymentComponent implements OnInit {
           (status: string) => {
             this.ngZone.run(() => {
               this.paymentStatus = status;
-              console.log("Estado del pago actualizado en Angular:", this.paymentStatus);
-
               if (status === 'approved') {
-                setTimeout(() => {
-                  this.router.navigate(['/home']);
-                }, 2500);
+                setTimeout(() => this.router.navigate(['/home']), 2500);
+              }
+              // ✅ Mostrar error si el pago fue rechazado
+              if (status === 'rejected') {
+                this.errorMessage = 'Tu pago fue rechazado. Verifica los datos de tu tarjeta.';
               }
             });
           }
@@ -68,8 +63,14 @@ export class PaymentComponent implements OnInit {
       },
       error: (err) => {
         this.cargandoBrick = false;
-        console.error("Error al obtener preferencia", err);
-        this.errorMessage = err.error?.error || 'Error al procesar la solicitud.';
+        // ✅ Mensaje más específico según el error
+        if (err.status === 400) {
+          this.errorMessage = err.error?.error || 'Solicitud inválida.';
+        } else if (err.status === 0) {
+          this.errorMessage = 'Sin conexión con el servidor. Intenta más tarde.';
+        } else {
+          this.errorMessage = err.error?.error || 'Error al procesar la solicitud.';
+        }
       }
     });
   }

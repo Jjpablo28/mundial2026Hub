@@ -123,6 +123,12 @@
       <i class="fas fa-times"></i>
     </button>
   </div>
+  <div class="custom-popup" *ngIf="showSuccessPopup">
+    <div class="popup-content border-success">
+      <i class="fas fa-check-circle success-icon"></i>
+      <span>{{ successMessage }}</span>
+    </div>
+  </div>
 </div>
 <div class="loader-overlay" *ngIf="isLoading">
   <div class="loader-content">
@@ -130,4 +136,6 @@
     <h3>Iniciando sesión...</h3>
     <p>Preparando tu Mundial 2026</p>
   </div>
+
+
 </div>

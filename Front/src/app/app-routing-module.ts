@@ -10,20 +10,20 @@ import { LandingComponent } from './landing.component/landing.component';
 import { PaymentComponent } from './payment.component/payment.component';
 import {QrGenerator} from './qr-generator/qr-generator';
 import {TradeScreen} from './trade-screen/trade-screen';
+import {GuestGuard} from './security/guest.guard';
 
 
 const routes: Routes = [
   { path: '', component: LandingComponent },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegistroComponent },
-  { path: 'verify', component: VerifyComponent },
+  { path: 'landing', component: LandingComponent },
+  { path: 'login',    component: LoginComponent,    canActivate: [GuestGuard] },
+  { path: 'register', component: RegistroComponent, canActivate: [GuestGuard] },
+  { path: 'verify',   component: VerifyComponent,   canActivate: [GuestGuard] },
   { path: 'forbidden', component: Forbidden },
-  { path: 'home', component: HomeComponent,  canActivate: [AuthGuard], data: { rolesPermitidos: ['TEMPORAL','USER'] }},
-  {path:'landing',component: LandingComponent},
+  { path: 'home', component: HomeComponent, canActivate: [AuthGuard], data: { rolesPermitidos: ['USER', 'ADMIN'] }},
   { path: 'payment', component: PaymentComponent },
   { path: 'qr', component: QrGenerator },
   { path: 'websocket', component: TradeScreen },
-
 ];
 
 @NgModule({

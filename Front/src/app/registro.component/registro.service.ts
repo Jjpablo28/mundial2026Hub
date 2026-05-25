@@ -19,6 +19,16 @@ export class RegistroService {
   constructor(private http: HttpClient) {
   }
 
+  public updateProfile(userId: number | null, data: {
+    avatarUrl: string;
+    favoriteTeam: string | undefined
+  }): Observable<any> {
+    const body = {
+      favoriteTeam: data.favoriteTeam ?? null,
+      avatarUrl: data.avatarUrl
+    };
+    return this.http.put(`${this.apiUrl}users/${userId}`, body);
+  }
 
   getCountries(): Observable<string[]> {
     return this.http.get<any>(this.apiCountries + 'countries').pipe(
@@ -64,4 +74,6 @@ export class RegistroService {
   verify(data: any): Observable<any> {
     return this.http.post<any>(this.apiUrl+'auth/' + 'verify', data);
   }
+
+
 }

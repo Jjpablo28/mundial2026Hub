@@ -132,7 +132,7 @@ public class AuthController {
 	                .body(Map.of("message", "La contraseña debe tener mínimo 8 caracteres, mayúscula, minúscula, número y símbolo especial", "success", false));
 	    }
 
-	    if (!exValidator.isGmailValid(registerRequest.getEmail())) {
+	    if (!exValidator.isGmailValid(registerRequest.getEmail().toLowerCase())) {
 	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 	                .body(Map.of("message", "Solo se permiten correos Gmail válidos", "success", false));
 	    }
@@ -246,7 +246,7 @@ public class AuthController {
 			String identifier = loginRequest.getIdentifier();
 
 			Optional<User> userOpt = identifier.contains("@") ? userRepo.findByEmail(AESUtil.encrypt(identifier))
-					: userRepo.findByUserName(AESUtil.encrypt(identifier));
+					: userRepo.findByUserName(AESUtil.encrypt(identifier.toLowerCase()));
 
 			if (userOpt.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

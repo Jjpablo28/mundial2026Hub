@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import {Component, OnInit, OnDestroy, ChangeDetectorRef} from '@angular/core';
 import { AuthService } from '../../security/AuthService'; // Ajusta la ruta si es necesario
 import { Subscription } from 'rxjs';
 
@@ -19,7 +19,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private authSubscription!: Subscription;
   private pointsSubscription!: Subscription; // NUEVO: Suscripción de puntos
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     // Nos suscribimos a tu BehaviorSubject para cambios en tiempo real
@@ -31,10 +31,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.userRole = rawRole ? rawRole.replace('ROLE_', '') : null;
         this.userName = this.authService.getUserName();
         this.urlRedi='home';
+        this.cdr.detectChanges();
+
       } else {
         this.userRole = null;
-        this.urlRedi='dashboard';
+        this.urlRedi='';
         this.userName = null;
+        this.cdr.detectChanges();
       }
     });
 

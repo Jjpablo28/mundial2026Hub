@@ -414,6 +414,15 @@ $error:       #FF4D4D;
   }
 }
 
+.border-success {
+  border-left: 4px solid #d4f000;
+}
+
+.success-icon {
+  color: #d4f000;
+  font-size: 1.2rem;
+}
+
 .border-error {
   border-color: rgba($error, 0.6) !important;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), 0 0 16px rgba($error, 0.12) !important;

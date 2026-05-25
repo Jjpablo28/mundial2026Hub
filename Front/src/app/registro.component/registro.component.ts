@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RegistroService } from './registro.service';
 import { CommonModule } from '@angular/common';
@@ -22,14 +22,23 @@ export class RegistroComponent implements OnInit {
   password: string = '';
   isLoading: boolean = false;
 
+  showErrorPopup: boolean = false;
+  errorMessage: string = '';
 
 
+  showSuccessPopup: boolean = false;
+  successMessage: string = '';
 
   countries: string[] = [];
   cities: string[] = [];
   teams: string[] = [];
 
-  constructor(private registroService: RegistroService, private router: Router, private authService: AuthService) {}
+  constructor(
+    private registroService: RegistroService,
+    private router: Router,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef  // ← agregar
+  ) {}
 
 
   ngOnInit(): void {
@@ -75,14 +84,29 @@ export class RegistroComponent implements OnInit {
     this.registroService.register(body,'TEMPORAL').subscribe({
       next: (response) => {
         console.log('Registro exitoso', response);
+        sessionStorage.setItem('_v_id', btoa(this.email));
+        sessionStorage.setItem('_v_pw', btoa(this.password));
         localStorage.setItem('email', this.email);
         this.isLoading = false;
-        this.router.navigate(['/verify']);
+        this.successMessage = '¡Cuenta creada exitosamente! Verifica tu correo';
+        this.showSuccessPopup = true;
+        this.cdr.detectChanges();
+
+        setTimeout(() => {
+          this.showSuccessPopup = false;
+          this.router.navigate(['/verify']);
+        }, 1800);
       },
       error: (err) => {
         console.error('Error en registro', err);
         this.isLoading = false;
-        alert('Hubo un error al crear la cuenta');
+        this.errorMessage = 'Hubo un error al crear la cuenta';
+        this.showErrorPopup = true;
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.showErrorPopup = false;
+          this.cdr.detectChanges();
+        }, 5000);
       }
     });
   }

@@ -1,14 +1,12 @@
 <div class="auth-container">
   <div class="auth-wrapper">
 
-    <!-- Columna izquierda: Verificación -->
     <div class="auth-left">
       <div class="auth-card">
         <h2>Verificar cuenta</h2>
         <p class="subtitle">Ingresa el código enviado a tu correo</p>
 
         <form (ngSubmit)="verify()" #verifyForm="ngForm">
-
           <div class="input-group">
             <input
               type="text"
@@ -26,7 +24,6 @@
               <i class="fas fa-spinner fa-spin"></i> Verificando...
             </span>
           </button>
-
         </form>
 
         <p class="link-text">
@@ -34,76 +31,144 @@
           <a (click)="resendCode()"
              [style.cursor]="isResending ? 'not-allowed' : 'pointer'"
              [style.opacity]="isResending ? '0.6' : '1'">
-
             <span *ngIf="!isResending">Reenviar</span>
-
-            <span *ngIf="isResending">
-      <i class="fas fa-spinner fa-spin"></i> Enviando...
-    </span>
+            <span *ngIf="isResending"><i class="fas fa-spinner fa-spin"></i> Enviando...</span>
           </a>
         </p>
       </div>
     </div>
 
-    <!-- Columna derecha: Información -->
     <div class="auth-right">
       <div class="info-box">
         <h3>¡Casi terminamos!</h3>
         <p>Tu seguridad es lo primero. Verifica tu identidad para empezar a disfrutar de MundialHub.</p>
-        <!-- Puedes usar la misma imagen o una diferente -->
         <img src="assets/register-image.png" alt="Verificación Info" />
       </div>
     </div>
 
   </div>
 </div>
+
+<!-- ===================== ONBOARDING MODAL ===================== -->
+<div class="onboarding-overlay" *ngIf="showOnboarding">
+  <div class="onboarding-box">
+
+    <!-- Header con pasos -->
+    <div class="onboarding-header">
+      <div class="onboarding-steps">
+        <div class="step-dot" [class.active]="onboardingStep >= 1" [class.done]="onboardingStep > 1">
+          <span>1</span>
+        </div>
+        <div class="step-line" [class.done]="onboardingStep > 1"></div>
+        <div class="step-dot" [class.active]="onboardingStep >= 2">
+          <span>2</span>
+        </div>
+      </div>
+      <button class="skip-btn" (click)="skipOnboarding()">Saltar <i class="fas fa-forward"></i></button>
+    </div>
+
+
+    <!-- ===== PASO 1: Equipo favorito ===== -->
+    <div class="onboarding-step" *ngIf="onboardingStep === 1">
+      <div class="step-icon">⚽</div>
+      <h2>Tu equipo favorito</h2>
+      <p class="step-desc">¿A quién vas a apoyar en el Mundial 2026?</p>
+
+      <div class="team-search-box">
+        <i class="fas fa-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="teamSearch"
+          (ngModelChange)="filterTeams()"
+          placeholder="Buscar selección..."
+        />
+      </div>
+
+      <div class="teams-grid-onboarding">
+        <div
+          class="team-option"
+          *ngFor="let team of filteredTeams"
+          [class.selected]="selectedTeam?.name === team.name"
+          (click)="selectTeam(team)">
+          <img [src]="team.crest" [alt]="team.name" class="team-crest-sm">
+          <span class="team-name-sm">{{ team.shortName || team.name }}</span>
+          <i class="fas fa-check check-icon" *ngIf="selectedTeam?.name === team.name"></i>
+        </div>
+      </div>
+
+      <div class="onboarding-actions">
+        <button class="btn-back-step" (click)="prevStep()">
+          <i class="fas fa-arrow-left"></i> Atrás
+        </button>
+        <button class="btn-next" (click)="nextStep()" [disabled]="!canAdvanceStep2()">
+          Siguiente <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== PASO 2: Avatar ===== -->
+    <div class="onboarding-step" *ngIf="onboardingStep === 2">
+      <div class="step-icon">🧑‍🎤</div>
+      <h2>Elige tu avatar</h2>
+      <p class="step-desc">Este será tu imagen dentro de MundialHub</p>
+
+      <div class="avatars-grid">
+        <div
+          class="avatar-option"
+          *ngFor="let av of avatars"
+          [class.selected]="selectedAvatar === av"
+          (click)="selectAvatar(av)">
+          <img [src]="av" alt="Avatar">
+          <div class="avatar-check" *ngIf="selectedAvatar === av">
+            <i class="fas fa-check"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="onboarding-actions">
+        <button class="btn-back-step" (click)="prevStep()">
+          <i class="fas fa-arrow-left"></i> Atrás
+        </button>
+        <button class="btn-finish" (click)="finishOnboarding()" [disabled]="!canFinish() || isSavingOnboarding">
+          <span *ngIf="!isSavingOnboarding"><i class="fas fa-rocket"></i> ¡Empezar!</span>
+          <span *ngIf="isSavingOnboarding"><i class="fas fa-spinner fa-spin"></i> Guardando...</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Popup éxito reenvío -->
 <div class="custom-popup" *ngIf="showPopup">
   <div class="popup-content">
     <i class="fas fa-check-circle success-icon"></i>
     <span>Código reenviado con éxito</span>
-    <button class="close-btn" (click)="showPopup = false">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-</div>
-<div class="custom-popup" *ngIf="showErrorPopup">
-  <div class="popup-content border-error">
-    <i class="fas fa-exclamation-circle error-icon"></i>
-    <span>Error al reenviar el codigo, contacta con soporte</span>
-    <button class="close-btn" (click)="showErrorPopup = false">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-</div>
-<div class="custom-popup" *ngIf="showErrorPopup">
-  <div class="popup-content border-error">
-    <i class="fas fa-exclamation-circle error-icon"></i>
-    <span>Error al reenviar el codigo, contacta con soporte</span>
-    <button class="close-btn" (click)="showErrorPopup = false">
-      <i class="fas fa-times"></i>
-    </button>
+    <button class="close-btn" (click)="showPopup = false"><i class="fas fa-times"></i></button>
   </div>
 </div>
 
+<!-- Popup error -->
+<div class="custom-popup" *ngIf="showErrorPopup">
+  <div class="popup-content border-error">
+    <i class="fas fa-exclamation-circle error-icon"></i>
+    <span>{{ errorMessage || 'Error al reenviar el código, contacta con soporte' }}</span>
+    <button class="close-btn" (click)="showErrorPopup = false"><i class="fas fa-times"></i></button>
+  </div>
+</div>
+
+<!-- Modal correo no encontrado -->
 <div class="modal-overlay" *ngIf="showEmailModal">
   <div class="modal-box">
     <h3>Correo no encontrado</h3>
     <p>No pudimos enviar el código. Por favor, verifica y escribe tu correo nuevamente.</p>
-
     <div class="input-group">
-      <input
-        type="email"
-        [(ngModel)]="recoveryEmail"
-        placeholder="Ingresa tu correo"
-        style="text-align: left; font-size: 14px; letter-spacing: normal;"
-      />
+      <input type="email" [(ngModel)]="recoveryEmail" placeholder="Ingresa tu correo"
+             style="text-align: left; font-size: 14px; letter-spacing: normal;" />
     </div>
-
     <div class="modal-actions">
       <button class="btn-cancel" (click)="showEmailModal = false">Cancelar</button>
-      <button class="btn-submit" (click)="resendWithNewEmail()" [disabled]="!recoveryEmail">
-        Reenviar
-      </button>
+      <button class="btn-submit" (click)="resendWithNewEmail()" [disabled]="!recoveryEmail">Reenviar</button>
     </div>
   </div>
 </div>

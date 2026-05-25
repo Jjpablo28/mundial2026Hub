@@ -25,6 +25,9 @@ export class LoginComponent {
   showErrorPopup = false;
   public isLoading: boolean = false;
 
+  showSuccessPopup: boolean = false;
+  successMessage: string = '';
+
   constructor(
     private loginService: LoginService,
     private router: Router,
@@ -46,20 +49,26 @@ export class LoginComponent {
       next: async (response) => {
         if (response.token) {
           this.authService.saveToken(response.token);
-          console.log('Login exitoso. Token guardado.');
           this.authService.isAuthenticatedSubject.next(true);
-
           await this.authService.cargarDatosIniciales();
         }
 
         this.isLoading = false;
-        this.router.navigate(['/home']);
+        this.successMessage = '¡Bienvenido de vuelta! 🎉';
+        this.showSuccessPopup = true;
+        this.cdr.detectChanges();
+
+        setTimeout(() => {
+          this.showSuccessPopup = false;
+          this.router.navigate(['/home']);
+        }, 1500); // espera que el usuario vea el popup antes de navegar
       },
       error: (err) => {
         console.log('Error en login', err);
         this.isLoading = false;
         this.errorMessage = 'Credenciales incorrectas';
         this.showErrorPopup = true;
+  this.cdr.detectChanges();
 
         setTimeout(() => {
           this.showErrorPopup = false;
@@ -82,8 +91,11 @@ export class LoginComponent {
         next: (response) => {
           this.showNewPasswordModal = false;
 
+
           this.errorMessage = 'contraseña cambiada';
           this.showErrorPopup = true;
+          this.cdr.detectChanges();
+
 
           setTimeout(() => {
             this.showErrorPopup = false;
@@ -123,6 +135,8 @@ export class LoginComponent {
           this.showForgotModal = false;
           this.errorMessage = 'El correo no existe';
           this.showErrorPopup = true;
+          this.cdr.detectChanges();
+
 
           setTimeout(() => {
             this.showErrorPopup = false;

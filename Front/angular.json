@@ -51,14 +51,14 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "40kB",
-                  "maximumError": "44kB"
+                  "maximumWarning": "45kB",
+                  "maximumError": "49kB"
                 },
                 {
                   "type": "bundle",
                   "name": "css-inline-fonts",
-                  "maximumWarning": "40kb",
-                  "maximumError": "50kb"
+                  "maximumWarning": "50kb",
+                  "maximumError": "60kb"
                 }
               ],
               "outputHashing": "all"

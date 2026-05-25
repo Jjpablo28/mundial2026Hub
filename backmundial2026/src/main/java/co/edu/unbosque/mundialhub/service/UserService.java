@@ -107,7 +107,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 			String generatedCode = generateCode();
 			entity.setCode(generatedCode);
-			entity.setVerificationExpires(LocalDateTime.now().plusMinutes(2));
+			entity.setVerificationExpires(LocalDateTime.now().plusMinutes(10));
 
 			entity.setCreatedAt(LocalDateTime.now());
 			entity.setUpdatedAt(LocalDateTime.now());
@@ -395,6 +395,8 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	public void createWithRol(UserDTO data, String rol) {
 		try {
 			data.setRole(Role.valueOf(rol.toUpperCase().trim()));
+			data.setEmail(data.getEmail().toLowerCase());
+			data.setUserName(data.getUserName().toLowerCase());
 			create(data);
 		} catch (IllegalArgumentException e) {
 			throw new Exceptions.ValidationException("El rol especificado '" + rol + "' no es válido en el sistema.");

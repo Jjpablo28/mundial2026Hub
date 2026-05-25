@@ -103,4 +103,14 @@
     </div>
 
   </div>
+  <!-- ✅ Popup de error -->
+  <div class="custom-popup" *ngIf="showError">
+    <div class="popup-content border-error">
+      <i class="fas fa-exclamation-circle error-icon"></i>
+      <span>{{ errorMessage }}</span>
+      <button class="close-btn" (click)="showError = false">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
 </div>

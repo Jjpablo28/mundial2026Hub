@@ -23,7 +23,7 @@ export class TradeWebSocketService {
   constructor(private http: HttpClient) {}
 
   getStickerInfo(stickerId: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}sticker/{id}?idSticker=${stickerId}`);
+    return this.http.get<any>(`${this.apiUrl}/sticker/${stickerId}`);
   }
 
   getStickersId(userId: number): Observable<any> {
