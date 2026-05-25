@@ -21,6 +21,7 @@ import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
 
 import co.edu.unbosque.mundialhub.dto.PaymentRequestDTO;
+import co.edu.unbosque.mundialhub.exception.Exceptions;
 import co.edu.unbosque.mundialhub.service.PaymentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -73,27 +74,44 @@ public class PaymentController {
 	 *         cuota mínima.
 	 */
 	@PostMapping("/preference")
-	public ResponseEntity<?> createPreference(@RequestBody PaymentRequestDTO dto, @RequestParam() int usuario) {
+	public ResponseEntity<?> createPreference(@RequestBody PaymentRequestDTO dto, @RequestParam int usuario) {
+	    Exceptions exValidator = new Exceptions();
 
-		// Validación de regla de negocio: compra mínima de tokens
-		if (dto.getQuantity() == null || dto.getQuantity() < 500) {
-			return ResponseEntity.badRequest().body(Map.of("error", "La cantidad mínima de compra son 500 tokens."));
-		}
+	    // ✅ Validar ID de usuario
+	    if (usuario <= 0) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("error", "ID de usuario inválido."));
+	    }
 
-		// Multiplicación exacta para evitar pérdida de precisión de punto flotante en
-		// transacciones
-		java.math.BigDecimal precioPorToken = new java.math.BigDecimal("10");
-		java.math.BigDecimal totalAmount = java.math.BigDecimal.valueOf(dto.getQuantity()).multiply(precioPorToken);
+	    // ✅ Validar cantidad mínima
+	    if (dto.getQuantity() == null || dto.getQuantity() < 500) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("error", "La cantidad mínima de compra son 500 tokens."));
+	    }
 
-		dto.setAmount(totalAmount);
 
-		Preference preference = paymentService.createPayment(dto, usuario, dto.getQuantity());
 
-		Map<String, Object> response = Map.of("id", preference.getId(), "amount", totalAmount.doubleValue());
+	    try {
+	        java.math.BigDecimal precioPorToken = new java.math.BigDecimal("10");
+	        java.math.BigDecimal totalAmount = java.math.BigDecimal.valueOf(dto.getQuantity()).multiply(precioPorToken);
+	        dto.setAmount(totalAmount);
 
-		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	        Preference preference = paymentService.createPayment(dto, usuario, dto.getQuantity());
+	        Map<String, Object> response = Map.of("id", preference.getId(), "amount", totalAmount.doubleValue());
+
+	        return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+	    } catch (Exceptions.ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("error", e.getMessage()));
+	    } catch (Exceptions.ValidationException e) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("error", e.getMessage()));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body(Map.of("error", "Error procesando el pago: " + e.getMessage()));
+	    }
 	}
-
 	/**
 	 * Procesa un cargo directo a través de la pasarela de pagos utilizando la
 	 * información estructurada del formulario.

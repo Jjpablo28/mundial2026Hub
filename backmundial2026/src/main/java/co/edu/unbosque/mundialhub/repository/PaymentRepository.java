@@ -51,4 +51,6 @@ public interface PaymentRepository extends JpaRepository<Payments, Long> {
 	 *         {@code false} si no posee transacciones.
 	 */
 	boolean existsByUserId(User user);
+
+	void deleteByUserId(Long id);
 }

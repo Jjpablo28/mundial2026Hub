@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.unbosque.mundialhub.dto.TeamDTO;
+import co.edu.unbosque.mundialhub.exception.Exceptions;
 import co.edu.unbosque.mundialhub.model.Team;
 import co.edu.unbosque.mundialhub.repository.TeamRepository;
 import co.edu.unbosque.mundialhub.service.ExternalHTTPRequestHandler;
@@ -75,10 +76,27 @@ public class TeamController {
 	 */
 	@PostMapping
 	public ResponseEntity<?> create(@RequestBody TeamDTO dto) {
-		teamServ.create(dto);
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(Map.of("message", "El equipo ha sido creado", "success", true));
+	    Exceptions exValidator = new Exceptions();
+
+	    if (dto.getName() != null && exValidator.containsHtmlSymbols(dto.getName())) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "El nombre del equipo contiene caracteres no permitidos", "success", false));
+	    }
+
+	    try {
+	        teamServ.create(dto);
+	        return ResponseEntity.status(HttpStatus.CREATED)
+	                .body(Map.of("message", "El equipo ha sido creado", "success", true));
+	    } catch (Exceptions.ValidationException e) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body(Map.of("message", "Error interno al crear el equipo", "success", false));
+	    }
 	}
+
+	
 
 	/**
 	 * Recupera el listado global de equipos registrados bajo un ordenamiento
@@ -220,17 +238,21 @@ public class TeamController {
 	 * @return Un mapa JSON descriptivo que detalla el éxito o fallo del proceso de
 	 *         eliminación.
 	 */
+
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> deleteById(@PathVariable Long id) {
-		try {
-			teamServ.deleteById(id);
-			return ResponseEntity.ok(Map.of("message", "Equipo eliminado con éxito", "success", true));
-
-		} catch (RuntimeException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(Map.of("message", "Equipo no encontrado", "success", false));
-		}
+	    try {
+	        teamServ.deleteById(id);
+	        return ResponseEntity.ok(Map.of("message", "Equipo eliminado con éxito", "success", true));
+	    } catch (Exceptions.ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    } catch (RuntimeException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", "Equipo no encontrado", "success", false));
+	    }
 	}
+
 
 	/**
 	 * Modifica y actualiza las propiedades y metadatos de un equipo localizándolo
@@ -244,15 +266,23 @@ public class TeamController {
 	 */
 	@PutMapping("/{id}")
 	public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody TeamDTO dto) {
-		try {
-			TeamDTO updated = teamServ.updateById(id, dto);
-			Team userEntity = teamRepo.findById(id).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+	    Exceptions exValidator = new Exceptions();
 
-			return ResponseEntity.ok(Map.of("message", "Equipo actualizado correctamente", "success", true));
+	    if (dto.getName() != null && exValidator.containsHtmlSymbols(dto.getName())) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "El nombre contiene caracteres no permitidos", "success", false));
+	    }
 
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
-		}
+	    try {
+	        teamServ.updateById(id, dto);
+	        return ResponseEntity.ok(Map.of("message", "Equipo actualizado correctamente", "success", true));
+	    } catch (Exceptions.ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    }
 	}
 
 	/**

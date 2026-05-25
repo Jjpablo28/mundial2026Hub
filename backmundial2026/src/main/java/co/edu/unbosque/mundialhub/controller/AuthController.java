@@ -120,24 +120,39 @@ public class AuthController {
 	 */
 	@PostMapping("/register")
 	public ResponseEntity<?> register(@RequestBody UserDTO registerRequest, @RequestParam String rol) {
-		Exceptions exValidator = new Exceptions();
-		if (!exValidator.containsRole(rol.toUpperCase().trim())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(Map.of("message", "El rol especificado no es válido", "success", false));
-		}
+	    Exceptions exValidator = new Exceptions();
 
-		try {
-			userService.createWithRol(registerRequest, rol);
-			return ResponseEntity.status(HttpStatus.CREATED)
-					.body(Map.of("message", "User registered successfully", "success", true));
+	    if (!exValidator.containsRole(rol.toUpperCase().trim())) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "El rol especificado no es válido", "success", false));
+	    }
 
-		} catch (Exceptions.ValidationException e) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage(), "success", false));
+	    if (!exValidator.isValidPassword(registerRequest.getPassword())) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "La contraseña debe tener mínimo 8 caracteres, mayúscula, minúscula, número y símbolo especial", "success", false));
+	    }
 
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(Map.of("message", "Error interno del servidor: " + e.getMessage(), "success", false));
-		}
+	    if (!exValidator.isGmailValid(registerRequest.getEmail())) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "Solo se permiten correos Gmail válidos", "success", false));
+	    }
+
+	    if (registerRequest.getUserName() != null && exValidator.containsHtmlSymbols(registerRequest.getUserName())) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "El nombre de usuario contiene caracteres no permitidos", "success", false));
+	    }
+
+	    try {
+	        userService.createWithRol(registerRequest, rol);
+	        return ResponseEntity.status(HttpStatus.CREATED)
+	                .body(Map.of("message", "User registered successfully", "success", true));
+	    } catch (Exceptions.ValidationException e) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body(Map.of("message", "Error interno del servidor: " + e.getMessage(), "success", false));
+	    }
 	}
 
 	/**
@@ -302,45 +317,65 @@ public class AuthController {
 	 */
 	@PostMapping("/verify")
 	public ResponseEntity<?> verify(@RequestBody VerifyUserDTO dto) {
-		User user = userService.findByEmail(dto.getEmail());
+	    User user = userService.findByEmail(dto.getEmail());
 
-		if (user == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(Map.of("message", "Usuario no existe", "success", false));
-		}
+	    if (user == null) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", "Usuario no existe", "success", false));
+	    }
 
-		if (user.getCode() == null) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(Map.of("message", "Genera el código nuevamente", "success", false));
-		}
+	    if (user.getCode() == null) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "Genera el código nuevamente", "success", false));
+	    }
 
-		if (user.isEnabled()) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(Map.of("message", "Usuario ya verificado", "success", false));
-		}
+	    if (user.isEnabled()) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT)
+	                .body(Map.of("message", "Usuario ya verificado", "success", false));
+	    }
 
-		if (!user.getCode().equals(dto.getCode())) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(Map.of("message", "Código incorrecto", "success", false));
-		}
+	    if (!user.getCode().equals(dto.getCode())) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "Código incorrecto", "success", false));
+	    }
 
-		if (user.getVerificationExpires().isBefore(LocalDateTime.now())) {
-			user.setCode(null);
-			user.setVerificationExpires(null);
-			userRepo.save(user);
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(Map.of("message", "Código expirado", "success", false));
-		}
+	    if (user.getVerificationExpires().isBefore(LocalDateTime.now())) {
+	        user.setCode(null);
+	        user.setVerificationExpires(null);
+	        userRepo.save(user);
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", "Código expirado", "success", false));
+	    }
 
-		user.setEnabled(true);
-		user.setCode(null);
-		user.setVerificationExpires(null);
-		if (user.getRole() == Role.TEMPORAL) {
-			user.setRole(Role.USER);
-		}
-		userRepo.save(user);
+	    user.setEnabled(true);
+	    user.setCode(null);
+	    user.setVerificationExpires(null);
+	    if (user.getRole() == Role.TEMPORAL) {
+	        user.setRole(Role.USER);
+	    }
+	    userRepo.save(user);
 
-		return ResponseEntity.ok(Map.of("message", "Usuario verificado correctamente", "success", true));
+	    // ✅ Generar JWT automáticamente igual que el login
+	    UserDetails userDetails = org.springframework.security.core.userdetails.User
+	            .withUsername(user.getUserName())
+	            .password(user.getPassword())
+	            .authorities(user.getRole().name())
+	            .build();
+
+	    String userNameDecrypted = user.getUserName() != null ? AESUtil.decrypt(user.getUserName()) : null;
+	    String emailDecrypted    = user.getEmail()    != null ? AESUtil.decrypt(user.getEmail())    : null;
+
+	    String jwt = jwtUtil.generateToken(userDetails, userNameDecrypted, user.getId(), emailDecrypted);
+
+	    user.setLastLogin(LocalDateTime.now());
+	    userRepo.save(user);
+
+	    return ResponseEntity.ok(Map.of(
+	            "message", "Usuario verificado correctamente",
+	            "success", true,
+	            "token",   jwt,
+	            "role",    user.getRole().name()
+	    ));
 	}
 
 	/**

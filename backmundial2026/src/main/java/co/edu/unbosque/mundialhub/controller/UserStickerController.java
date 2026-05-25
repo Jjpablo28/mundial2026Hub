@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import co.edu.unbosque.mundialhub.dto.UserStickerDTO;
+import co.edu.unbosque.mundialhub.exception.Exceptions;
 import co.edu.unbosque.mundialhub.service.UserStickerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -49,14 +50,29 @@ public class UserStickerController {
 	 */
 	@PostMapping
 	public ResponseEntity<?> create(@RequestBody UserStickerDTO dto) {
-		try {
-			userStickerServ.create(dto);
-			return ResponseEntity.status(HttpStatus.CREATED)
-					.body(Map.of("message", "Lámina añadida al inventario", "success", true));
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
-		}
+	    // ✅ IDs no pueden ser negativos ni nulos
+	    if (dto.getUserId() == null || dto.getStickerId() == null
+	            || dto.getUserId() <= 0 || dto.getStickerId() <= 0) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "IDs de usuario y sticker deben ser válidos", "success", false));
+	    }
+
+	    try {
+	        userStickerServ.create(dto);
+	        return ResponseEntity.status(HttpStatus.CREATED)
+	                .body(Map.of("message", "Lámina añadida al inventario", "success", true));
+	    } catch (Exceptions.ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    } catch (Exceptions.ValidationException e) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    } catch (Exception e) {
+	        return ResponseEntity.badRequest()
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    }
 	}
+
 
 	/**
 	 * Recupera la colección completa de láminas (tanto repetidas como únicas) que
@@ -66,10 +82,22 @@ public class UserStickerController {
 	 * @return Un objeto {@link ResponseEntity} que contiene el listado de DTOs y el
 	 *         estado HTTP 200 (OK).
 	 */
+
 	@GetMapping("/user/{userId}")
 	public ResponseEntity<?> getByUser(@PathVariable Long userId) {
-		return ResponseEntity.ok(userStickerServ.findByUser(userId));
+	    // ✅ Validar que el ID sea positivo
+	    if (userId <= 0) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "ID de usuario inválido", "success", false));
+	    }
+	    try {
+	        return ResponseEntity.ok(userStickerServ.findByUser(userId));
+	    } catch (Exceptions.ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    }
 	}
+
 
 	/**
 	 * Modifica o actualiza los metadatos o la cantidad de stock de una lámina
@@ -125,21 +153,24 @@ public class UserStickerController {
 	 * @return Un objeto {@link ResponseEntity} descriptivo indicando que las
 	 *         láminas fueron añadidas bajo estado HTTP 201 (Created).
 	 */
+
+
 	@PostMapping("/open-pack/{id}")
 	public ResponseEntity<?> createPack(@PathVariable Long id) {
+	    if (id <= 0) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "ID de usuario inválido", "success", false));
+	    }
 	    try {
 	        List<UserStickerDTO> stickers = userStickerServ.openPack(id);
 	        return ResponseEntity.status(HttpStatus.CREATED)
-	                .body(Map.of(
-	                    "message", "Sobre abierto exitosamente", 
-	                    "success", true, 
-	                    "data", stickers
-	                ));
+	                .body(Map.of("message", "Sobre abierto exitosamente", "success", true, "data", stickers));
+	    } catch (Exceptions.ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", e.getMessage(), "success", false));
 	    } catch (Exception e) {
-	        return ResponseEntity.badRequest().body(Map.of(
-	            "message", e.getMessage(), 
-	            "success", false
-	        ));
+	        return ResponseEntity.badRequest()
+	                .body(Map.of("message", e.getMessage(), "success", false));
 	    }
 	}
 	/**
@@ -155,16 +186,29 @@ public class UserStickerController {
 	 * @return Un objeto {@link ResponseEntity} con la confirmación de la compra y
 	 *         el estado HTTP 201 (Created).
 	 */
+
 	@PostMapping("/buy-pack/{id}")
 	public ResponseEntity<?> buyPack(@PathVariable Long id) {
-		try {
-			int cantity=userStickerServ.buyPack(id);
-			return ResponseEntity.status(HttpStatus.CREATED)
-					.body(Map.of("message", "Pack añadido al inventario", "success", true,"cantity",cantity));
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "success", false));
-		}
+	    if (id <= 0) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", "ID de usuario inválido", "success", false));
+	    }
+	    try {
+	        int cantity = userStickerServ.buyPack(id);
+	        return ResponseEntity.status(HttpStatus.CREATED)
+	                .body(Map.of("message", "Pack añadido al inventario", "success", true, "cantity", cantity));
+	    } catch (Exceptions.ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    } catch (Exceptions.ValidationException e) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    } catch (Exception e) {
+	        return ResponseEntity.badRequest()
+	                .body(Map.of("message", e.getMessage(), "success", false));
+	    }
 	}
+	
 	@GetMapping("/user/{userId}/team/{teamId}")
 	public ResponseEntity<?> getByUserAndTeam(@PathVariable Long userId, @PathVariable Long teamId) {
 	    try {

@@ -19,9 +19,10 @@ import co.edu.unbosque.mundialhub.dto.UserDTO;
 import co.edu.unbosque.mundialhub.exception.Exceptions;
 import co.edu.unbosque.mundialhub.model.User;
 import co.edu.unbosque.mundialhub.model.User.Role;
+import co.edu.unbosque.mundialhub.repository.PaymentRepository;
 import co.edu.unbosque.mundialhub.repository.UserRepository;
+import co.edu.unbosque.mundialhub.repository.UserStickerRepository;
 import co.edu.unbosque.mundialhub.util.AESUtil;
-import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 
 /**
@@ -40,9 +41,15 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 	@Autowired
 	private EmailService emailService;
+	
+	@Autowired
+	private PaymentRepository paymentRepository;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private UserStickerRepository userStickerRepo;
 
 	@Autowired
 	private ModelMapper modelMapper;
@@ -279,7 +286,11 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		if (id == null) {
 			throw new Exceptions.ValidationException("El ID del usuario no puede ser nulo.");
 		}
-
+		paymentRepository.deleteByUserId(id);
+		userStickerRepo.deleyeByUserId(id);
+		
+		
+		
 		User userToDelete = userRepo.findById(id)
 				.orElseThrow(() -> new Exceptions.UserNotFoundException(String.valueOf(id)));
 

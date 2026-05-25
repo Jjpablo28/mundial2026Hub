@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.unbosque.mundialhub.dto.StickerDTO;
+import co.edu.unbosque.mundialhub.exception.Exceptions;
 import co.edu.unbosque.mundialhub.service.StickerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -54,13 +55,30 @@ public class StickerController {
 	 * @return Un objeto {@link ResponseEntity} con el mensaje JSON de confirmación
 	 *         y el estado HTTP 201 (Created).
 	 */
-	@PostMapping
-	public ResponseEntity<?> create(@RequestBody StickerDTO dto) {
-		stickerserv.create(dto);
+	// ✅ CORRECCIÓN: Validar el DTO antes de crear
+		@PostMapping
+		public ResponseEntity<?> create(@RequestBody StickerDTO dto) {
+		    Exceptions exValidator = new Exceptions();
 
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(Map.of("message", "El sticker ha sido creado", "success", true));
-	}
+		    if (dto.getPlayerName() != null && exValidator.containsHtmlSymbols(dto.getPlayerName())) {
+		        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+		                .body(Map.of("message", "El nombre contiene caracteres no permitidos", "success", false));
+		    }
+
+		    try {
+		        stickerserv.create(dto);
+		        return ResponseEntity.status(HttpStatus.CREATED)
+		                .body(Map.of("message", "El sticker ha sido creado", "success", true));
+		    } catch (Exceptions.ValidationException e) {
+		        return ResponseEntity.status(HttpStatus.CONFLICT)
+		                .body(Map.of("message", e.getMessage(), "success", false));
+		    } catch (Exception e) {
+		        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+		                .body(Map.of("message", "Error interno al crear el sticker", "success", false));
+		    }
+		}
+
+		
 
 	/**
 	 * Actualiza las propiedades técnicas o descriptivas de un sticker existente
@@ -74,18 +92,26 @@ public class StickerController {
 	 *         la transacción bajo el estado HTTP 200 (OK), o un estado 400 (Bad
 	 *         Request) si se violan restricciones lógicas del servicio.
 	 */
-	@PutMapping("/{id}")
-	public ResponseEntity<?> update(@PathVariable Long id, @RequestBody StickerDTO dto) {
-		try {
-			StickerDTO updated = stickerserv.updateById(id, dto);
+				@PutMapping("/{id}")
+				public ResponseEntity<?> update(@PathVariable Long id, @RequestBody StickerDTO dto) {
+				    Exceptions exValidator = new Exceptions();
 
-			return ResponseEntity.ok(Map.of("message", "Sticker actualizado correctamente", "success", true));
+				    if (dto.getPlayerName() != null && exValidator.containsHtmlSymbols(dto.getPlayerName())) {
+				        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				                .body(Map.of("message", "El nombre contiene caracteres no permitidos", "success", false));
+				    }
 
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(Map.of("message", e.getMessage(), "success", false));
-		}
-	}
+				    try {
+				        stickerserv.updateById(id, dto);
+				        return ResponseEntity.ok(Map.of("message", "Sticker actualizado correctamente", "success", true));
+				    } catch (Exceptions.ResourceNotFoundException e) {
+				        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				                .body(Map.of("message", e.getMessage(), "success", false));
+				    } catch (Exception e) {
+				        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				                .body(Map.of("message", e.getMessage(), "success", false));
+				    }
+				}
 
 	/**
 	 * Elimina de forma definitiva un cromo/sticker del sistema utilizando su
@@ -147,16 +173,18 @@ public class StickerController {
 		}
 	}
 
+	// ✅ CORRECCIÓN: @PathVariable en lugar de @RequestParam
 	@GetMapping("/{id}")
-	public ResponseEntity<?> getById(@RequestParam Long idSticker) {
-		try {
-			return ResponseEntity.ok().body(stickerserv.findById(idSticker));
-		} catch (Exception e) {
-			System.out.println(e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(Map.of("message", "Error al obtener los stickers", "success", false));
-		}
+	public ResponseEntity<?> getById(@PathVariable Long id) {
+	    try {
+	        return ResponseEntity.ok().body(stickerserv.findById(id));
+	    } catch (RuntimeException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(Map.of("message", "Sticker no encontrado", "success", false));
+	    }
 	}
+
+	
 
 	
 	/**

@@ -1,228 +1,209 @@
 package co.edu.unbosque.mundialhub.exception;
 
 /**
- * Clase centralizada para validaciones y excepciones de negocio del sistema
- * VeltrixPass.
+ * Clase centralizada para validaciones de entrada y excepciones de negocio
+ * del sistema MundialHub.
  * <p>
- * Actúa como el núcleo de control de políticas de seguridad y excepciones
- * personalizadas del sistema. Provee métodos utilitarios para sanitizar cadenas
- * contra ataques XSS (HTML), validar la robustez de contraseñas, evaluar
- * dominios de correo específicos y mapear un catálogo estructurado de
- * excepciones en tiempo de ejecución ({@link RuntimeException}) para tickets,
- * eventos, pagos y usuarios.
+ * Actúa como núcleo de control de políticas de seguridad y excepciones
+ * personalizadas. Provee métodos utilitarios para sanitizar cadenas contra
+ * ataques XSS, validar robustez de contraseñas, evaluar dominios de correo
+ * y mapear un catálogo estructurado de excepciones en tiempo de ejecución
+ * ({@link RuntimeException}) para tickets, eventos, pagos y usuarios.
+ * </p>
+ * <p>
+ * <b>Separación de responsabilidades:</b>
+ * <ul>
+ *   <li>Los métodos estáticos de validación son usados por los Controllers
+ *       como primera línea de defensa (formato e input).</li>
+ *   <li>Las inner classes de excepción son lanzadas desde los Services
+ *       para representar fallos de reglas de negocio.</li>
+ * </ul>
  * </p>
  *
  * @author TuNombre / Grupo de Desarrollo
- * @version 1.0
+ * @version 2.0
  */
 public class Exceptions {
 
-	/**
-	 * Evalúa si una cadena de texto representa un rol de seguridad válido y
-	 * configurado en la infraestructura del sistema central.
-	 *
-	 * @param rol Nombre del rol a evaluar.
-	 * @return {@code true} si el rol coincide exactamente con ADMIN, USER, TEMPORAL
-	 *         o CHECKER; {@code false} en caso contrario o si es nulo.
-	 */
-	public boolean containsRole(String rol) {
-		return rol != null
-				&& (rol.equals("ADMIN") || rol.equals("USER") || rol.equals("TEMPORAL") || rol.equals("CHECKER"));
-	}
+    /**
+     * Evalúa si una cadena representa un rol de seguridad válido y configurado
+     * en la infraestructura del sistema.
+     *
+     * @param rol Nombre del rol a evaluar.
+     * @return {@code true} si el rol coincide exactamente con ADMIN, USER,
+     *         TEMPORAL o CHECKER; {@code false} en caso contrario o si es nulo.
+     */
+    public boolean containsRole(String rol) {
+        return rol != null
+                && (rol.equals("ADMIN")
+                        || rol.equals("USER")
+                        || rol.equals("TEMPORAL")
+                        || rol.equals("CHECKER"));
+    }
 
-	/**
-	 * Analiza una cadena de caracteres para determinar si contiene símbolos o
-	 * marcadores sintácticos propios de HTML o scripts, ayudando a prevenir
-	 * vulnerabilidades de Cross-Site Scripting (XSS).
-	 *
-	 * @param text Cadena de texto sujeta a inspección.
-	 * @return {@code true} si contiene caracteres prohibidos como
-	 *         {@code <, >, &, ", ', /, =}; {@code false} si está limpia, vacía o es
-	 *         nula.
-	 */
-	public boolean containsHtmlSymbols(String text) {
-		if (text == null || text.isBlank())
-			return false;
-		return text.matches(".*[<>&\"'/=].*");
-	}
+    /**
+     * Analiza una cadena para determinar si contiene símbolos o marcadores
+     * sintácticos propios de HTML o scripts, ayudando a prevenir vulnerabilidades
+     * de Cross-Site Scripting (XSS) e inyección de código.
+     *
+     * @param text Cadena de texto sujeta a inspección.
+     * @return {@code true} si contiene caracteres prohibidos como
+     *         {@code <, >, &, ", ', /, =}; {@code false} si está limpia,
+     *         vacía o es nula.
+     */
+    public boolean containsHtmlSymbols(String text) {
+        if (text == null || text.isBlank())
+            return false;
+        return text.matches(".*[<>&\"'/=].*");
+    }
 
-	/**
-	 * Aplica las reglas corporativas de políticas de seguridad para validar la
-	 * robustez de una contraseña propuesta por un usuario.
-	 * <p>
-	 * La contraseña requiere una longitud mínima de 8 caracteres y la cooficialidad
-	 * de al menos una letra minúscula, una letra mayúscula, un dígito numérico y un
-	 * símbolo especial permitido. Rechaza de forma fulminante la presencia de
-	 * espacios o símbolos de inyección HTML.
-	 * </p>
-	 *
-	 * @param password Contraseña en texto plano que se va a evaluar.
-	 * @return {@code true} si cumple estrictamente con todos los criterios de
-	 *         seguridad exigidos; {@code false} si incumple alguna regla o contiene
-	 *         caracteres explícitamente prohibidos.
-	 */
-	public boolean isValidPassword(String password) {
-		if (password == null || password.length() < 8)
-			return false;
+    /**
+     * Aplica las reglas corporativas de seguridad para validar la robustez de
+     * una contraseña.
+     * <p>
+     * Requisitos obligatorios:
+     * <ul>
+     *   <li>Longitud mínima de 8 caracteres.</li>
+     *   <li>Al menos una letra minúscula.</li>
+     *   <li>Al menos una letra mayúscula.</li>
+     *   <li>Al menos un dígito numérico.</li>
+     *   <li>Al menos un símbolo especial (distinto a espacios y caracteres HTML).</li>
+     *   <li>No puede ser una secuencia puramente numérica (ej. 12345678).</li>
+     *   <li>No puede contener espacios.</li>
+     * </ul>
+     * </p>
+     *
+     * @param password Contraseña en texto plano a evaluar.
+     * @return {@code true} si cumple todos los criterios; {@code false} si
+     *         incumple alguna regla o contiene caracteres prohibidos.
+     */
+    public boolean isValidPassword(String password) {
+        if (password == null || password.length() < 8)
+            return false;
 
-		boolean hasLower = false;
-		boolean hasUpper = false;
-		boolean hasDigit = false;
-		boolean hasSymbol = false;
+        boolean hasLower = false;
+        boolean hasUpper = false;
+        boolean hasDigit = false;
+        boolean hasSymbol = false;
 
-		String forbidden = "<>&\"'/= ";
+        String forbidden = "<>&\"'/= ";
 
-		for (char c : password.toCharArray()) {
-			if (Character.isLowerCase(c))
-				hasLower = true;
-			else if (Character.isUpperCase(c))
-				hasUpper = true;
-			else if (Character.isDigit(c))
-				hasDigit = true;
-			else if (forbidden.indexOf(c) >= 0)
-				return false;
-			else
-				hasSymbol = true;
-		}
+        for (char c : password.toCharArray()) {
+            if (Character.isLowerCase(c))
+                hasLower = true;
+            else if (Character.isUpperCase(c))
+                hasUpper = true;
+            else if (Character.isDigit(c))
+                hasDigit = true;
+            else if (forbidden.indexOf(c) >= 0)
+                return false;
+            else
+                hasSymbol = true;
+        }
 
-		return hasLower && hasUpper && hasDigit && hasSymbol;
-	}
+        // Rechaza secuencias puramente numéricas como "123456789"
+        if (password.matches("\\d+"))
+            return false;
 
-	/**
-	 * Verifica por medio de expresiones regulares si un correo electrónico posee
-	 * una estructura sintáctica válida y pertenece de forma exclusiva al dominio
-	 * global de Google (Gmail).
-	 *
-	 * @param email Dirección de correo electrónico a evaluar.
-	 * @return {@code true} si se acopla al formato estándar de cuenta de Gmail
-	 *         (insensible a mayúsculas); {@code false} en caso de discrepancia
-	 *         sintáctica, vacío o valor nulo.
-	 */
-	public boolean isGmailValid(String email) {
-		if (email == null || email.isBlank())
-			return false;
-		return email.matches("(?i)^[a-zA-Z0-9._%+-]+@gmail\\.com$");
-	}
+        return hasLower && hasUpper && hasDigit && hasSymbol;
+    }
 
-	/**
-	 * Excepción de negocio lanzada cuando un recurso genérico solicitado no se
-	 * encuentra disponible en la persistencia.
-	 */
-	public static class ResourceNotFoundException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
+    /**
+     * Verifica si un correo electrónico posee estructura sintáctica válida y
+     * pertenece exclusivamente al dominio Gmail.
+     *
+     * @param email Dirección de correo electrónico a evaluar.
+     * @return {@code true} si se acopla al formato estándar de Gmail
+     *         (insensible a mayúsculas); {@code false} en caso de discrepancia,
+     *         vacío o nulo.
+     */
+    public boolean isGmailValid(String email) {
+        if (email == null || email.isBlank())
+            return false;
+        return email.matches("(?i)^[a-zA-Z0-9._%+-]+@gmail\\.com$");
+    }
 
-		/**
-		 * Construye la excepción con un mensaje detallado del recurso faltante.
-		 * 
-		 * @param message Texto explicativo del error.
-		 */
-		public ResourceNotFoundException(String message) {
-			super(message);
-		}
-	}
+    /**
+     * Valida que una cadena de texto no sea nula, no esté vacía y no contenga
+     * caracteres HTML peligrosos. Útil para campos de texto libre como nombres,
+     * descripciones o identificadores de sesión.
+     *
+     * @param value Cadena a validar.
+     * @return {@code true} si el valor es seguro y no está vacío;
+     *         {@code false} si es nulo, vacío o contiene símbolos HTML.
+     */
+    public boolean isSafeText(String value) {
+        if (value == null || value.isBlank())
+            return false;
+        return !containsHtmlSymbols(value);
+    }
 
-	/**
-	 * Excepción lanzada al fallar los filtros sanitarios de datos o las reglas
-	 * básicas de validación.
-	 */
-	public static class ValidationException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
+    /**
+     * Valida que un identificador numérico sea positivo y no nulo.
+     * Previene consultas o operaciones con IDs inválidos como 0 o negativos.
+     *
+     * @param id Identificador numérico a validar.
+     * @return {@code true} si el ID es mayor que cero; {@code false} en caso
+     *         contrario o si es nulo.
+     */
+    public boolean isValidId(Long id) {
+        return id != null && id > 0;
+    }
 
-		/**
-		 * Construye la excepción con la descripción de la regla de validación violada.
-		 * 
-		 * @param message Texto descriptivo del fallo de formato o semántica.
-		 */
-		public ValidationException(String message) {
-			super(message);
-		}
-	}
+    // =========================================================================
+    // EXCEPCIONES DE NEGOCIO
+    // =========================================================================
 
-	/**
-	 * Excepción representativa de conflictos de estado o transacciones concurrentes
-	 * inválidas en el negocio.
-	 */
-	public static class ConflictException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
+    /**
+     * Excepción lanzada cuando un recurso genérico solicitado no se encuentra
+     * disponible en la persistencia.
+     */
+    public static class ResourceNotFoundException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
-		/**
-		 * Construye la excepción con un mensaje que especifica el conflicto detectado.
-		 * 
-		 * @param message Motivo del estado conflictivo.
-		 */
-		public ConflictException(String message) {
-			super(message);
-		}
-	}
+        /**
+         * Construye la excepción con un mensaje detallado del recurso faltante.
+         *
+         * @param message Texto explicativo del error.
+         */
+        public ResourceNotFoundException(String message) {
+            super(message);
+        }
+    }
 
-	/**
-	 * Excepción polimórfica lanzada cuando un ticket de acceso a eventos deportivos
-	 * o culturales no es localizado en los almacenes de datos.
-	 */
-	public static class TicketNotFoundException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
+    /**
+     * Excepción lanzada al fallar los filtros sanitarios de datos o las reglas
+     * básicas de validación de entrada.
+     */
+    public static class ValidationException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
-		/**
-		 * Construye la excepción a partir de un ID de tipo entero.
-		 * 
-		 * @param integer Identificador numérico del ticket.
-		 */
-		public TicketNotFoundException(Integer integer) {
-			super("Ticket no encontrado con ID: " + integer);
-		}
+        /**
+         * Construye la excepción con la descripción de la regla violada.
+         *
+         * @param message Texto descriptivo del fallo de formato o semántica.
+         */
+        public ValidationException(String message) {
+            super(message);
+        }
+    }
 
-		/**
-		 * Construye la excepción a partir de la firma de una cadena de código QR.
-		 * 
-		 * @param qr Cadena de texto desencriptada o hash del QR.
-		 */
-		public TicketNotFoundException(String qr) {
-			super("Ticket no encontrado para el QR: " + qr);
-		}
+    /**
+     * Excepción representativa de conflictos de estado o transacciones
+     * concurrentes inválidas en el negocio.
+     */
+    public static class ConflictException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
-		/**
-		 * Construye la excepción a partir de un ID de tipo entero largo.
-		 * 
-		 * @param id Identificador numérico largo de base de datos.
-		 */
-		public TicketNotFoundException(Long id) {
-			super("Ticket no encontrado con ID: " + id);
-
-		}
-	}
-
-	/**
-	 * Excepción de control de accesos lanzada al intentar validar o redimir un
-	 * ticket que ya registra ingresos previos en los molinetes/lectores.
-	 */
-	public static class TicketAlreadyUsedException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
-
-		/**
-		 * Construye la excepción con un mensaje estático de restricción por duplicidad
-		 * de uso.
-		 */
-		public TicketAlreadyUsedException() {
-			super("El ticket ya fue utilizado");
-		}
-	}
-
-	/**
-	 * Excepción de control cronológico lanzada si el código QR o el derecho de
-	 * acceso temporal del ticket ha superado su ventana horaria admisible.
-	 */
-	public static class TicketExpiredException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
-
-		/**
-		 * Construye la excepción con un mensaje explicativo sobre la caducidad del
-		 * derecho de acceso.
-		 */
-		public TicketExpiredException() {
-			super("El QR del ticket ha expirado");
-		}
-	}
-
+        /**
+         * Construye la excepción con un mensaje que especifica el conflicto.
+         *
+         * @param message Motivo del estado conflictivo.
+         */
+        public ConflictException(String message) {
+            super(message);
+        }
+    }
 	/**
 	 * Excepción de auditoría financiera lanzada cuando no se encuentra el registro
 	 * de cobro emitido por la pasarela de Mercado Pago.
@@ -240,160 +221,108 @@ public class Exceptions {
 			super("Pago no encontrado con ID MercadoPago: " + id);
 		}
 	}
+  
+    /**
+     * Excepción lanzada cuando el webhook recibe un estado financiero
+     * desconocido, corrupto o no homologado.
+     */
+    public static class PaymentInvalidStatusException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
-	/**
-	 * Excepción de pasarela lanzada cuando el webhook o el flujo local recibe un
-	 * estado financiero desconocido, corrupto o no homologado.
-	 */
-	public static class PaymentInvalidStatusException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
+        /**
+         * Construye la excepción con el estado erróneo capturado.
+         *
+         * @param status Cadena con la nomenclatura del estado anómalo.
+         */
+        public PaymentInvalidStatusException(String status) {
+            super("Estado de pago inválido: " + status);
+        }
+    }
 
-		/**
-		 * Construye la excepción adjuntando el estado erróneo capturado en el payload.
-		 * 
-		 * @param status Cadena con la nomenclatura del estado anómalo.
-		 */
-		public PaymentInvalidStatusException(String status) {
-			super("Estado de pago inválido: " + status);
-		}
-	}
+    /**
+     * Excepción lanzada en procesos de registro cuando campos indexados
+     * exclusivos (username, email) ya se encuentran ocupados en el repositorio.
+     */
+    public static class UserAlreadyExistsException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
-	/**
-	 * Excepción de unicidad lanzada en procesos de registro de usuarios cuando
-	 * campos indexados exclusivos (username, email, cédula) ya se encuentran
-	 * ocupados en el repositorio maestro.
-	 */
-	public static class UserAlreadyExistsException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
+        /**
+         * Construye la excepción especificando el campo en conflicto.
+         *
+         * @param field Nombre de la propiedad en conflicto (ej. "email", "username").
+         */
+        public UserAlreadyExistsException(String field) {
+            super("El " + field + " ya está registrado");
+        }
+    }
 
-		/**
-		 * Construye la excepción especificando el campo específico que generó la
-		 * colisión.
-		 * 
-		 * @param field Nombre de la propiedad en conflicto (ej. "email", "username").
-		 */
-		public UserAlreadyExistsException(String field) {
-			super("El " + field + " ya está registrado");
-		}
-	}
+    /**
+     * Excepción lanzada al buscar un perfil por criterios únicos sin obtener
+     * resultados.
+     */
+    public static class UserNotFoundException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
-	/**
-	 * Excepción de localización de cuentas lanzada al buscar un perfil por
-	 * criterios únicos y no obtener resultados.
-	 */
-	public static class UserNotFoundException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
+        /**
+         * Construye la excepción con el criterio de búsqueda fallido.
+         *
+         * @param value Valor textual (correo, username) utilizado en la consulta.
+         */
+        public UserNotFoundException(String value) {
+            super("Usuario no encontrado: " + value);
+        }
+    }
 
-		/**
-		 * Construye la excepción indicando el criterio de búsqueda que no arrojó
-		 * coincidencias.
-		 * 
-		 * @param value Valor textual (correo, username) utilizado en la consulta
-		 *              fallida.
-		 */
-		public UserNotFoundException(String value) {
-			super("Usuario no encontrado: " + value);
-		}
-	}
+    /**
+     * Excepción lanzada ante contraseñas incorrectas o desajustes en la
+     * validación criptográfica de identidades.
+     */
+    public static class InvalidCredentialsException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
-	/**
-	 * Excepción clásica de seguridad e inicio de sesión arrojada ante contraseñas
-	 * incorrectas o desajustes en la validación criptográfica de identidades.
-	 */
-	public static class InvalidCredentialsException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
+        /**
+         * Construye la excepción con mensaje genérico para evitar enumeración
+         * de usuarios por parte de atacantes.
+         */
+        public InvalidCredentialsException() {
+            super("Credenciales inválidas");
+        }
+    }
 
-		/**
-		 * Construye la excepción con un mensaje genérico para evitar dar pistas de
-		 * enumeración a atacantes externos.
-		 */
-		public InvalidCredentialsException() {
-			super("Credenciales inválidas");
-		}
-	}
+    /**
+     * Excepción lanzada cuando una sesión de intercambio QR no se encuentra
+     * en el repositorio o ya expiró.
+     */
+    public static class TradeSessionNotFoundException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
-	/**
-	 * Excepción de gestión logística lanzada cuando un evento agendado no se
-	 * encuentra en el inventario global.
-	 */
-	public static class EventNotFoundException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
+        /**
+         * Construye la excepción con el UUID de sesión que no pudo localizarse.
+         *
+         * @param uuid Identificador único de la sesión de intercambio buscada.
+         */
+        public TradeSessionNotFoundException(String uuid) {
+            super("Sesión de intercambio no encontrada con UUID: " + uuid);
+        }
+    }
 
-		/**
-		 * Construye la excepción mapeando el identificador numérico ausente.
-		 * 
-		 * @param event ID único del evento buscado.
-		 */
-		public EventNotFoundException(long event) {
-			super("Evento no encontrado con ID: " + event);
-		}
-	}
+    /**
+     * Excepción lanzada cuando se intenta realizar un intercambio pero el
+     * inventario del usuario no contiene las láminas requeridas.
+     */
+    public static class InsufficientStickersException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
 
-	/**
-	 * Excepción temporal arrojada al intentar comercializar, modificar o
-	 * interactuar con un espectáculo cuya fecha de ejecución ya concluyó en la
-	 * línea de tiempo real.
-	 */
-	public static class EventExpiredException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
+        /**
+         * Construye la excepción indicando el ID del usuario con inventario
+         * insuficiente.
+         *
+         * @param userId ID del usuario que no tiene las láminas necesarias.
+         */
+        public InsufficientStickersException(Long userId) {
+            super("El usuario con ID " + userId + " no tiene suficientes láminas para el intercambio");
+        }
+    }
 
-		/**
-		 * Construye la excepción informando del cierre definitivo de la línea temporal
-		 * del evento.
-		 */
-		public EventExpiredException() {
-			super("El evento ya ha finalizado");
-		}
-	}
-
-	/**
-	 * Excepción lógica lanzada cuando se intenta realizar transacciones con un
-	 * evento que se encuentra en estado de borrador, suspendido o deshabilitado por
-	 * la administración.
-	 */
-	public static class EventNotActiveException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
-
-		/**
-		 * Construye la excepción señalando la indisponibilidad operativa del evento.
-		 */
-		public EventNotActiveException() {
-			super("El evento no se encuentra activo");
-		}
-	}
-
-	/**
-	 * Excepción de control de aforos lanzada en el flujo de ventas si el volumen de
-	 * solicitudes de compra sobrepasa la capacidad total establecida para el
-	 * recinto.
-	 */
-	public static class EventCapacityExceededException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
-
-		/**
-		 * Construye la excepción detallando el agotamiento de las plazas o boletería
-		 * libre.
-		 */
-		public EventCapacityExceededException() {
-			super("El evento ya alcanzó su capacidad máxima");
-		}
-	}
-
-	/**
-	 * Excepción de control de catálogos arrojada para impedir que se creen dos
-	 * eventos con nombres homónimos que puedan distorsionar la indexación o
-	 * confundir a los compradores.
-	 */
-	public static class EventAlreadyExistsException extends RuntimeException {
-		private static final long serialVersionUID = 1L;
-
-		/**
-		 * Construye la excepción incorporando el nombre del evento redundante.
-		 * 
-		 * @param name Nombre comercial duplicado detectado.
-		 */
-		public EventAlreadyExistsException(String name) {
-			super("Ya existe un evento con el nombre: " + name);
-		}
-	}
+   
 }
