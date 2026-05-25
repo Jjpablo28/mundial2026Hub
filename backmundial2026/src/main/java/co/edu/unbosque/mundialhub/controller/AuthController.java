@@ -246,7 +246,7 @@ public class AuthController {
 	        String identifier = loginRequest.getIdentifier();
 
 	        Optional<User> userOpt = identifier.contains("@")
-	                ? userRepo.findByEmail(AESUtil.encrypt(identifier.toLowerCase()))
+	                ? userRepo.findByEmail(AESUtil.encrypt(identifier))
 	                : userRepo.findByUserName(AESUtil.encrypt(identifier));
 
 	        if (userOpt.isEmpty()) {
