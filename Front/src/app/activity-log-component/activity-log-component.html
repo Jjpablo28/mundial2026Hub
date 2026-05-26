@@ -30,7 +30,7 @@
         <div class="log-meta">
           <span class="log-user" *ngIf="isAdmin">{{ log.userName }}</span>
           <span class="log-type">{{ log.eventType | titlecase }}</span>
-          <span class="log-date">{{ log.createdAt | date:'dd MMM yyyy · HH:mm' }}</span>
+          <span class="log-date">{{ toLocalTime(log.createdAt) | date:'dd MMM yyyy · HH:mm' }}</span>
         </div>
         <p class="log-detail">{{ log.detail }}</p>
       </div>

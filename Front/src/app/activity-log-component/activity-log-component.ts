@@ -6,7 +6,7 @@ import { ActivityLogService, UserActivityLogDTO, PageResponse } from './activity
   selector: 'app-activity-log',
   standalone: false,
   templateUrl: './activity-log-component.html',
-  styleUrl: 'activity-log-component.scss'
+  styleUrl: './activity-log-component.scss'
 })
 export class ActivityLogComponent implements OnInit {
 
@@ -26,7 +26,12 @@ export class ActivityLogComponent implements OnInit {
     TRADE_COMPLETED:   'fa-exchange-alt',
     PAYMENT_APPROVED:  'fa-check-circle',
     PAYMENT_DECLINED:  'fa-times-circle',
-    PROFILE_UPDATED:   'fa-user-edit'
+    PROFILE_UPDATED:   'fa-user-edit',
+    USER_UPDATED:      'fa-user-edit',
+    USER_CREATED:      'fa-user-plus',
+    USER_DELETED:      'fa-user-minus',
+    ROLE_CHANGED:      'fa-shield-alt',
+    PASSWORD_CHANGED:  'fa-key'
   };
 
   readonly eventColors: Record<string, string> = {
@@ -35,7 +40,12 @@ export class ActivityLogComponent implements OnInit {
     TRADE_COMPLETED:   'event-teal',
     PAYMENT_APPROVED:  'event-green',
     PAYMENT_DECLINED:  'event-red',
-    PROFILE_UPDATED:   'event-gray'
+    PROFILE_UPDATED:   'event-gray',
+    USER_UPDATED:      'event-blue',
+    USER_CREATED:      'event-green',
+    USER_DELETED:      'event-red',
+    ROLE_CHANGED:      'event-yellow',
+    PASSWORD_CHANGED:  'event-orange'
   };
 
   constructor(
@@ -46,7 +56,7 @@ export class ActivityLogComponent implements OnInit {
 
   ngOnInit(): void {
     const role = this.authService.getRole();
-    this.isAdmin = role === 'ADMIN' || role === 'admin';
+    this.isAdmin = role === 'ROLE_ADMIN';
     this.userId = this.authService.getUserId();
     this.loadLogs();
   }
@@ -89,5 +99,9 @@ export class ActivityLogComponent implements OnInit {
 
   getPages(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i);
+  }
+
+  toLocalTime(dateStr: string): Date {
+    return new Date(dateStr);
   }
 }

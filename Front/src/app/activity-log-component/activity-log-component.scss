@@ -1,11 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap');
+
+$bg-surface:  #161616;
+$bg-card:     #1C1C1C;
+$bg-input:    #111111;
+$border:      #252525;
+$border-mid:  #333333;
+$accent:      #E1FF57;
+$text:        #FFFFFF;
+$text-muted:  #888888;
+
 .log-panel {
-  background: var(--card-bg, #1a1a2e);
-  border-radius: 16px;
+  background: $bg-card;
+  border-radius: 12px;
   padding: 24px;
   min-height: 400px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  border: 1px solid $border;
+  font-family: 'Syne', sans-serif;
 }
 
 .log-header {
@@ -17,17 +30,20 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-primary, #fff);
+    font-size: 16px;
+    font-weight: 700;
+    color: $text;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 
-    i { opacity: 0.7; }
+    i { color: $accent; opacity: 1; }
   }
 
   .log-total {
-    font-size: 13px;
-    color: var(--text-muted, #888);
-    background: rgba(255,255,255,0.05);
+    font-size: 12px;
+    color: $text-muted;
+    background: $bg-input;
+    border: 1px solid $border-mid;
     padding: 4px 12px;
     border-radius: 20px;
   }
@@ -41,17 +57,17 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: var(--text-muted, #888);
-  font-size: 15px;
+  color: $text-muted;
+  font-size: 14px;
 
-  i { font-size: 28px; }
+  i { font-size: 28px; color: $border-mid; }
   p { margin: 0; }
 }
 
 .log-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .log-item {
@@ -59,22 +75,23 @@
   align-items: flex-start;
   gap: 14px;
   padding: 14px 16px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  background: $bg-surface;
+  border: 1px solid $border;
   border-left: 3px solid transparent;
-  transition: background 0.2s;
+  transition: border-color 0.2s, background 0.2s;
 
-  &:hover { background: rgba(255,255,255,0.07); }
+  &:hover { background: lighten($bg-surface, 2%); }
 
   .log-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .log-body {
@@ -84,49 +101,52 @@
     .log-meta {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
       margin-bottom: 4px;
     }
 
     .log-user {
-      font-weight: 600;
+      font-weight: 700;
       font-size: 13px;
-      color: var(--text-primary, #fff);
+      color: $text;
     }
 
     .log-type {
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 11px;
+      font-weight: 600;
       padding: 2px 8px;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.08);
-      color: var(--text-muted, #aaa);
+      border-radius: 4px;
+      background: $bg-input;
+      color: $text-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .log-date {
-      font-size: 12px;
-      color: var(--text-muted, #777);
+      font-size: 11px;
+      color: $text-muted;
       margin-left: auto;
     }
 
     .log-detail {
       margin: 0;
       font-size: 13px;
-      color: var(--text-secondary, #bbb);
+      color: $text-muted;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
   }
 
-  // Colores por tipo de evento
-  &.event-blue   { border-left-color: #4ea8de; .log-icon { background: rgba(78,168,222,0.15); color: #4ea8de; } }
-  &.event-purple { border-left-color: #9b72cf; .log-icon { background: rgba(155,114,207,0.15); color: #9b72cf; } }
-  &.event-teal   { border-left-color: #2dd4bf; .log-icon { background: rgba(45,212,191,0.15); color: #2dd4bf; } }
-  &.event-green  { border-left-color: #4ade80; .log-icon { background: rgba(74,222,128,0.15); color: #4ade80; } }
-  &.event-red    { border-left-color: #f87171; .log-icon { background: rgba(248,113,113,0.15); color: #f87171; } }
-  &.event-gray   { border-left-color: #94a3b8; .log-icon { background: rgba(148,163,184,0.15); color: #94a3b8; } }
+  &.event-blue   { border-left-color: #4ea8de; .log-icon { background: rgba(78,168,222,0.12); color: #4ea8de; } }
+  &.event-purple { border-left-color: #9b72cf; .log-icon { background: rgba(155,114,207,0.12); color: #9b72cf; } }
+  &.event-teal   { border-left-color: #2dd4bf; .log-icon { background: rgba(45,212,191,0.12); color: #2dd4bf; } }
+  &.event-green  { border-left-color: #4ade80; .log-icon { background: rgba(74,222,128,0.12); color: #4ade80; } }
+  &.event-red    { border-left-color: #f87171; .log-icon { background: rgba(248,113,113,0.12); color: #f87171; } }
+  &.event-gray   { border-left-color: #555;    .log-icon { background: rgba(255,255,255,0.05); color: #888; } }
+  &.event-yellow { border-left-color: #E1FF57; .log-icon { background: rgba(225,255,87,0.12); color: #E1FF57; } }
+  &.event-orange { border-left-color: #fb923c; .log-icon { background: rgba(251,146,60,0.12); color: #fb923c; } }
 }
 
 .log-pagination {
@@ -139,29 +159,31 @@
   .page-btn {
     min-width: 34px;
     height: 34px;
-    border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.04);
-    color: var(--text-muted, #aaa);
+    border-radius: 6px;
+    border: 1px solid $border-mid;
+    background: $bg-input;
+    color: $text-muted;
     cursor: pointer;
     font-size: 13px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
     transition: all 0.2s;
     padding: 0 10px;
 
     &:hover:not(:disabled) {
-      background: rgba(255,255,255,0.1);
-      color: #fff;
+      border-color: $accent;
+      color: $accent;
     }
 
     &.active {
-      background: var(--accent, #4ea8de);
-      color: #fff;
-      border-color: transparent;
-      font-weight: 600;
+      background: $accent;
+      color: #000;
+      border-color: $accent;
+      font-weight: 700;
     }
 
     &:disabled {
-      opacity: 0.3;
+      opacity: 0.25;
       cursor: not-allowed;
     }
   }
