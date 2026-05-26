@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.jspecify.annotations.Nullable;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,6 +45,9 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 	@Autowired
 	private ModelMapper modelMapper;
 
+	@Autowired
+	private ActivityLogService activityLogService;
+	
 	/**
 	 * Crea un registro o asignación directa de un cromo a un usuario.
 	 *
@@ -193,6 +195,8 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 	        UserSticker savedEntity = userStickerRepo.save(entity);
 	        packResult.add(modelMapper.map(savedEntity, UserStickerDTO.class));
 	    }
+	    activityLogService.log(userId, "PACK_OPENED", "Abrió un sobre y obtuvo " + packResult.size() + " láminas");
+
 
 	    return packResult;
 	}
@@ -221,6 +225,10 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 		user.setTotalPoints(tokensActuales - 500);
 
 		userRepo.save(user);
+		
+		activityLogService.log(userId, "PACK_PURCHASED", "Compró un sobre por 500 tokens. Sobres disponibles: " + user.getPackets());
+
+		
 		return user.getPackets();
 	}
 

@@ -32,6 +32,9 @@ public class TradeService {
 
     @Autowired
     private TradeSessionRepository sessionRepo;
+    
+    @Autowired
+    private ActivityLogService activityLogService;
 
     /**
      * Ejecuta el intercambio atómico de múltiples láminas.
@@ -64,6 +67,9 @@ public class TradeService {
         // 5. Marcar sesión como completada
         session.setStatus("COMPLETED");
         sessionRepo.save(session);
+        activityLogService.log(fromUserId, "TRADE_COMPLETED", "Intercambio completado con usuario ID " + toUserId + ". Láminas enviadas: " + fromStickers.size());
+        activityLogService.log(toUserId,   "TRADE_COMPLETED", "Intercambio completado con usuario ID " + fromUserId + ". Láminas recibidas: " + toStickers.size());
+
     }
 
     /**

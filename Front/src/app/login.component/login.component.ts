@@ -48,6 +48,7 @@ export class LoginComponent {
     this.loginService.login(body).subscribe({
       next: async (response) => {
         if (response.token) {
+          localStorage.clear();
           this.authService.saveToken(response.token);
           this.authService.isAuthenticatedSubject.next(true);
           await this.authService.cargarDatosIniciales();

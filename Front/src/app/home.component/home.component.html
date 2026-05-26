@@ -446,6 +446,14 @@
 
       </ng-container>
 
+        <ng-container *ngSwitchCase="'reportes'">
+        <button class="btn-back" (click)="cambiarMenu('dashboard')">
+          <i class="fas fa-arrow-left"></i> Volver al Inicio
+        </button>
+  <app-activity-log></app-activity-log>
+
+        </ng-container>
+
       <ng-container *ngSwitchCase="'cuenta'">
         <button class="btn-back" (click)="cambiarMenu('dashboard')">
           <i class="fas fa-arrow-left"></i> Volver al Inicio

@@ -1,0 +1,59 @@
+<div class="log-panel">
+
+  <div class="log-header">
+    <div class="log-title">
+      <i class="fas fa-history"></i>
+      <span>{{ isAdmin ? 'Actividad global' : 'Mi actividad' }}</span>
+    </div>
+    <span class="log-total" *ngIf="!isLoading">{{ totalElements }} registros</span>
+  </div>
+
+  <!-- Loading -->
+  <div class="log-loading" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>Cargando actividad...</span>
+  </div>
+
+  <!-- Sin resultados -->
+  <div class="log-empty" *ngIf="!isLoading && logs.length === 0">
+    <i class="fas fa-inbox"></i>
+    <p>No hay actividad registrada aún.</p>
+  </div>
+
+  <!-- Lista de logs -->
+  <div class="log-list" *ngIf="!isLoading && logs.length > 0">
+    <div class="log-item" *ngFor="let log of logs" [class]="getColor(log.eventType)">
+      <div class="log-icon">
+        <i class="fas" [class]="getIcon(log.eventType)"></i>
+      </div>
+      <div class="log-body">
+        <div class="log-meta">
+          <span class="log-user" *ngIf="isAdmin">{{ log.userName }}</span>
+          <span class="log-type">{{ log.eventType | titlecase }}</span>
+          <span class="log-date">{{ log.createdAt | date:'dd MMM yyyy · HH:mm' }}</span>
+        </div>
+        <p class="log-detail">{{ log.detail }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <div class="log-pagination" *ngIf="totalPages > 1">
+    <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+
+    <button
+      class="page-btn"
+      *ngFor="let p of getPages()"
+      [class.active]="p === currentPage"
+      (click)="goToPage(p)">
+      {{ p + 1 }}
+    </button>
+
+    <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages - 1">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+
+</div>

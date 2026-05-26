@@ -51,6 +51,9 @@ public class PaymentService implements CRUDOperation<PaymentRequestDTO, Payments
 	
 	@Autowired
 	private UserStickerService stickerServ;
+	
+	@Autowired
+	private ActivityLogService activityLogService;
 
 	/**
 	 * Crea un registro inicial de pago en la base de datos a partir de su DTO.
@@ -156,9 +159,12 @@ public class PaymentService implements CRUDOperation<PaymentRequestDTO, Payments
 	 */
 	@Transactional
 	public Preference createPayment(PaymentRequestDTO dto, int usuario, int quantity) {
+		System.out.println("[PAYMENT] ► createPayment(preference) | usuario=" + usuario + " | quantity=" + quantity);
+
 		Optional<User> userFound = userRepo.findById(usuario);
 
 		if (userFound.isEmpty()) {
+			System.err.println("[PAYMENT] ✘ Usuario no encontrado: " + usuario);
 			throw new Exceptions.UserNotFoundException(String.valueOf(usuario));
 		}
 
@@ -167,12 +173,21 @@ public class PaymentService implements CRUDOperation<PaymentRequestDTO, Payments
 		dto.setAmount(totalCobro);
 		dto.setQuantity(quantity);
 
+		System.out.println("[PAYMENT] Precio unitario: " + precioUnitarioToken + " COP | Total: " + totalCobro + " COP");
+
 		Payments savedPayment = this.saveInitialPayment(dto, usuario);
+		System.out.println("[PAYMENT] Pago inicial guardado en BD | id=" + savedPayment.getId());
 
 		try {
-			PreferenceItemRequest itemRequest = PreferenceItemRequest.builder().id(savedPayment.getId().toString())
-					.title("Mundial Hub 2026 - Tokens").quantity(quantity).currencyId("COP").unitPrice(precioUnitarioToken)
+			PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
+					.id(savedPayment.getId().toString())
+					.title("Mundial Hub 2026 - Tokens")
+					.quantity(quantity)
+					.currencyId("COP")
+					.unitPrice(precioUnitarioToken)
 					.build();
+
+			System.out.println("[PAYMENT] PreferenceItem construido | title=Mundial Hub 2026 - Tokens | qty=" + quantity + " | unitPrice=" + precioUnitarioToken);
 
 			Map<String, Object> metadata = new HashMap<>();
 			metadata.put("tokens_quantity", quantity);
@@ -180,22 +195,38 @@ public class PaymentService implements CRUDOperation<PaymentRequestDTO, Payments
 			PreferenceRequest request = PreferenceRequest.builder()
 					.items(Collections.singletonList(itemRequest))
 					.metadata(metadata)
-					.backUrls(null).build();
+					.backUrls(null)
+					.build();
 
+			System.out.println("[PAYMENT] Llamando a PreferenceClient.create()...");
 			PreferenceClient client = new PreferenceClient();
 			Preference preference = client.create(request);
 
+			System.out.println("[PAYMENT] ✔ Preferencia creada | preferenceId=" + preference.getId());
+
 			this.updatePreferenceId(savedPayment.getId(), preference.getId());
+			System.out.println("[PAYMENT] preferenceId cifrado y guardado en BD para paymentId=" + savedPayment.getId());
 
 			return preference;
 
 		} catch (MPApiException e) {
 			String errorMsg = (e.getApiResponse() != null) ? e.getApiResponse().getContent() : "Respuesta vacía de MP";
-			System.err.println("DETALLE ERROR API: " + errorMsg);
+			System.err.println("╔══════════════════════════════════════════");
+			System.err.println("║ [PAYMENT] ✘ ERROR MERCADOPAGO API (preference)");
+			System.err.println("║ HTTP Status : " + e.getStatusCode());
+			System.err.println("║ Respuesta MP: " + errorMsg);
+			System.err.println("║ Causa       : " + e.getCause());
+			System.err.println("╚══════════════════════════════════════════");
 			this.markAsError(savedPayment.getId(), errorMsg);
 			throw new Exceptions.ValidationException("Mercado Pago rechazó la petición: " + errorMsg);
+
 		} catch (Exception e) {
-			System.err.println("ERROR CRÍTICO: " + e.getMessage());
+			System.err.println("╔══════════════════════════════════════════");
+			System.err.println("║ [PAYMENT] ✘ ERROR CRÍTICO INESPERADO (preference)");
+			System.err.println("║ Tipo   : " + e.getClass().getName());
+			System.err.println("║ Mensaje: " + e.getMessage());
+			System.err.println("╚══════════════════════════════════════════");
+			e.printStackTrace();
 			throw new Exceptions.ValidationException("Error inesperado en el proceso de pago");
 		}
 	}
@@ -213,85 +244,141 @@ public class PaymentService implements CRUDOperation<PaymentRequestDTO, Payments
 	@Transactional
 	@SuppressWarnings("unchecked")
 	public Payment createPayment(Map<String, Object> formData) {
-		PaymentClient client = new PaymentClient();
+		System.out.println("[PAYMENT] ► createPayment(charge) | formData keys: " + formData.keySet());
 
-		BigDecimal amount = new BigDecimal(formData.get("transaction_amount").toString());
-		String token = (String) formData.get("token");
-		String paymentMethodId = (String) formData.get("payment_method_id");
-		Integer installments = Integer.parseInt(formData.get("installments").toString());
+	    PaymentClient client = new PaymentClient();
 
-		String email = "";
-		Object payerObj = formData.get("payer");
-		if (payerObj instanceof Map<?, ?>) {
-			Map<String, Object> payerMap = (Map<String, Object>) payerObj;
-			email = (String) payerMap.get("email");
-		}
+	    BigDecimal amount = new BigDecimal(formData.get("transaction_amount").toString());
+	    String token = (String) formData.get("token");
+	    String paymentMethodId = (String) formData.get("payment_method_id");
+	    Integer installments = Integer.parseInt(formData.get("installments").toString());
 
-		String preferenceId = (String) formData.get("preference_id");
+	    System.out.println("[PAYMENT] amount=" + amount + " | paymentMethodId=" + paymentMethodId + " | installments=" + installments);
+	    System.out.println("[PAYMENT] token=" + (token != null ? token.substring(0, Math.min(token.length(), 8)) + "..." : "NULL"));
 
-		int tokensCompradosReal = 0;
-		if (formData.get("metadata") instanceof Map) {
-			Map<String, Object> metaMap = (Map<String, Object>) formData.get("metadata");
-			if (metaMap.containsKey("tokens_quantity")) {
-				tokensCompradosReal = Integer.parseInt(metaMap.get("tokens_quantity").toString());
-			}
-		}
-		
-		Map<String, Object> metadata = new HashMap<>();
-		metadata.put("my_custom_preference_id", preferenceId);
+	    String email = "";
+	    Object payerObj = formData.get("payer");
+	    if (payerObj instanceof Map<?, ?>) {
+	        Map<String, Object> payerMap = (Map<String, Object>) payerObj;
+	        email = (String) payerMap.get("email");
+	    }
+	    System.out.println("[PAYMENT] payer.email=" + email);
 
-		PaymentCreateRequest request = PaymentCreateRequest.builder().transactionAmount(amount).token(token)
-				.metadata(metadata).description("Compra VeltrixPass").installments(installments)
-				.paymentMethodId(paymentMethodId).payer(PaymentPayerRequest.builder().email(email).build()).build();
+	    String preferenceId = (String) formData.get("preference_id");
+	    System.out.println("[PAYMENT] preferenceId recibido del frontend=" + preferenceId);
 
-		try {
-			Optional<Payments> selectPayment = paymentRepo.findByMpPreferenceId(AESUtil.encrypt(preferenceId));
+	    int tokensCompradosReal = 0;
+	    if (formData.get("metadata") instanceof Map) {
+	        Map<String, Object> metaMap = (Map<String, Object>) formData.get("metadata");
+	        if (metaMap.containsKey("tokens_quantity")) {
+	            tokensCompradosReal = Integer.parseInt(metaMap.get("tokens_quantity").toString());
+	        }
+	    }
+	    System.out.println("[PAYMENT] tokens_quantity en metadata=" + tokensCompradosReal);
 
-			if (selectPayment.isEmpty()) {
-				throw new Exceptions.ValidationException("No se encontró el registro de pago para la preferencia especificada.");
-			}
+	    Map<String, Object> metadata = new HashMap<>();
+	    metadata.put("my_custom_preference_id", preferenceId);
 
-			Payment mpResponse = client.create(request);
-			Payments miPagoBD = selectPayment.get();
-			Optional<User> userPago = userRepo.findById(miPagoBD.getUser().getId());
-			
-			if (userPago.isEmpty()) {
-				throw new Exceptions.UserNotFoundException(String.valueOf(miPagoBD.getUser().getId()));
-			}
+	    PaymentCreateRequest request = PaymentCreateRequest.builder()
+	            .transactionAmount(amount)
+	            .token(token)
+	            .metadata(metadata)
+	            .description("Compra VeltrixPass")
+	            .installments(installments)
+	            .paymentMethodId(paymentMethodId)
+	            .payer(PaymentPayerRequest.builder().email(email).build())
+	            .build();
 
-			User usuario = userPago.get();
-			miPagoBD.setStatus(mpResponse.getStatus());
-			miPagoBD.setMpPaymentId(mpResponse.getId());
-			miPagoBD.setStatusDetail(mpResponse.getStatusDetail());
+	    Payments miPagoBD = null;
 
-			if ("approved".equals(mpResponse.getStatus())) {
-				miPagoBD.setPaid(true);
-				miPagoBD.setPaidAt(LocalDateTime.now());
+	    try {
+	    	System.out.println("[PAYMENT] Buscando en BD por preferenceId cifrado...");
+	        Optional<Payments> selectPayment = paymentRepo.findByMpPreferenceId(AESUtil.encrypt(preferenceId));
 
-				if (tokensCompradosReal == 0) {
-					tokensCompradosReal = miPagoBD.getQuantity();
-				} else {
-					miPagoBD.setQuantity(tokensCompradosReal);
-				}
+	        if (selectPayment.isEmpty()) {
+	        	System.err.println("[PAYMENT] ✘ No se encontró registro en BD para preferenceId=" + preferenceId);
+	            throw new Exceptions.ValidationException("No se encontró el registro de pago para la preferencia especificada.");
+	        }
 
-				Integer tokensActuales = usuario.getTotalPoints();
-				if (tokensActuales == null) {
-					tokensActuales = 0;
-				}
-				usuario.setTotalPoints(tokensActuales + tokensCompradosReal);
-				
-				usuario = userRepo.saveAndFlush(usuario);
-				miPagoBD.setUser(usuario);
-			}
+	        miPagoBD = selectPayment.get();
+	        System.out.println("[PAYMENT] Registro BD encontrado | paymentId=" + miPagoBD.getId() + " | status=" + miPagoBD.getStatus());
 
-			paymentRepo.saveAndFlush(miPagoBD);
-			return mpResponse;
-		} catch (MPApiException e) {
-			String contentError = (e.getApiResponse() != null) ? e.getApiResponse().getContent() : e.getMessage();
-			throw new Exceptions.ValidationException("Error en Mercado Pago API: " + contentError);
-		} catch (Exception e) {
-			throw new Exceptions.ValidationException("Error al procesar la creación del pago en el servidor: " + e.getMessage());
-		}
+	        Optional<User> userPago = userRepo.findById(miPagoBD.getUser().getId());
+
+	        if (userPago.isEmpty()) {
+	        	System.err.println("[PAYMENT] ✘ Usuario no encontrado en BD | userId=" + miPagoBD.getUser().getId());
+	            throw new Exceptions.UserNotFoundException(String.valueOf(miPagoBD.getUser().getId()));
+	        }
+
+	        User usuario = userPago.get();
+	        System.out.println("[PAYMENT] Usuario encontrado | userId=" + usuario.getId() + " | puntos actuales=" + usuario.getTotalPoints());
+
+	        System.out.println("[PAYMENT] Llamando a PaymentClient.create()...");
+	        Payment mpResponse = client.create(request);
+
+	        System.out.println("[PAYMENT] ✔ Respuesta MP | mpPaymentId=" + mpResponse.getId() + " | status=" + mpResponse.getStatus() + " | statusDetail=" + mpResponse.getStatusDetail());
+
+	        miPagoBD.setStatus(mpResponse.getStatus());
+	        miPagoBD.setMpPaymentId(mpResponse.getId());
+	        miPagoBD.setStatusDetail(mpResponse.getStatusDetail());
+
+	        if ("approved".equals(mpResponse.getStatus())) {
+	            miPagoBD.setPaid(true);
+	            miPagoBD.setPaidAt(LocalDateTime.now());
+
+	            if (tokensCompradosReal == 0) {
+	                tokensCompradosReal = miPagoBD.getQuantity();
+	            } else {
+	                miPagoBD.setQuantity(tokensCompradosReal);
+	            }
+
+	            Integer tokensActuales = usuario.getTotalPoints();
+	            if (tokensActuales == null) {
+	                tokensActuales = 0;
+	            }
+	            usuario.setTotalPoints(tokensActuales + tokensCompradosReal);
+	            usuario = userRepo.saveAndFlush(usuario);
+
+	            System.out.println("[PAYMENT] ✔ Pago aprobado | tokens acreditados=" + tokensCompradosReal + " | nuevo saldo=" + usuario.getTotalPoints());
+
+	            activityLogService.log(usuario.getId().longValue(), "PAYMENT_APPROVED",
+	                    "Pago aprobado. Tokens acreditados: " + tokensCompradosReal + ". Nuevo saldo: " + usuario.getTotalPoints());
+
+	            miPagoBD.setUser(usuario);
+	        } else {
+	        	System.out.println("[PAYMENT] Pago NO aprobado | status=" + mpResponse.getStatus() + " | detail=" + mpResponse.getStatusDetail());
+	        }
+
+	        paymentRepo.saveAndFlush(miPagoBD);
+	        return mpResponse;
+
+	    } catch (MPApiException e) {
+	        String contentError = (e.getApiResponse() != null) ? e.getApiResponse().getContent() : e.getMessage();
+	        System.err.println("╔══════════════════════════════════════════");
+	        System.err.println("║ [PAYMENT] ✘ ERROR MERCADOPAGO API (charge)");
+	        System.err.println("║ HTTP Status  : " + e.getStatusCode());
+	        System.err.println("║ Respuesta MP : " + contentError);
+	        System.err.println("║ preferenceId : " + preferenceId);
+	        System.err.println("║ amount       : " + amount);
+	        System.err.println("║ methodId     : " + paymentMethodId);
+	        System.err.println("╚══════════════════════════════════════════");
+	        if (miPagoBD != null) {
+	            activityLogService.log(miPagoBD.getUser().getId().longValue(), "PAYMENT_DECLINED",
+	                    "Pago rechazado por Mercado Pago: " + contentError);
+	        }
+	        throw new Exceptions.ValidationException("Error en Mercado Pago API: " + contentError);
+
+	    } catch (Exception e) {
+	    	System.err.println("╔══════════════════════════════════════════");
+	    	System.err.println("║ [PAYMENT] ✘ ERROR GENERAL (charge)");
+	    	System.err.println("║ Tipo         : " + e.getClass().getName());
+	    	System.err.println("║ Mensaje      : " + e.getMessage());
+	    	System.err.println("║ preferenceId : " + preferenceId);
+	    	System.err.println("║ formData     : " + formData);
+	    	System.err.println("╚══════════════════════════════════════════");
+	    	e.printStackTrace();
+	        throw new Exceptions.ValidationException("Error al procesar la creación del pago en el servidor: " + e.getMessage());
+	    }
 	}
 
 	/**
@@ -305,11 +392,12 @@ public class PaymentService implements CRUDOperation<PaymentRequestDTO, Payments
 	 */
 	@Transactional
 	public void updatePaymentStatus(String mpPaymentId, String status, String statusDetail) {
+		System.out.println("[PAYMENT] ► updatePaymentStatus | mpPaymentId=" + mpPaymentId + " | status=" + status + " | detail=" + statusDetail);
 		try {
 			Optional<Payments> optionalPayment = paymentRepo.findByMpPreferenceId(AESUtil.encrypt(mpPaymentId));
 
 			if (optionalPayment.isEmpty()) {
-				// Lanzamos excepción limpia en vez de retornar códigos de error numéricos enteros
+				System.err.println("[PAYMENT] ✘ No se encontró pago en BD para mpPaymentId=" + mpPaymentId);
 				throw new Exceptions.PaymentNotFoundException(0L);
 			}
 
@@ -323,11 +411,18 @@ public class PaymentService implements CRUDOperation<PaymentRequestDTO, Payments
 			}
 
 			paymentRepo.save(payment);
+			System.out.println("[PAYMENT] ✔ Estado actualizado correctamente | paymentId=" + payment.getId());
 
 		} catch (Exception e) {
 			if (e instanceof Exceptions.PaymentNotFoundException) {
 				throw e;
 			}
+			System.err.println("╔══════════════════════════════════════════");
+			System.err.println("║ [PAYMENT] ✘ ERROR en updatePaymentStatus");
+			System.err.println("║ Tipo   : " + e.getClass().getName());
+			System.err.println("║ Mensaje: " + e.getMessage());
+			System.err.println("╚══════════════════════════════════════════");
+			e.printStackTrace();
 			throw new Exceptions.ValidationException("Error al actualizar el estado del pago: " + e.getMessage());
 		}
 	}
@@ -378,5 +473,13 @@ public class PaymentService implements CRUDOperation<PaymentRequestDTO, Payments
 			p.setStatusDetail(error);
 			paymentRepo.save(p);
 		});
+	}
+
+	public UserStickerService getStickerServ() {
+		return stickerServ;
+	}
+
+	public void setStickerServ(UserStickerService stickerServ) {
+		this.stickerServ = stickerServ;
 	}
 }
