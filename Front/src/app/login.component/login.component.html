@@ -7,15 +7,25 @@
         <p class="subtitle">Accede a tu cuenta</p>
 
         <form (ngSubmit)="login()" #loginForm="ngForm">
-          <div class="input-group">
-            <input
-              type="text"
-              name="user"
-              [(ngModel)]="identifier"
-              required
-              placeholder="Usuario o email"
-            />
-          </div>
+       <div class="input-group">
+
+    <input
+
+      type="text"
+
+      name="user"
+
+      [(ngModel)]="identifier"
+
+      (input)="formatIdentifier()"
+
+      required
+
+      placeholder="Usuario o email"
+
+    />
+
+  </div>
 
           <div class="input-group">
             <input
