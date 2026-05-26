@@ -12,7 +12,7 @@ export class PaymentService {
 
   private mp: any;
   private bricksBuilder: any;
-  private publicKey = 'TEST-f4351136-6c27-483f-99b5-7466c1737b30';
+  private publicKey = 'TEST-c399a3ab-a8c0-462b-9750-290488490236';
   private apiUrl = 'https://mundial2026hub.onrender.com/payments';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
@@ -25,7 +25,7 @@ export class PaymentService {
       }
       const script = document.createElement('script');
       script.id = 'mp-sdk';
-      script.src = 'https://sdk.mercadopago.com/js/v2';
+      script.src = 'https://sdk.mercadopago.com/js/v2?version=2.0.0';
       script.onload = () => resolve();
       document.body.appendChild(script);
     });
