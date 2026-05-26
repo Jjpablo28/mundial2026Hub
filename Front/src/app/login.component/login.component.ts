@@ -120,6 +120,18 @@ export class LoginComponent {
 
   }
 
+formatIdentifier() {
+
+  // Si parece email, lo pasa a minúsculas
+
+  if (this.identifier.includes('@')) {
+
+    this.identifier = this.identifier.toLowerCase();
+
+  }
+
+
+
   checkEmail() {
     this.loginService.findEmail(this.forgotEmail).subscribe({
       next: (response) => {
