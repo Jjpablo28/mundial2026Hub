@@ -16,6 +16,7 @@ import co.edu.unbosque.mundialhub.model.User;
 import co.edu.unbosque.mundialhub.model.UserActivityLog;
 import co.edu.unbosque.mundialhub.repository.UserActivityLogRepository;
 import co.edu.unbosque.mundialhub.repository.UserRepository;
+import co.edu.unbosque.mundialhub.util.AESUtil;
 
 @Service
 public class ActivityLogService {
@@ -76,7 +77,7 @@ public class ActivityLogService {
         UserActivityLogDTO dto = new UserActivityLogDTO();
         dto.setId(entity.getId());
         dto.setUserId(entity.getUser().getId().longValue());
-        dto.setUserName(entity.getUser().getName());
+        dto.setUserName(AESUtil.decrypt(entity.getUser().getName()));
         dto.setEventType(entity.getEventType());
         dto.setDetail(entity.getDetail());
         dto.setCreatedAt(entity.getCreatedAt());
