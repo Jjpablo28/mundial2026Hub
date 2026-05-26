@@ -18,7 +18,8 @@
           </div>
 
           <div class="input-group">
-            <input type="email" [(ngModel)]="email" name="email" placeholder="Correo electrónico" required />
+            <input type="email" [(ngModel)]="email" name="email"
+                   (input)="formatIdentifier()" placeholder="Correo electrónico" required />
           </div>
 
           <div class="input-group">

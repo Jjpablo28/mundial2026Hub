@@ -68,6 +68,17 @@ export class RegistroComponent implements OnInit {
     });
   }
 
+  formatIdentifier() {
+
+    // Si parece email, lo pasa a minúsculas
+
+    if (this.email.includes('@')) {
+
+      this.email = this.email.toLowerCase();
+
+    }
+
+  }
   register() {
     this.isLoading = true; // Activamos el loader al iniciar
 
