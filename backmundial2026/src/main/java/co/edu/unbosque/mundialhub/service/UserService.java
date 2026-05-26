@@ -24,6 +24,7 @@ import co.edu.unbosque.mundialhub.repository.UserRepository;
 import co.edu.unbosque.mundialhub.repository.UserStickerRepository;
 import co.edu.unbosque.mundialhub.util.AESUtil;
 import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 /**
  * Servicio encargado de la gestión de usuarios, autenticación, cifrado de campos 
@@ -50,6 +51,9 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	
 	@Autowired
 	private UserStickerRepository userStickerRepo;
+
+	@Autowired
+	private ActivityLogService activityLogService;
 
 	@Autowired
 	private ModelMapper modelMapper;
@@ -126,6 +130,9 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 			entity.setCredentialsNonExpired(true);
 
 			userRepo.save(entity);
+
+			activityLogService.log(entity.getId().longValue(), "USER_CREATED",
+					"Nueva cuenta registrada. Username: " + newUserDto.getUserName() + ". Email: " + newUserDto.getEmail());
 
 			sendConfirmationCode(newUserDto.getEmail(), generatedCode);
 
@@ -299,6 +306,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		User userToDelete = userRepo.findById(id)
 				.orElseThrow(() -> new Exceptions.UserNotFoundException(String.valueOf(id)));
 
+		activityLogService.log(id, "USER_DELETED", "Cuenta eliminada del sistema.");
 		userRepo.delete(userToDelete);
 	}
 
@@ -447,6 +455,15 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		existingUser.setUpdatedAt(LocalDateTime.now());
 		userRepo.save(existingUser);
 
+		activityLogService.log(id, "USER_UPDATED",
+				"Perfil actualizado. Campos modificados: "
+				+ (newData.getUserName() != null ? "username " : "")
+				+ (newData.getName() != null ? "nombre " : "")
+				+ (newData.getEmail() != null ? "email " : "")
+				+ (newData.getCity() != null ? "ciudad " : "")
+				+ (newData.getCountry() != null ? "país " : "")
+				+ (newData.getAvatarUrl() != null ? "avatar " : ""));
+
 		UserDTO dto = modelMapper.map(existingUser, UserDTO.class);
 		decryptSensitiveFields(dto);
 		return dto;
@@ -542,6 +559,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 		user.setRole(newData.getRole());
 		userRepo.save(user);
+		activityLogService.log(id, "ROLE_CHANGED", "Rol actualizado a: " + newData.getRole().name());
 		return modelMapper.map(user, UserDTO.class);
 	}
 
@@ -604,6 +622,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		if (passwordEncoder.matches(oldPassword, user.getPassword())) {
 			user.setPassword(passwordEncoder.encode(newData.getPassword()));
 			userRepo.save(user);
+			activityLogService.log(id, "PASSWORD_CHANGED", "El usuario actualizó su contraseña.");
 			return modelMapper.map(user, UserDTO.class);
 		} else {
 			throw new Exceptions.ValidationException("La contraseña actual proporcionada es incorrecta.");

@@ -12,7 +12,7 @@ export class PaymentService {
 
   private mp: any;
   private bricksBuilder: any;
-  private publicKey = 'APP_USR-7ef47191-0ab8-4977-9b62-f168c6d01fd3';
+  private publicKey = 'TEST-f4351136-6c27-483f-99b5-7466c1737b30';
   private apiUrl = 'https://mundial2026hub.onrender.com/payments';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
