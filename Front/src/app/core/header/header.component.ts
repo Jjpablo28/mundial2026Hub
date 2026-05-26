@@ -49,6 +49,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Agrega esta propiedad en la clase:
+  menuOpen = false;
+
+// Agrega estos métodos:
+  toggleMenu(): void {
+    this.menuOpen = !this.menuOpen;
+    document.body.style.overflow = this.menuOpen ? 'hidden' : '';
+  }
+
+  closeMenu(): void {
+    this.menuOpen = false;
+    document.body.style.overflow = '';
+  }
+
   ngOnDestroy(): void {
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
