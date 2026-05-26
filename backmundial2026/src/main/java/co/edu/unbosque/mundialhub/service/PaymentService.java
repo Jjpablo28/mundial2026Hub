@@ -218,10 +218,17 @@ public class PaymentService implements CRUDOperation<PaymentRequestDTO, Payments
 	public Payment createPayment(Map<String, Object> formData) {
 		PaymentClient client = new PaymentClient();
 
-		BigDecimal amount = new BigDecimal(formData.get("transaction_amount").toString());
+		Object amountRaw = formData.get("transaction_amount");
+		if (amountRaw == null) {
+			throw new Exceptions.ValidationException("El campo 'transaction_amount' es obligatorio y no fue recibido.");
+		}
+		BigDecimal amount = new BigDecimal(amountRaw.toString());
+
 		String token = (String) formData.get("token");
 		String paymentMethodId = (String) formData.get("payment_method_id");
-		Integer installments = Integer.parseInt(formData.get("installments").toString());
+
+		Object installmentsRaw = formData.get("installments");
+		Integer installments = (installmentsRaw != null) ? Integer.parseInt(installmentsRaw.toString()) : 1;
 
 		String email = "";
 		Object payerObj = formData.get("payer");
@@ -231,6 +238,9 @@ public class PaymentService implements CRUDOperation<PaymentRequestDTO, Payments
 		}
 
 		String preferenceId = (String) formData.get("preference_id");
+		if (preferenceId == null || preferenceId.isBlank()) {
+			throw new Exceptions.ValidationException("El campo 'preference_id' es obligatorio para procesar el cobro.");
+		}
 
 		int tokensCompradosReal = 0;
 		if (formData.get("metadata") instanceof Map) {
