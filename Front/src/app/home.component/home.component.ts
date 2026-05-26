@@ -307,6 +307,9 @@ export class HomeComponent implements OnInit {
     this.cargarPartidos()
     this.userName = this.authService.getUserName() || 'Usuario';
 
+    const role = this.authService.getRole();
+    this.userRole = role === 'ROLE_ADMIN' ? 'admin' : 'user';
+
     this.authService.avatar$.subscribe(url => {
       if (url) {
         this.imageUrl = url;

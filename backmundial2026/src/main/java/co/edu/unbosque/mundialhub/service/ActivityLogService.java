@@ -77,7 +77,18 @@ public class ActivityLogService {
         UserActivityLogDTO dto = new UserActivityLogDTO();
         dto.setId(entity.getId());
         dto.setUserId(entity.getUser().getId().longValue());
-        dto.setUserName(AESUtil.decrypt(entity.getUser().getName()));
+
+        String rawName = entity.getUser().getName();
+        if (rawName == null || rawName.isBlank()) {
+            dto.setUserName("Usuario desconocido");
+        } else {
+            try {
+                dto.setUserName(AESUtil.decrypt(rawName));
+            } catch (Exception e) {
+                dto.setUserName(rawName); // si no se puede descifrar, devuelve tal cual
+            }
+        }
+
         dto.setEventType(entity.getEventType());
         dto.setDetail(entity.getDetail());
         dto.setCreatedAt(entity.getCreatedAt());

@@ -1,0 +1,199 @@
+<div class="admin-panel">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <div class="admin-title">
+      <i class="fas fa-users-cog"></i>
+      <span>Gestión de Usuarios</span>
+    </div>
+    <span class="admin-total" *ngIf="!isLoading">{{ filteredUsers.length }} usuarios</span>
+  </div>
+
+  <!-- Filtros -->
+  <div class="admin-filters">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+        placeholder="Buscar por nombre, usuario o email..."
+      />
+    </div>
+
+    <select [(ngModel)]="filterRole" (ngModelChange)="applyFilters()">
+      <option value="">Todos los roles</option>
+      <option value="USER">Usuario</option>
+      <option value="ADMIN">Admin</option>
+    </select>
+
+    <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()">
+      <option value="">Todos los estados</option>
+      <option value="enabled">Habilitados</option>
+      <option value="disabled">Deshabilitados</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div class="admin-loading" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>Cargando usuarios...</span>
+  </div>
+
+  <!-- Sin resultados -->
+  <div class="admin-empty" *ngIf="!isLoading && filteredUsers.length === 0">
+    <i class="fas fa-user-slash"></i>
+    <p>No se encontraron usuarios.</p>
+  </div>
+
+  <!-- Tabla -->
+  <div class="admin-table-wrapper" *ngIf="!isLoading && filteredUsers.length > 0">
+    <table class="admin-table">
+      <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Email</th>
+        <th>Rol</th>
+        <th>Estado</th>
+        <th>Puntos</th>
+        <th>Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let user of filteredUsers">
+        <td>
+          <div class="user-cell">
+            <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" class="user-avatar" alt="avatar">
+            <div class="user-avatar-placeholder" *ngIf="!user.avatarUrl">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{ user.name }}</span>
+              <span class="user-username">@{{ user.userName }}</span>
+            </div>
+          </div>
+        </td>
+        <td class="cell-email">{{ user.email }}</td>
+        <td>
+          <span class="badge" [class]="getRoleBadge(user.role)">{{ user.role }}</span>
+        </td>
+        <td>
+            <span class="status-dot" [class.active]="user.enabled" [class.inactive]="!user.enabled">
+              {{ user.enabled ? 'Activo' : 'Inactivo' }}
+            </span>
+        </td>
+        <td class="cell-points">{{ user.totalPoints | number }}</td>
+        <td>
+          <div class="actions">
+            <button class="btn-action btn-edit" (click)="openEditModal(user)" title="Editar">
+              <i class="fas fa-pen"></i>
+            </button>
+            <button class="btn-action btn-role" (click)="openRoleModal(user)" title="Cambiar rol">
+              <i class="fas fa-shield-alt"></i>
+            </button>
+            <button
+              class="btn-action"
+              [class.btn-disable]="user.enabled"
+              [class.btn-enable]="!user.enabled"
+              (click)="toggleEnabled(user)"
+              [title]="user.enabled ? 'Deshabilitar' : 'Habilitar'">
+              <i class="fas" [class.fa-ban]="user.enabled" [class.fa-check]="!user.enabled"></i>
+            </button>
+            <button class="btn-action btn-delete" (click)="openDeleteModal(user)" title="Eliminar">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ===== MODAL EDITAR ===== -->
+<div class="modal-overlay" *ngIf="showEditModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-pen"></i> Editar Usuario</h3>
+    <div class="modal-body">
+      <div class="field-group">
+        <label>Nombre</label>
+        <input type="text" [(ngModel)]="editingUser.name" placeholder="Nombre completo" />
+      </div>
+      <div class="field-group">
+        <label>Username</label>
+        <input type="text" [(ngModel)]="editingUser.userName" placeholder="Nombre de usuario" />
+      </div>
+      <div class="field-group">
+        <label>Email</label>
+        <input type="email" [(ngModel)]="editingUser.email" placeholder="Correo electrónico" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="showEditModal = false">Cancelar</button>
+      <button class="btn-submit" (click)="saveEdit()" [disabled]="isSaving">
+        <span *ngIf="!isSaving"><i class="fas fa-save"></i> Guardar</span>
+        <span *ngIf="isSaving"><i class="fas fa-spinner fa-spin"></i> Guardando...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ROL ===== -->
+<div class="modal-overlay" *ngIf="showRoleModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-shield-alt"></i> Cambiar Rol</h3>
+    <p class="modal-desc">Usuario: <strong>{{ roleTarget?.userName }}</strong></p>
+    <div class="role-options">
+      <div
+        class="role-option"
+        *ngFor="let r of roles"
+        [class.selected]="newRole === r"
+        (click)="newRole = r">
+        <i class="fas" [class.fa-user]="r === 'USER'" [class.fa-user-shield]="r === 'ADMIN'"></i>
+        <span>{{ r }}</span>
+        <i class="fas fa-check check-icon" *ngIf="newRole === r"></i>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="showRoleModal = false">Cancelar</button>
+      <button class="btn-submit" (click)="saveRole()" [disabled]="isSaving">
+        <span *ngIf="!isSaving"><i class="fas fa-save"></i> Aplicar</span>
+        <span *ngIf="isSaving"><i class="fas fa-spinner fa-spin"></i> Guardando...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ELIMINAR ===== -->
+<div class="modal-overlay" *ngIf="showDeleteModal">
+  <div class="modal-box modal-danger">
+    <h3><i class="fas fa-exclamation-triangle"></i> Eliminar Usuario</h3>
+    <p class="modal-desc">¿Estás seguro de que deseas eliminar a <strong>{{ deleteTarget?.userName }}</strong>? Esta acción no se puede deshacer.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="showDeleteModal = false">Cancelar</button>
+      <button class="btn-danger" (click)="confirmDelete()" [disabled]="isSaving">
+        <span *ngIf="!isSaving"><i class="fas fa-trash"></i> Eliminar</span>
+        <span *ngIf="isSaving"><i class="fas fa-spinner fa-spin"></i> Eliminando...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== POPUP ÉXITO ===== -->
+<div class="custom-popup" *ngIf="showSuccessPopup">
+  <div class="popup-content">
+    <i class="fas fa-check-circle success-icon"></i>
+    <span>{{ successMessage }}</span>
+    <button class="close-btn" (click)="showSuccessPopup = false"><i class="fas fa-times"></i></button>
+  </div>
+</div>
+
+<!-- ===== POPUP ERROR ===== -->
+<div class="custom-popup" *ngIf="showErrorPopup">
+  <div class="popup-content border-error">
+    <i class="fas fa-exclamation-circle error-icon"></i>
+    <span>{{ errorMessage }}</span>
+    <button class="close-btn" (click)="showErrorPopup = false"><i class="fas fa-times"></i></button>
+  </div>
+</div>

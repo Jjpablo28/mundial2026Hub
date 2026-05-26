@@ -756,6 +756,9 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 		if (newData.getAvatarUrl() != null) {
 			existingUser.setAvatarUrl(newData.getAvatarUrl());
 		}
+		if (newData.getEnabled() != null) {
+		    existingUser.setEnabled(newData.getEnabled());
+		}
 	}
 
 	private void decryptSensitiveFields(UserDTO dto) {

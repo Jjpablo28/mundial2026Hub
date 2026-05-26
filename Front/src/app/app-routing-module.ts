@@ -11,6 +11,7 @@ import { PaymentComponent } from './payment.component/payment.component';
 import {QrGenerator} from './qr-generator/qr-generator';
 import {TradeScreen} from './trade-screen/trade-screen';
 import {GuestGuard} from './security/guest.guard';
+import {UserAdminComponent} from './user-admin.component/user-admin.component';
 
 
 const routes: Routes = [
@@ -24,6 +25,7 @@ const routes: Routes = [
   { path: 'payment', component: PaymentComponent },
   { path: 'qr', component: QrGenerator },
   { path: 'websocket', component: TradeScreen },
+  {path:'admin/usuarios',component: UserAdminComponent, canActivate: [AuthGuard], data: { rolesPermitidos: ['ADMIN'] }}
 ];
 
 @NgModule({

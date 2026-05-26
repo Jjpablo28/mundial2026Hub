@@ -28,7 +28,6 @@
       </a>
 
 
-
       <ng-container *ngIf="userRole === 'admin'">
         <a class="nav-link" [class.active]="menuActivo === 'usuarios'" (click)="cambiarMenu('usuarios')">
           <i class="fas fa-users-cog"></i> Usuarios
@@ -446,13 +445,21 @@
 
       </ng-container>
 
-        <ng-container *ngSwitchCase="'reportes'">
+      <ng-container *ngSwitchCase="'reportes'">
         <button class="btn-back" (click)="cambiarMenu('dashboard')">
           <i class="fas fa-arrow-left"></i> Volver al Inicio
         </button>
-  <app-activity-log></app-activity-log>
+        <app-activity-log></app-activity-log>
 
-        </ng-container>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'usuarios'">
+        <button class="btn-back" (click)="cambiarMenu('dashboard')">
+          <i class="fas fa-arrow-left"></i> Volver al Inicio
+        </button>
+
+        <app-user-admin></app-user-admin>
+      </ng-container>
 
       <ng-container *ngSwitchCase="'cuenta'">
         <button class="btn-back" (click)="cambiarMenu('dashboard')">

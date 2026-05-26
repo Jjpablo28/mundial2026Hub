@@ -66,6 +66,8 @@ public class UserDTO {
 	 * de avatar.
 	 */
 	private String avatarUrl;
+	
+	private Boolean enabled;
 
 	/**
 	 * Puntuación acumulada por el usuario en las dinámicas de gamificación del
@@ -157,11 +159,13 @@ public class UserDTO {
 	 * @param updatedAt           Fecha y hora del último cambio en el perfil.
 	 * @param lastLogin           Fecha y hora del último acceso exitoso.
 	 */
-	public UserDTO(String userName, String name, String email, String identification, String code,
-			LocalDateTime verificationExpires, String password, Role role, String avatarUrl, Integer totalPoints,
-			Integer packets, String country, String favoriteTeam, String city, LocalDateTime createdAt,
-			LocalDateTime updatedAt, LocalDateTime lastLogin) {
+	
+	public UserDTO(Long id, String userName, String name, String email, String identification, String code,
+			LocalDateTime verificationExpires, String password, Role role, String avatarUrl, Boolean enabled,
+			Integer totalPoints, Integer packets, String country, String favoriteTeam, String city,
+			LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLogin) {
 		super();
+		this.id = id;
 		this.userName = userName;
 		this.name = name;
 		this.email = email;
@@ -171,16 +175,17 @@ public class UserDTO {
 		this.password = password;
 		this.role = role;
 		this.avatarUrl = avatarUrl;
+		this.enabled = enabled;
 		this.totalPoints = totalPoints;
+		this.packets = packets;
 		this.country = country;
 		this.favoriteTeam = favoriteTeam;
 		this.city = city;
-		this.packets = packets;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 		this.lastLogin = lastLogin;
 	}
-
+	
 	/**
 	 * Obtiene el identificador numérico único (ID) del usuario.
 	 * 
@@ -189,6 +194,8 @@ public class UserDTO {
 	public Long getId() {
 		return id;
 	}
+
+	
 
 	/**
 	 * Define o modifica el identificador numérico del usuario.
@@ -488,6 +495,18 @@ public class UserDTO {
 		this.packets = packets;
 	}
 
+
+
+
+
+	public Boolean getEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(Boolean enabled) {
+		this.enabled = enabled;
+	}
+
 	/**
 	 * Compila y genera una cadena textual detallada que expone los valores en
 	 * tiempo real de cada uno de los campos encapsulados en esta instancia DTO.
@@ -499,8 +518,8 @@ public class UserDTO {
 		return "UserDTO [id=" + id + ", userName=" + userName + ", name=" + name + ", email=" + email
 				+ ", identification=" + identification + ", code=" + code + ", verificationExpires="
 				+ verificationExpires + ", password=" + password + ", role=" + role + ", avatarUrl=" + avatarUrl
-				+ ", totalPoints=" + totalPoints + ", packets=" + packets + ", country=" + country + ", favoriteTeam="
-				+ favoriteTeam + ", city=" + city + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt
-				+ ", lastLogin=" + lastLogin + "]";
+				+ ", enabled=" + enabled + ", totalPoints=" + totalPoints + ", packets=" + packets + ", country="
+				+ country + ", favoriteTeam=" + favoriteTeam + ", city=" + city + ", createdAt=" + createdAt
+				+ ", updatedAt=" + updatedAt + ", lastLogin=" + lastLogin + "]";
 	}
 }
