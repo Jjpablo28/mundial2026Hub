@@ -7,25 +7,18 @@
         <p class="subtitle">Accede a tu cuenta</p>
 
         <form (ngSubmit)="login()" #loginForm="ngForm">
-       <div class="input-group">
+          <div class="input-group">
 
-    <input
+            <input
+              type="text"
+              name="user"
+              [(ngModel)]="identifier"
+              (input)="formatIdentifier()"
+              required
+              placeholder="Usuario o email"
+            />
 
-      type="text"
-
-      name="user"
-
-      [(ngModel)]="identifier"
-
-      (input)="formatIdentifier()"
-
-      required
-
-      placeholder="Usuario o email"
-
-    />
-
-  </div>
+          </div>
 
           <div class="input-group">
             <input
@@ -57,7 +50,7 @@
     <div class="auth-right">
       <div class="info-box">
 
-        <img src="assets/img/WhatsApp%20Image%202026-04-12%20at%207.25.58%20PM.png" alt="Info Login" />
+        <img src="assets/img/WhatsApp%20Image%202026-04-12%20at%207.25.58%20PM.png" alt="Info Login"/>
       </div>
     </div>
 
@@ -118,7 +111,8 @@
 
     <div class="modal-actions">
       <button class="btn-cancel" (click)="showNewPasswordModal = false">Cancelar</button>
-      <button class="btn-submit" (click)="updatePassword()" [disabled]="!newPassword || newPassword !== confirmPassword">
+      <button class="btn-submit" (click)="updatePassword()"
+              [disabled]="!newPassword || newPassword !== confirmPassword">
         Actualizar
       </button>
     </div>

@@ -129,6 +129,7 @@ formatIdentifier() {
     this.identifier = this.identifier.toLowerCase();
 
   }
+}
 
 
 
