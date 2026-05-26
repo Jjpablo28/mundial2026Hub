@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -39,12 +40,16 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             .authorizeHttpRequests(auth -> {
+                // ✅ FIX 403: permitir todos los preflight OPTIONS sin autenticación
+                // El browser envía OPTIONS antes de POST/PUT — Spring lo bloqueaba con 403
+                // antes de que el filtro CORS pudiera responder con los headers correctos.
+                auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+
                 auth.requestMatchers("/auth/**").permitAll();
                 auth.requestMatchers("/teams/**").permitAll();
                 auth.requestMatchers("/sticker/**").permitAll();
                 auth.requestMatchers("/trade-session/**").permitAll();
                 auth.requestMatchers("/user-stickers/**").permitAll();
-                // ✅ Permitir TODO lo relacionado con WebSocket explícitamente
                 auth.requestMatchers("/ws/**").permitAll();
                 auth.requestMatchers("/payments/**").authenticated();
                 auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
@@ -61,14 +66,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // ✅ FIX: setAllowedOriginPatterns("*") es compatible con credentials
-        // No usar setAllowedOrigins("*") porque no permite credentials
         configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        // ✅ FIX: false para el handshake WebSocket de SockJS en Render
-        // true causaba conflictos con el upgrade HTTP->WS
+        // ✅ Exponer Authorization para que el frontend pueda leerlo si lo necesita
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
