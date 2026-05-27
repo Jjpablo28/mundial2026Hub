@@ -35,6 +35,7 @@ import co.edu.unbosque.mundialhub.model.User;
 import co.edu.unbosque.mundialhub.model.User.Role;
 import co.edu.unbosque.mundialhub.repository.UserRepository;
 import co.edu.unbosque.mundialhub.security.JwtUtil;
+import co.edu.unbosque.mundialhub.service.ActivityLogService;
 import co.edu.unbosque.mundialhub.service.UserService;
 import co.edu.unbosque.mundialhub.util.AESUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -66,6 +67,9 @@ public class AuthController {
 
 	@Autowired
 	private UserRepository userRepo;
+	
+	@Autowired
+	private ActivityLogService activityLogService;
 
 	private final JwtUtil jwtUtil;
 
@@ -356,7 +360,9 @@ public class AuthController {
 	    }
 	    userRepo.save(user);
 
-	    // ✅ Generar JWT automáticamente igual que el login
+	    activityLogService.log(user.getId().longValue(), "USER_CREATED",
+	            "Nueva cuenta verificada y activada. Username: " + AESUtil.decrypt(user.getUserName()));
+
 	    UserDetails userDetails = org.springframework.security.core.userdetails.User
 	            .withUsername(user.getUserName())
 	            .password(user.getPassword())

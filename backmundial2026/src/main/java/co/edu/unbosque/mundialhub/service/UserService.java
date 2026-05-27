@@ -24,7 +24,6 @@ import co.edu.unbosque.mundialhub.repository.UserActivityLogRepository;
 import co.edu.unbosque.mundialhub.repository.UserRepository;
 import co.edu.unbosque.mundialhub.repository.UserStickerRepository;
 import co.edu.unbosque.mundialhub.util.AESUtil;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
 /**
@@ -61,9 +60,6 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	@Autowired
 	private ModelMapper modelMapper;
 
-	@Autowired
-	private EntityManager entityManager;
-	
 	private String code = "";
 
 	/**
@@ -136,10 +132,7 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 			entity.setCredentialsNonExpired(true);
 
 			User savedEntity = userRepo.save(entity);
-			entityManager.flush();   // ← fuerza que el INSERT llegue a la BD antes del log
-			activityLogService.log(savedEntity.getId().longValue(), "USER_CREATED",
-			        "Nueva cuenta registrada. Username: " + newUserDto.getUserName() + ". Email: " + newUserDto.getEmail());
-			
+
 			sendConfirmationCode(newUserDto.getEmail(), generatedCode);
 
 			UserDTO createdDto = modelMapper.map(savedEntity, UserDTO.class);
