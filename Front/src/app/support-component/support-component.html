@@ -1,0 +1,555 @@
+<!-- ════════════════════════════════════════════════════════════════════
+     SUPPORT COMPONENT — Separado por rol (ADMIN/SUPPORT vs USER)
+     El componente detecta el rol desde AuthService.getRole()
+     ════════════════════════════════════════════════════════════════════ -->
+<div class="support-shell">
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SIDEBAR — Admin muestra más opciones que el usuario
+       ══════════════════════════════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar__logo">
+      <i class="ti ti-ticket sidebar__logo-icon"></i>
+      <span class="sidebar__logo-text">Soporte</span>
+    </div>
+
+    <!-- NAV ADMIN/SOPORTE -->
+    <nav class="sidebar__nav" *ngIf="isAdmin">
+      <span class="sidebar__section">General</span>
+
+      <button class="sidebar__item"
+              [class.sidebar__item--active]="activeView === 'dashboard'"
+              (click)="setView('dashboard')">
+        <i class="ti ti-layout-dashboard sidebar__item-icon"></i>
+        <span>Dashboard</span>
+      </button>
+
+      <button class="sidebar__item"
+              [class.sidebar__item--active]="activeView === 'tickets'"
+              (click)="setView('tickets')">
+        <i class="ti ti-list-details sidebar__item-icon"></i>
+        <span>Tickets</span>
+        <span class="sidebar__badge" *ngIf="stats.open > 0">{{ stats.open }}</span>
+      </button>
+
+      <span class="sidebar__section">Acciones</span>
+
+      <button class="sidebar__item"
+              [class.sidebar__item--active]="activeView === 'create'"
+              (click)="setView('create')">
+        <i class="ti ti-plus sidebar__item-icon"></i>
+        <span>Nuevo Ticket</span>
+      </button>
+    </nav>
+
+    <!-- NAV USUARIO NORMAL -->
+    <nav class="sidebar__nav" *ngIf="!isAdmin">
+      <span class="sidebar__section">Mi cuenta</span>
+
+      <button class="sidebar__item"
+              [class.sidebar__item--active]="activeView === 'mis-tickets'"
+              (click)="setView('mis-tickets')">
+        <i class="ti ti-clipboard-list sidebar__item-icon"></i>
+        <span>Mis Tickets</span>
+      </button>
+
+      <button class="sidebar__item"
+              [class.sidebar__item--active]="activeView === 'solicitar'"
+              (click)="setView('solicitar')">
+        <i class="ti ti-send sidebar__item-icon"></i>
+        <span>Solicitar ayuda</span>
+      </button>
+    </nav>
+  </aside>
+
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       MAIN CONTENT
+       ══════════════════════════════════════════════════════════════════ -->
+  <main class="main-content">
+
+
+    <!-- ── [ADMIN] DASHBOARD ──────────────────────────────────────────── -->
+    <section *ngIf="isAdmin && activeView === 'dashboard'" class="view">
+      <header class="view__header view__header--row">
+        <div>
+          <h1 class="view__title">Dashboard de Soporte</h1>
+          <p class="view__subtitle">Estado actual de tickets · Haz clic en una tarjeta para filtrar</p>
+        </div>
+        <button class="btn btn--ghost btn--icon" (click)="loadStats(); loadAllTickets()">
+          <i class="ti ti-refresh"></i>
+        </button>
+      </header>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card stat-card--open" (click)="applyFilter('OPEN'); setView('tickets')">
+          <i class="ti ti-mail-opened stat-card__icon"></i>
+          <div class="stat-card__body">
+            <span class="stat-card__value">{{ stats.open }}</span>
+            <span class="stat-card__label">Abiertos</span>
+          </div>
+
+        </div>
+
+        <div class="stat-card stat-card--progress" (click)="applyFilter('IN_PROGRESS'); setView('tickets')">
+          <i class="ti ti-loader stat-card__icon"></i>
+          <div class="stat-card__body">
+            <span class="stat-card__value">{{ stats.in_progress }}</span>
+            <span class="stat-card__label">En proceso</span>
+          </div>
+
+        </div>
+
+        <div class="stat-card stat-card--resolved" (click)="applyFilter('RESOLVED'); setView('tickets')">
+          <i class="ti ti-check stat-card__icon"></i>
+          <div class="stat-card__body">
+            <span class="stat-card__value">{{ stats.resolved }}</span>
+            <span class="stat-card__label">Resueltos</span>
+          </div>
+
+        </div>
+
+        <div class="stat-card stat-card--rejected" (click)="applyFilter('REJECTED'); setView('tickets')">
+          <i class="ti ti-x stat-card__icon"></i>
+          <div class="stat-card__body">
+            <span class="stat-card__value">{{ stats.rejected }}</span>
+            <span class="stat-card__label">Rechazados</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Acciones rápidas -->
+      <p class="section-label">Acciones rápidas</p>
+      <div class="quick-actions">
+        <button class="quick-btn" (click)="createForm.get('ticketType')!.setValue('ADD_PACKETS'); setView('create')">
+          <i class="ti ti-package"></i> Agregar Sobres
+        </button>
+        <button class="quick-btn" (click)="createForm.get('ticketType')!.setValue('ADD_TOKENS'); setView('create')">
+          <i class="ti ti-coin"></i> Agregar Tokens
+        </button>
+        <button class="quick-btn" (click)="createForm.get('ticketType')!.setValue('UNLOCK_ACCOUNT'); setView('create')">
+          <i class="ti ti-lock-open"></i> Desbloquear Cuenta
+        </button>
+        <button class="quick-btn" (click)="createForm.get('ticketType')!.setValue('RESET_VERIFICATION'); setView('create')">
+          <i class="ti ti-rotate-clockwise"></i> Reiniciar Verificación
+        </button>
+      </div>
+
+      <!-- Tickets pendientes -->
+      <p class="section-label" style="margin-top: 28px;">Tickets sin atender</p>
+      <ng-container *ngTemplateOutlet="ticketsTable; context: { showActions: true }"></ng-container>
+    </section>
+
+
+    <!-- ── [ADMIN] TICKETS LIST ───────────────────────────────────────── -->
+    <section *ngIf="isAdmin && activeView === 'tickets'" class="view">
+      <header class="view__header view__header--row">
+        <div>
+          <h1 class="view__title">Gestión de Tickets</h1>
+          <p class="view__subtitle">{{ totalTickets }} tickets en total</p>
+        </div>
+        <button class="btn btn--primary" (click)="setView('create')">
+          <i class="ti ti-plus"></i> Nuevo Ticket
+        </button>
+      </header>
+
+      <ng-container *ngTemplateOutlet="filterBar"></ng-container>
+      <ng-container *ngTemplateOutlet="ticketsTable; context: { showActions: true }"></ng-container>
+      <ng-container *ngTemplateOutlet="pagination"></ng-container>
+    </section>
+
+
+    <!-- ── [ADMIN] CREATE TICKET ─────────────────────────────────────── -->
+    <section *ngIf="isAdmin && activeView === 'create'" class="view">
+      <header class="view__header">
+        <h1 class="view__title">Nuevo Ticket de Soporte</h1>
+        <p class="view__subtitle">Registra la solicitud e indica la acción a aplicar sobre el usuario</p>
+      </header>
+
+      <div class="create-layout">
+
+        <!-- Selector de tipo -->
+        <div class="type-selector">
+          <p class="type-selector__label">Tipo de acción</p>
+          <div class="type-grid">
+            <button *ngFor="let t of TICKET_TYPES"
+                    class="type-card"
+                    type="button"
+                    [class.type-card--selected]="createForm.get('ticketType')?.value === t.value"
+                    (click)="createForm.get('ticketType')!.setValue(t.value)">
+              <i class="ti {{ t.icon }} type-card__icon"></i>
+              <span class="type-card__label">{{ t.label }}</span>
+              <span class="type-card__qty" *ngIf="t.needsQty">cantidad requerida</span>
+            </button>
+          </div>
+          <p class="form-error" *ngIf="isFieldInvalid(createForm, 'ticketType')">
+            Selecciona un tipo de acción
+          </p>
+        </div>
+
+        <!-- Formulario admin -->
+        <form class="create-form" [formGroup]="createForm" (ngSubmit)="submitAdminCreate()" novalidate>
+
+          <div class="form-group">
+            <label class="form-label" for="targetUserId">ID del usuario destino *</label>
+            <input id="targetUserId" type="number" class="form-input"
+                   [class.form-input--error]="isFieldInvalid(createForm, 'targetUserId')"
+                   formControlName="targetUserId" placeholder="Ej: 42" />
+            <p class="form-error" *ngIf="isFieldInvalid(createForm, 'targetUserId')">
+              El ID del usuario es obligatorio y debe ser mayor a 0
+            </p>
+          </div>
+
+          <div class="form-group" *ngIf="needsQuantity(selectedTicketType)">
+            <label class="form-label" for="quantity">Cantidad *</label>
+            <input id="quantity" type="number" class="form-input"
+                   [class.form-input--error]="isFieldInvalid(createForm, 'quantity')"
+                   formControlName="quantity" placeholder="Ej: 5" />
+            <p class="form-error" *ngIf="isFieldInvalid(createForm, 'quantity')">
+              Ingresa una cantidad mayor a 0
+            </p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="notes">Notas / motivo</label>
+            <textarea id="notes" class="form-textarea"
+                      [class.form-input--error]="isFieldInvalid(createForm, 'notes')"
+                      formControlName="notes" rows="4"
+                      placeholder="Descripción opcional del caso…"></textarea>
+            <p class="form-error" *ngIf="isFieldInvalid(createForm, 'notes')">Máximo 500 caracteres</p>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn--secondary" (click)="setView('tickets')">Cancelar</button>
+            <button type="submit" class="btn btn--primary" [disabled]="isLoading">
+              <i class="ti ti-send"></i>
+              <span *ngIf="!isLoading">Crear Ticket</span>
+              <span *ngIf="isLoading">Creando…</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+
+    <!-- ── [USER] MIS TICKETS ─────────────────────────────────────────── -->
+    <section *ngIf="!isAdmin && activeView === 'mis-tickets'" class="view">
+      <header class="view__header view__header--row">
+        <div>
+          <h1 class="view__title">Mis Tickets</h1>
+          <p class="view__subtitle">Historial de solicitudes de tu cuenta</p>
+        </div>
+        <button class="btn btn--primary" (click)="setView('solicitar')">
+          <i class="ti ti-plus"></i> Nueva solicitud
+        </button>
+      </header>
+
+      <!-- Aviso de acceso restringido -->
+      <div class="access-notice">
+        <i class="ti ti-info-circle access-notice__icon"></i>
+        <p>
+          Solo puedes ver tus propios tickets. Para solicitar cambios en tu cuenta,
+          <button class="access-notice__link" (click)="setView('solicitar')">crea una nueva solicitud</button>
+          y un agente la atenderá.
+        </p>
+      </div>
+
+      <ng-container *ngTemplateOutlet="filterBar"></ng-container>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando tickets…</span>
+      </div>
+
+      <!-- Empty -->
+      <div *ngIf="!isLoading && tickets.length === 0" class="empty-state">
+        <i class="ti ti-clipboard-list empty-state__icon"></i>
+        <p>No tienes tickets todavía</p>
+        <button class="btn btn--primary" (click)="setView('solicitar')">
+          <i class="ti ti-plus"></i> Crear primera solicitud
+        </button>
+      </div>
+
+      <!-- Tabla usuario (sin columna Agente ni Acciones) -->
+      <div *ngIf="!isLoading && tickets.length > 0" class="table-wrapper">
+        <table class="tickets-table">
+          <thead>
+          <tr>
+            <th>#ID</th>
+            <th>Tipo de solicitud</th>
+            <th>Cantidad</th>
+            <th>Estado</th>
+            <th>Notas</th>
+            <th>Resolución</th>
+            <th>Fecha</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let ticket of tickets" class="tickets-table__row">
+            <td class="td-id">#{{ ticket.id }}</td>
+            <td>
+              <span class="type-tag">
+                <i class="ti {{ getTicketTypeIcon(ticket.ticketType) }}"></i>
+                {{ getTicketTypeLabel(ticket.ticketType) }}
+              </span>
+            </td>
+            <td class="td-qty">{{ ticket.quantity ?? '—' }}</td>
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(ticket.status!)">
+                {{ getStatusLabel(ticket.status!) }}
+              </span>
+            </td>
+            <td class="td-notes">{{ ticket.notes || '—' }}</td>
+            <td class="td-notes">{{ ticket.resolution || 'Pendiente de revisión' }}</td>
+            <td class="td-date">{{ ticket.createdAt | date:'dd/MM/yy HH:mm' }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-container *ngTemplateOutlet="pagination"></ng-container>
+    </section>
+
+
+    <!-- ── [USER] SOLICITAR AYUDA ─────────────────────────────────────── -->
+    <section *ngIf="!isAdmin && activeView === 'solicitar'" class="view">
+      <header class="view__header">
+        <h1 class="view__title">Solicitar ayuda</h1>
+        <p class="view__subtitle">Un agente de soporte revisará y atenderá tu solicitud</p>
+      </header>
+
+      <div class="access-notice access-notice--shield">
+        <i class="ti ti-shield-check access-notice__icon"></i>
+        <p>Tu solicitud será atendida por un agente. No puedes gestionar ni resolver tickets directamente.</p>
+      </div>
+
+      <div class="create-layout">
+
+        <!-- Selector tipo amigable (sin enums técnicos) -->
+        <div class="type-selector">
+          <p class="type-selector__label">¿Qué necesitas?</p>
+          <div class="type-grid">
+            <button *ngFor="let t of USER_TICKET_TYPES"
+                    class="type-card"
+                    type="button"
+                    [class.type-card--selected]="selectedUserType === t.key"
+                    (click)="setUserType(t.key)">
+              <i class="ti {{ t.icon }} type-card__icon"></i>
+              <span class="type-card__label">{{ t.label }}</span>
+              <span class="type-card__qty" *ngIf="t.needsQty">indica la cantidad</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulario usuario -->
+        <form class="create-form" [formGroup]="userRequestForm" (ngSubmit)="submitUserRequest()" novalidate>
+
+          <div class="form-group">
+            <label class="form-label">Describe tu problema *</label>
+            <textarea class="form-textarea"
+                      [class.form-input--error]="isFieldInvalid(userRequestForm, 'description')"
+                      formControlName="description" rows="5"
+                      placeholder="Explica qué ocurrió, cuándo y cualquier detalle relevante…"></textarea>
+            <p class="form-error" *ngIf="isFieldInvalid(userRequestForm, 'description')">
+              Este campo es obligatorio (máx. 500 caracteres)
+            </p>
+          </div>
+
+          <div class="form-group" *ngIf="selectedUserTypeNeedsQty">
+            <label class="form-label">Cantidad involucrada *</label>
+            <input type="number" class="form-input"
+                   [class.form-input--error]="isFieldInvalid(userRequestForm, 'quantity')"
+                   formControlName="quantity"
+                   placeholder="Ej: 5" />
+            <p class="form-error" *ngIf="isFieldInvalid(userRequestForm, 'quantity')">
+              Ingresa una cantidad mayor a 0
+            </p>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn--secondary" (click)="setView('mis-tickets')">Cancelar</button>
+            <button type="submit" class="btn btn--primary" [disabled]="isLoading">
+              <i class="ti ti-send"></i>
+              <span *ngIf="!isLoading">Enviar solicitud</span>
+              <span *ngIf="isLoading">Enviando…</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+
+<!-- ── MODAL RESOLVER / RECHAZAR (solo admin) ────────────────────────────── -->
+<div class="modal-backdrop" *ngIf="isAdmin && showActionModal" (click)="closeActionModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal__header"
+         [class.modal__header--resolve]="modalAction === 'resolve'"
+         [class.modal__header--reject]="modalAction === 'reject'">
+      <div class="modal__header-title">
+        <i class="ti" [ngClass]="modalAction === 'resolve' ? 'ti-check' : 'ti-x'"></i>
+        {{ modalAction === 'resolve' ? 'Resolver Ticket' : 'Rechazar Ticket' }}
+      </div>
+      <button class="modal__close" (click)="closeActionModal()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <div class="modal__body">
+      <p class="modal__info" *ngIf="selectedTicket">
+        <strong>Ticket #{{ selectedTicket.id }}</strong> —
+        <i class="ti {{ getTicketTypeIcon(selectedTicket.ticketType) }}"></i>
+        {{ getTicketTypeLabel(selectedTicket.ticketType) }}
+        para <strong>{{ selectedTicket.targetUserName ?? 'ID ' + selectedTicket.targetUserId }}</strong>
+        <span *ngIf="selectedTicket.quantity"> · cantidad: {{ selectedTicket.quantity }}</span>
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">
+          {{ modalAction === 'resolve' ? 'Resolución *' : 'Motivo del rechazo *' }}
+        </label>
+        <textarea class="form-textarea"
+                  [(ngModel)]="actionResolution"
+                  rows="3"
+                  placeholder="Escribe el detalle de la acción…"></textarea>
+      </div>
+    </div>
+
+    <div class="modal__footer">
+      <button class="btn btn--secondary" (click)="closeActionModal()">Cancelar</button>
+      <button class="btn"
+              [class.btn--primary]="modalAction === 'resolve'"
+              [class.btn--reject]="modalAction === 'reject'"
+              [disabled]="!actionResolution.trim() || isLoading"
+              (click)="confirmAction()">
+        <i class="ti" [ngClass]="modalAction === 'resolve' ? 'ti-check' : 'ti-x'"></i>
+        {{ modalAction === 'resolve' ? 'Confirmar resolución' : 'Confirmar rechazo' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── TOAST ─────────────────────────────────────────────────────────────── -->
+<div class="toast"
+     [class.toast--visible]="showToast"
+     [class.toast--success]="toastType === 'success'"
+     [class.toast--error]="toastType === 'error'">
+  <i class="ti" [ngClass]="toastType === 'success' ? 'ti-check' : 'ti-alert-circle'"></i>
+  {{ toastMessage }}
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════
+     TEMPLATES COMPARTIDOS (admin y user los reutilizan)
+     ════════════════════════════════════════════════════════════════════ -->
+
+<!-- Barra de filtros -->
+<ng-template #filterBar>
+  <div class="filter-bar">
+    <button *ngFor="let f of STATUS_FILTERS"
+            class="filter-btn"
+            [class.filter-btn--active]="selectedStatus === f.value"
+            (click)="applyFilter(f.value)">
+      {{ f.label }}
+    </button>
+  </div>
+</ng-template>
+
+<!-- Tabla de tickets (showActions solo para admin) -->
+<ng-template #ticketsTable let-showActions="showActions">
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <span>Cargando tickets…</span>
+  </div>
+
+  <div *ngIf="!isLoading && tickets.length === 0" class="empty-state">
+    <i class="ti ti-ticket empty-state__icon"></i>
+    <p>No hay tickets para mostrar</p>
+  </div>
+
+  <div *ngIf="!isLoading && tickets.length > 0" class="table-wrapper">
+    <table class="tickets-table">
+      <thead>
+      <tr>
+        <th>#ID</th>
+        <th>Usuario</th>
+        <th>Agente</th>
+        <th>Tipo</th>
+        <th>Cant.</th>
+        <th>Estado</th>
+        <th>Notas</th>
+        <th>Creado</th>
+        <th *ngIf="showActions">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let ticket of tickets" class="tickets-table__row">
+        <td class="td-id">#{{ ticket.id }}</td>
+        <td>
+          <div class="user-cell">
+            <span class="user-cell__name">{{ ticket.targetUserName || '–' }}</span>
+            <span class="user-cell__id">ID {{ ticket.targetUserId }}</span>
+          </div>
+        </td>
+        <td class="td-agent">{{ ticket.agentUserName || '–' }}</td>
+        <td>
+          <span class="type-tag">
+            <i class="ti {{ getTicketTypeIcon(ticket.ticketType) }}"></i>
+            {{ getTicketTypeLabel(ticket.ticketType) }}
+          </span>
+        </td>
+        <td class="td-qty">{{ ticket.quantity ?? '–' }}</td>
+        <td>
+          <span class="badge" [ngClass]="getStatusClass(ticket.status!)">
+            {{ getStatusLabel(ticket.status!) }}
+          </span>
+        </td>
+        <td class="td-notes">{{ ticket.notes || '–' }}</td>
+        <td class="td-date">{{ ticket.createdAt | date:'dd/MM/yy HH:mm' }}</td>
+        <td *ngIf="showActions">
+          <div class="action-btns"
+               *ngIf="ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS'; else processed">
+            <button class="btn btn--resolve" (click)="openActionModal(ticket, 'resolve')">
+              <i class="ti ti-check"></i> Resolver
+            </button>
+            <button class="btn btn--reject" (click)="openActionModal(ticket, 'reject')">
+              <i class="ti ti-x"></i> Rechazar
+            </button>
+          </div>
+          <ng-template #processed>
+            <span class="processed-label">Procesado</span>
+          </ng-template>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</ng-template>
+
+<!-- Paginación -->
+<ng-template #pagination>
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="pag-btn" (click)="changePage(currentPage - 1)"
+            [disabled]="currentPage === 0">
+      <i class="ti ti-chevron-left"></i>
+    </button>
+    <button *ngFor="let p of pages"
+            class="pag-btn"
+            [class.pag-btn--active]="p === currentPage"
+            (click)="changePage(p)">
+      {{ p + 1 }}
+    </button>
+    <button class="pag-btn" (click)="changePage(currentPage + 1)"
+            [disabled]="currentPage === totalPages - 1">
+      <i class="ti ti-chevron-right"></i>
+    </button>
+  </div>
+</ng-template>

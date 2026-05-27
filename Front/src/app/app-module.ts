@@ -31,6 +31,7 @@ import { QrGenerator } from './qr-generator/qr-generator';
 import { TradeScreen } from './trade-screen/trade-screen';
 import { ActivityLogComponent } from './activity-log-component/activity-log-component';
 import { UserAdminComponent } from './user-admin.component/user-admin.component';
+import { SupportComponent } from './support-component/support-component';
 
 export function initializeApp(authService: AuthService) {
   return () => authService.cargarDatosIniciales();
@@ -54,6 +55,7 @@ export function initializeApp(authService: AuthService) {
     TradeScreen,
     ActivityLogComponent,
     UserAdminComponent,
+    SupportComponent,
   ],
   imports: [
     BrowserModule,
