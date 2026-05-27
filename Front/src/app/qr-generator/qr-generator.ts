@@ -89,7 +89,6 @@ export class QrGenerator implements OnInit, OnDestroy {
 
   unirseAIntercambio(): void {
     if (!this.sessionUuidInput.trim()) {
-      // ✅ Popup en lugar de alert
       this.errorMessage = 'Por favor ingresa un ID de sesión válido.';
       this.showError = true;
       this.cdr.detectChanges();
@@ -101,32 +100,40 @@ export class QrGenerator implements OnInit, OnDestroy {
     this.uniendose = true;
     this.cdr.detectChanges();
 
-    this.httpService.joinSession(uuidDestino, this.myUserId).subscribe({
-      next: (mensaje: string) => {
-        const match = mensaje.match(/ID:\s*(\d+)/);
-        this.userAId = match ? Number(match[1]) : 0;
+    // ✅ CORRECCIÓN: primero conectar WS y suscribirse, LUEGO hacer el HTTP join.
+    // El backend envía JOINED dentro del mismo flujo HTTP, así que si
+    // conectamos después de la respuesta HTTP siempre perdemos ese mensaje.
+    this.wsService.setSessionData(uuidDestino, this.myUserId);
+    const token = this.authService.getToken() || '';
 
-        this.wsService.setSessionData(uuidDestino, this.myUserId);
-        const token = this.authService.getToken() || '';
+    this.wsService.connect(token, this.myUserId, (status) => {
+      // WS ya está suscrito — ahora sí hacemos el HTTP join
+      this.httpService.joinSession(uuidDestino, this.myUserId).subscribe({
+        next: (mensaje: string) => {
+          const match = mensaje.match(/ID:\s*(\d+)/);
+          this.userAId = match ? Number(match[1]) : 0;
 
-        this.wsService.connect(token, this.myUserId, (status) => {
           this.uniendose = false;
           this.cdr.detectChanges();
-          this.router.navigate(['/websocket']);
 
-          setTimeout(() => {
-            this.wsService.notifyJoin(uuidDestino, this.myUserId, this.userAId);
-          }, 1000);
-        });
-      },
-      error: (err) => {
-        this.uniendose = false;
-        // ✅ Popup en lugar de alert
-        this.errorMessage = err?.error || 'Error al unirse a la sesión.';
-        this.showError = true;
-        this.cdr.detectChanges();
-        setTimeout(() => { this.showError = false; this.cdr.detectChanges(); }, 5000);
-      }
+          // JOINED ya fue emitido por el backend vía WS al hacer joinSession.
+          // notifyJoin lo reenvía para garantizar entrega si por alguna razón
+          // el mensaje WS llegó antes que el subscribe (edge case).
+          // Con el WS ya activo al momento del join, en la mayoría de casos
+          // no hace falta, pero lo mantenemos como seguro.
+          this.wsService.notifyJoin(uuidDestino, this.myUserId, this.userAId);
+
+          this.router.navigate(['/websocket']);
+        },
+        error: (err) => {
+          this.uniendose = false;
+          this.wsService.disconnect();
+          this.errorMessage = err?.error || 'Error al unirse a la sesión.';
+          this.showError = true;
+          this.cdr.detectChanges();
+          setTimeout(() => { this.showError = false; this.cdr.detectChanges(); }, 5000);
+        }
+      });
     });
   }
 

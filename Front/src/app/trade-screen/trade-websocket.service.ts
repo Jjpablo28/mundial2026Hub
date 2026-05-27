@@ -48,11 +48,16 @@ export class TradeWebSocketService {
     this.connectedUserId = userId;
 
     // Si ya hay conexión activa del mismo usuario, reutilizarla
+    // Las suscripciones /queue ya están registradas desde el onConnect original
     if (this.stompClient && this.stompClient.active) {
       console.log('[STOMP] Reutilizando conexión activa para userId:', userId);
       if (onConnectedCallback) onConnectedCallback("CONNECTED");
       return;
     }
+
+    // ✅ Limpiar valor residual del BehaviorSubject antes de conectar
+    // para evitar que un JOINED de una sesión anterior dispare navegación falsa
+    this.notifications$.next('');
 
     this.doConnect(onConnectedCallback);
   }
