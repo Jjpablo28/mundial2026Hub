@@ -83,7 +83,7 @@
           <div class="matches-horizontal-scroll">
             <div class="match-card-mini" *ngFor="let m of upcomingMatches">
               <div class="match-mini-header">
-                <span>{{ m.stage | titlecase }}</span>
+                <span>{{ formatStage(m.stage,m.matchday) }}</span>
                 <span class="live-tag">Próximamente</span>
               </div>
               <div class="match-mini-body">
