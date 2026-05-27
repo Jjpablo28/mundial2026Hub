@@ -51,6 +51,7 @@ export class HomeComponent implements OnInit {
   public isBracketModalOpen: boolean = false;
 
   public partidos: any[] = [];
+  public packCount: number = 0;
 
   public isFixtureModalOpen: boolean = false;
   public fixtureGroups: { name: string, matches: any[] }[] = [];
@@ -332,8 +333,8 @@ export class HomeComponent implements OnInit {
     if (id) {
       this.homeService.getUserById(id).subscribe({
         next: res => {
+          this.packCount = res.packets ?? 0; // ← agregar esta línea
           this.authService.actualizarAvatar(res.avatarUrl);
-
           if (res.favoriteTeam && this.teams && this.teams.length > 0) {
             const equipoEncontrado = this.teams.find(t => t.name === res.favoriteTeam);
             if (equipoEncontrado) {
