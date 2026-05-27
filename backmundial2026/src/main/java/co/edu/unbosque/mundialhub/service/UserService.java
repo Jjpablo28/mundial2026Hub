@@ -304,14 +304,18 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	    User userToDelete = userRepo.findById(id)
 	            .orElseThrow(() -> new Exceptions.UserNotFoundException(String.valueOf(id)));
 
-	    // Loguear ANTES (REQUIRES_NEW confirma este insert antes de seguir)
-	    activityLogService.log(id, "USER_DELETED", "Cuenta eliminada del sistema.");
+	    // Desencriptar el username para que el log sea legible por humanos
+	    String decryptedUsername = AESUtil.decrypt(userToDelete.getUserName());
 
-	    // Eliminar dependencias — incluyendo los logs DESPUÉS de registrar el último
+	    // Loguear ANTES asociando la acción al ID 1 (Admin/Sistema)
+	    activityLogService.log(1L, "USER_DELETED", "Cuenta " + decryptedUsername + " eliminada del sistema.");
+
+	    // Eliminar dependencias del usuario a borrar
 	    paymentRepository.deleteByUserId(id);
 	    userStickerRepo.deleteByUserId(id);
-	    logRepo.deleteByUserId(id);  // ← elimina los logs ANTES de borrar el User
+	    logRepo.deleteByUserId(id);  
 
+	    // Finalmente, eliminar el User
 	    userRepo.delete(userToDelete);
 	}
 
