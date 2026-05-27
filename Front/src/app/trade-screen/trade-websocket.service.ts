@@ -47,16 +47,22 @@ export class TradeWebSocketService {
     this.currentToken = token;
     this.connectedUserId = userId;
 
-    // Si ya hay conexión activa del mismo usuario, reutilizarla
-    // Las suscripciones /queue ya están registradas desde el onConnect original
-    if (this.stompClient && this.stompClient.active) {
+    // Verificar que la conexión esté realmente viva (active puede quedar true con WS muerto)
+    const wsReady = this.stompClient?.webSocket?.readyState === WebSocket.OPEN;
+    if (this.stompClient && this.stompClient.active && wsReady) {
       console.log('[STOMP] Reutilizando conexión activa para userId:', userId);
       if (onConnectedCallback) onConnectedCallback("CONNECTED");
       return;
     }
 
-    // ✅ Limpiar valor residual del BehaviorSubject antes de conectar
-    // para evitar que un JOINED de una sesión anterior dispare navegación falsa
+    // Si había un cliente en estado inconsistente, limpiarlo antes de reconectar
+    if (this.stompClient) {
+      console.warn('[STOMP] Conexión inconsistente detectada, reconectando...');
+      try { this.stompClient.deactivate(); } catch (_) {}
+      this.stompClient = null;
+    }
+
+    // Limpiar valor residual del BehaviorSubject para evitar JOINED fantasmas
     this.notifications$.next('');
 
     this.doConnect(onConnectedCallback);
@@ -101,10 +107,21 @@ export class TradeWebSocketService {
 
     this.stompClient.onStompError = (frame) => {
       console.error('[STOMP] ❌ Error de broker:', frame.headers['message']);
+      // Limpiar para que el próximo connect() no reutilice esta conexión muerta
+      this.stompClient = null;
     };
 
     this.stompClient.onDisconnect = () => {
       console.log('[STOMP] 🔌 Desconectado');
+      // Limpiar para forzar reconexión real en el próximo intento
+      this.stompClient = null;
+    };
+
+    // ✅ Caso específico: WS se cierra antes de establecerse (Render cold start)
+    // En este caso onDisconnect no siempre se dispara, pero onWebSocketClose sí
+    this.stompClient.onWebSocketClose = (evt) => {
+      console.warn('[STOMP] 🔌 WebSocket cerrado (code:', evt.code, ')');
+      this.stompClient = null;
     };
 
     this.stompClient.activate();
