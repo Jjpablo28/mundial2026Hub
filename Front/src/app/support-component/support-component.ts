@@ -289,7 +289,7 @@ export class SupportComponent implements OnInit, OnDestroy {
 
     const ticketType = USER_TYPE_MAP[this.selectedUserType] ?? 'CUSTOM';
     const payload: CreateTicketPayload = {
-      targetUserId: this.currentUserId!,
+      targetUserId: this.currentUserId!,   // el ticket es para el propio usuario
       ticketType,
       quantity: this.selectedUserTypeNeedsQty
         ? this.userRequestForm.value.quantity
@@ -297,8 +297,8 @@ export class SupportComponent implements OnInit, OnDestroy {
       notes: this.userRequestForm.value.description,
     };
 
-    // El usuario se registra como agente de su propio ticket
-    this.supportService.createTicket(payload, this.currentUserId!)
+    // agentId = 0 indica que aún no hay agente asignado (ticket abierto por el propio usuario)
+    this.supportService.createTicket(payload, 0)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
