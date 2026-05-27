@@ -131,14 +131,13 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 			entity.setAccountNonLocked(true);
 			entity.setCredentialsNonExpired(true);
 
-			userRepo.save(entity);
-
-			activityLogService.log(entity.getId().longValue(), "USER_CREATED",
-					"Nueva cuenta registrada. Username: " + newUserDto.getUserName() + ". Email: " + newUserDto.getEmail());
+			User savedEntity = userRepo.save(entity);
+			activityLogService.log(savedEntity.getId().longValue(), "USER_CREATED",
+			        "Nueva cuenta registrada. Username: " + newUserDto.getUserName() + ". Email: " + newUserDto.getEmail());
 
 			sendConfirmationCode(newUserDto.getEmail(), generatedCode);
 
-			UserDTO createdDto = modelMapper.map(entity, UserDTO.class);
+			UserDTO createdDto = modelMapper.map(savedEntity, UserDTO.class);
 			decryptSensitiveFields(createdDto);
 
 			return createdDto;
