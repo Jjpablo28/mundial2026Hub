@@ -306,6 +306,8 @@ export class HomeComponent implements OnInit {
     this.loadTeams();
     this.loadCountries();
     this.cargarPartidos()
+    this.cdr.detectChanges();
+
     this.userName = this.authService.getUserName() || 'Usuario';
 
     const role = this.authService.getRole();
