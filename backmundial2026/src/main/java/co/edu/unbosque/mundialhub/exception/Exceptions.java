@@ -117,12 +117,11 @@ public class Exceptions {
      *         (insensible a mayúsculas); {@code false} en caso de discrepancia,
      *         vacío o nulo.
      */
+ // Después — cualquier dominio válido
     public boolean isGmailValid(String email) {
-        if (email == null || email.isBlank())
-            return false;
-        return email.matches("(?i)^[a-zA-Z0-9._%+-]+@gmail\\.com$");
+        if (email == null || email.isBlank()) return false;
+        return email.matches("(?i)^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
-
     /**
      * Valida que una cadena de texto no sea nula, no esté vacía y no contenga
      * caracteres HTML peligrosos. Útil para campos de texto libre como nombres,

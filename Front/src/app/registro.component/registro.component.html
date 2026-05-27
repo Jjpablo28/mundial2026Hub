@@ -10,20 +10,20 @@
         <form (ngSubmit)="register()" #registerForm="ngForm">
 
           <div class="input-group">
-            <input type="text" [(ngModel)]="userName" name="user" placeholder="Usuario" required />
+            <input type="text" [(ngModel)]="userName" name="user" placeholder="Usuario" required/>
           </div>
 
           <div class="input-group">
-            <input type="text" [(ngModel)]="name" name="name" placeholder="Nombre Completo" required />
+            <input type="text" [(ngModel)]="name" name="name" placeholder="Nombre Completo" required/>
           </div>
 
           <div class="input-group">
             <input type="email" [(ngModel)]="email" name="email"
-                   (input)="formatIdentifier()" placeholder="Correo electrónico" required />
+                   (input)="formatIdentifier()" placeholder="Correo electrónico" required/>
           </div>
 
           <div class="input-group">
-            <input type="text" [(ngModel)]="id" name="id" placeholder="Identificación" required />
+            <input type="text" [(ngModel)]="id" name="id" placeholder="Identificación" required/>
           </div>
 
           <div class="input-group">
@@ -41,11 +41,47 @@
           </div>
 
           <div class="input-group">
-            <input type="password" [(ngModel)]="password" name="password" placeholder="Contraseña" required />
+            <input
+              type="password"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="Contraseña"
+              required
+              #passwordField="ngModel"
+              [class.input-error]="passwordField.touched && !isPasswordValid(password)"
+              (focus)="passwordFocused = true"
+              (blur)="passwordFocused = false"
+            />
+            <div class="password-hints" *ngIf="passwordField.touched || passwordFocused">
+  <span [class.ok]="password.length >= 8">
+  <i class="fas" [class.fa-check]="password.length >= 8" [class.fa-times]="password.length < 8"></i>
+  Mínimo 8 caracteres
+</span>
+              <span [class.ok]="hasLower(password)">
+    <i class="fas" [class.fa-check]="hasLower(password)" [class.fa-times]="!hasLower(password)"></i>
+    Una minúscula
+  </span>
+              <span [class.ok]="hasUpper(password)">
+    <i class="fas" [class.fa-check]="hasUpper(password)" [class.fa-times]="!hasUpper(password)"></i>
+    Una mayúscula
+  </span>
+              <span [class.ok]="hasDigit(password)">
+    <i class="fas" [class.fa-check]="hasDigit(password)" [class.fa-times]="!hasDigit(password)"></i>
+    Un número
+  </span>
+              <span [class.ok]="hasSymbol(password)">
+    <i class="fas" [class.fa-check]="hasSymbol(password)" [class.fa-times]="!hasSymbol(password)"></i>
+    Un símbolo especial
+  </span>
+              <span [class.ok]="hasNoForbidden(password)">
+    <i class="fas" [class.fa-check]="hasNoForbidden(password)" [class.fa-times]="!hasNoForbidden(password)"></i>
+    Sin caracteres prohibidos ni solo números
+  </span>
+            </div>
           </div>
 
 
-          <button type="submit" [disabled]="isLoading || !registerForm.valid">
+          <button type="submit" [disabled]="isLoading || !registerForm.valid || !isPasswordValid(password)">
             <!-- Si NO está cargando, muestra el texto normal -->
             <span *ngIf="!isLoading">Registrarse</span>
 
@@ -67,7 +103,7 @@
     <div class="auth-right">
       <div class="info-box">
 
-        <img src="assets/img/ae69d8e0-e865-468d-93ec-b9263784c326.jpg" alt="Registro Info" />
+        <img src="assets/img/ae69d8e0-e865-468d-93ec-b9263784c326.jpg" alt="Registro Info"/>
       </div>
     </div>
 

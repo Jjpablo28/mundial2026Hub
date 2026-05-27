@@ -24,7 +24,6 @@ import co.edu.unbosque.mundialhub.repository.UserRepository;
 import co.edu.unbosque.mundialhub.repository.UserStickerRepository;
 import co.edu.unbosque.mundialhub.util.AESUtil;
 import jakarta.transaction.Transactional;
-import org.springframework.transaction.annotation.Propagation;
 
 /**
  * Servicio encargado de la gestión de usuarios, autenticación, cifrado de campos 

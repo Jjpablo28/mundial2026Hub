@@ -368,12 +368,12 @@ public class UserController {
         try {
             userServ.deleteById(id);
             return ResponseEntity.ok(Map.of("message", "Usuario eliminado con éxito", "success", true));
-        } catch (Exceptions.ResourceNotFoundException e) {
+        } catch (Exceptions.ResourceNotFoundException | Exceptions.UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("message", e.getMessage(), "success", false));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "Usuario no encontrado", "success", false));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Error inesperado: " + e.getMessage(), "success", false));
         }
     }
 

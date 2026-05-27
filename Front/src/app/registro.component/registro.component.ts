@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../security/AuthService';
 
+
 @Component({
   selector: 'app-registro',
   standalone: false,
@@ -21,6 +22,7 @@ export class RegistroComponent implements OnInit {
   team: string | null = null;
   password: string = '';
   isLoading: boolean = false;
+  passwordFocused = false;
 
   showErrorPopup: boolean = false;
   errorMessage: string = '';
@@ -79,6 +81,18 @@ export class RegistroComponent implements OnInit {
     }
 
   }
+
+  isPasswordValid(password: string): boolean {
+    if (!password || password.length < 8) return false;
+    const forbidden = /[<>&"'\/= ]/;
+    if (forbidden.test(password)) return false;
+    if (/^\d+$/.test(password)) return false;
+    return /[a-z]/.test(password)
+      && /[A-Z]/.test(password)
+      && /[0-9]/.test(password)
+      && /[^a-zA-Z0-9<>&"'\/= ]/.test(password);
+  }
+
   register() {
     this.isLoading = true; // Activamos el loader al iniciar
 
@@ -121,4 +135,9 @@ export class RegistroComponent implements OnInit {
       }
     });
   }
+  hasLower  = (p: string) => /[a-z]/.test(p ?? '');
+  hasUpper  = (p: string) => /[A-Z]/.test(p ?? '');
+  hasDigit  = (p: string) => /[0-9]/.test(p ?? '');
+  hasSymbol = (p: string) => /[^a-zA-Z0-9<>&"'\/= ]/.test(p ?? '');
+  hasNoForbidden = (p: string) => !/[<>&"'\/= ]/.test(p ?? '') && !/^[0-9]+$/.test(p ?? '');
 }
