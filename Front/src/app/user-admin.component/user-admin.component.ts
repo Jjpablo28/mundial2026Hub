@@ -176,6 +176,8 @@ export class UserAdminComponent implements OnInit {
       error: (err) => {
         this.isSaving = false;
         this.showError(err?.error?.message || 'Error al eliminar el usuario.');
+        console.log(err)
+
       }
     });
   }
