@@ -20,6 +20,7 @@ import co.edu.unbosque.mundialhub.exception.Exceptions;
 import co.edu.unbosque.mundialhub.model.User;
 import co.edu.unbosque.mundialhub.model.User.Role;
 import co.edu.unbosque.mundialhub.repository.PaymentRepository;
+import co.edu.unbosque.mundialhub.repository.UserActivityLogRepository;
 import co.edu.unbosque.mundialhub.repository.UserRepository;
 import co.edu.unbosque.mundialhub.repository.UserStickerRepository;
 import co.edu.unbosque.mundialhub.util.AESUtil;
@@ -53,6 +54,8 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 	@Autowired
 	private ActivityLogService activityLogService;
+	@Autowired
+	private UserActivityLogRepository logRepo;
 
 	@Autowired
 	private ModelMapper modelMapper;
@@ -294,19 +297,22 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	@Override
 	@Transactional
 	public void deleteById(Long id) {
-		if (id == null) {
-			throw new Exceptions.ValidationException("El ID del usuario no puede ser nulo.");
-		}
-		paymentRepository.deleteByUserId(id);
-		userStickerRepo.deleteByUserId(id);
-		
-		
-		
-		User userToDelete = userRepo.findById(id)
-				.orElseThrow(() -> new Exceptions.UserNotFoundException(String.valueOf(id)));
+	    if (id == null) {
+	        throw new Exceptions.ValidationException("El ID del usuario no puede ser nulo.");
+	    }
 
-		activityLogService.log(id, "USER_DELETED", "Cuenta eliminada del sistema.");
-		userRepo.delete(userToDelete);
+	    User userToDelete = userRepo.findById(id)
+	            .orElseThrow(() -> new Exceptions.UserNotFoundException(String.valueOf(id)));
+
+	    // Loguear ANTES (REQUIRES_NEW confirma este insert antes de seguir)
+	    activityLogService.log(id, "USER_DELETED", "Cuenta eliminada del sistema.");
+
+	    // Eliminar dependencias — incluyendo los logs DESPUÉS de registrar el último
+	    paymentRepository.deleteByUserId(id);
+	    userStickerRepo.deleteByUserId(id);
+	    logRepo.deleteByUserId(id);  // ← elimina los logs ANTES de borrar el User
+
+	    userRepo.delete(userToDelete);
 	}
 
 	/**

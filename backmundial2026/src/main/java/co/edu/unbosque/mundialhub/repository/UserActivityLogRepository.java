@@ -15,4 +15,5 @@ public interface UserActivityLogRepository extends JpaRepository<UserActivityLog
     List<UserActivityLog> findAllByOrderByCreatedAtDesc();
     Page<UserActivityLog> findByUserId(Long userId, Pageable pageable);
     Page<UserActivityLog> findAll(Pageable pageable);
+    void deleteByUserId(Long userId);
 }
