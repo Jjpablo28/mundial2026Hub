@@ -68,7 +68,7 @@ export interface CreateTicketPayload {
 })
 export class SupportService {
 
-  private readonly BASE_URL = 'http://localhost:8080/support';
+  private readonly BASE_URL = 'https://mundial2026hub.onrender.com/support';
 
   constructor(private http: HttpClient) {}
 

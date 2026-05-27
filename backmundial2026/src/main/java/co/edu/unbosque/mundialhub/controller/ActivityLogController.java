@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,8 @@ import co.edu.unbosque.mundialhub.service.ActivityLogService;
 
 @RestController
 @RequestMapping("/activity-logs")
+@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:8081", "http://localhost:8082/register",
+"https://mundial2026hub.netlify.app" })
 public class ActivityLogController {
 
     @Autowired

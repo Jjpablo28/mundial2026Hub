@@ -51,6 +51,8 @@ public class SecurityConfig {
                 auth.requestMatchers("/trade-session/**").permitAll();
                 auth.requestMatchers("/user-stickers/**").permitAll();
                 auth.requestMatchers("/ws/**").permitAll();
+                auth.requestMatchers("/activity-logs/**").permitAll();
+                auth.requestMatchers("/support/**").permitAll();
                 auth.requestMatchers("/payments/**").authenticated();
                 auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
                 auth.anyRequest().authenticated();
