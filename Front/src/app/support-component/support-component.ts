@@ -260,7 +260,7 @@ export class SupportComponent implements OnInit, OnDestroy {
       quantity:     this.needsQuantity(this.createForm.value.ticketType)
         ? this.createForm.value.quantity
         : null,
-      notes: this.createForm.value.notes || undefined,
+      notes: (this.createForm.value.notes ?? '').trim() || undefined,
     };
 
     this.supportService.createTicket(payload, agentId)
@@ -294,7 +294,7 @@ export class SupportComponent implements OnInit, OnDestroy {
       quantity: this.selectedUserTypeNeedsQty
         ? this.userRequestForm.value.quantity
         : null,
-      notes: this.userRequestForm.value.description,
+      notes: (this.userRequestForm.value.description ?? '').trim() || undefined,
     };
 
     // agentId = 0 indica que aún no hay agente asignado (ticket abierto por el propio usuario)
