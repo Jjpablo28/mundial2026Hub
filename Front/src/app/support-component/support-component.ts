@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -42,7 +42,8 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   // ─── Estado de vista ──────────────────────────────────────────────────────
   activeView: ActiveView = 'dashboard';
-  isLoading  = false;
+  isLoading        = false;
+  isDashboardLoading = false;   // spinner exclusivo del dashboard
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
   showToast  = false;
@@ -97,6 +98,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private supportService: SupportService,
     private fb: FormBuilder,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   // ─── Lifecycle ────────────────────────────────────────────────────────────
@@ -112,7 +114,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     if (this.isAdmin) {
       this.activeView = 'dashboard';
       this.loadStats();
-      this.loadAllTickets();
+      this.loadAllTickets(true);
     } else {
       this.activeView = 'mis-tickets';
       this.loadUserTickets();
@@ -177,26 +179,46 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.supportService.getStats()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next:  s  => (this.stats = s),
+        next:  s  => { this.stats = s; this.cdr.markForCheck(); },
         error: () => this.notify('No se pudieron cargar las estadísticas', 'error'),
       });
   }
 
-  loadAllTickets(): void {
-    this.isLoading = true;
+  loadAllTickets(forDashboard = false): void {
+    if (forDashboard) {
+      this.isDashboardLoading = true;
+    } else {
+      this.isLoading = true;
+    }
+    this.cdr.markForCheck();
     const status = this.selectedStatus || undefined;
+
+    // Timeout de 65 s — Render free tier puede tardar hasta ~60 s en despertar
+    const timeoutId = setTimeout(() => {
+      if (forDashboard) this.isDashboardLoading = false;
+      else this.isLoading = false;
+      this.notify('El servidor tardó demasiado. Intenta de nuevo.', 'error');
+      this.cdr.markForCheck();
+    }, 65000);
+
     this.supportService
       .getAllTickets(this.currentPage, this.pageSize, status as TicketStatus)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: page => {
+          clearTimeout(timeoutId);
           this.tickets      = page.content;
           this.totalTickets = page.totalElements;
-          this.isLoading    = false;
+          if (forDashboard) this.isDashboardLoading = false;
+          else this.isLoading = false;
+          this.cdr.markForCheck();
         },
         error: () => {
-          this.isLoading = false;
+          clearTimeout(timeoutId);
+          if (forDashboard) this.isDashboardLoading = false;
+          else this.isLoading = false;
           this.notify('Error al cargar los tickets', 'error');
+          this.cdr.markForCheck();
         },
       });
   }
@@ -204,21 +226,23 @@ export class SupportComponent implements OnInit, OnDestroy {
   loadUserTickets(): void {
     if (!this.currentUserId) return;
     this.isLoading = true;
+    this.cdr.markForCheck();
     this.supportService
       .getTicketsByUser(this.currentUserId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: tickets => {
-          // Filtro local por status si hay uno seleccionado
           this.tickets      = this.selectedStatus
             ? tickets.filter(t => t.status === this.selectedStatus)
             : tickets;
           this.totalTickets = this.tickets.length;
           this.isLoading    = false;
+          this.cdr.markForCheck();
         },
         error: () => {
           this.isLoading = false;
           this.notify('Error al cargar tus tickets', 'error');
+          this.cdr.markForCheck();
         },
       });
   }
@@ -247,7 +271,7 @@ export class SupportComponent implements OnInit, OnDestroy {
           this.notify(res.message || 'Ticket creado exitosamente', 'success');
           this.createForm.reset();
           this.setView('tickets');
-          this.loadAllTickets();
+          this.loadAllTickets(false);
           this.loadStats();
         },
         error: err => {
@@ -273,9 +297,8 @@ export class SupportComponent implements OnInit, OnDestroy {
       notes: this.userRequestForm.value.description,
     };
 
-    // El agentId se asigna automáticamente en el backend; enviamos 0 como placeholder
-    // o puedes omitirlo si tu endpoint lo permite como opcional
-    this.supportService.createTicket(payload, 0)
+    // El usuario se registra como agente de su propio ticket
+    this.supportService.createTicket(payload, this.currentUserId!)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -322,7 +345,7 @@ export class SupportComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.notify(res.message, 'success');
         this.closeActionModal();
-        this.loadAllTickets();
+        this.loadAllTickets(false);
         this.loadStats();
       },
       error: err => {
@@ -336,13 +359,13 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   changePage(page: number): void {
     this.currentPage = page;
-    this.isAdmin ? this.loadAllTickets() : this.loadUserTickets();
+    this.isAdmin ? this.loadAllTickets(this.activeView === 'dashboard') : this.loadUserTickets();
   }
 
   applyFilter(status: TicketStatus | ''): void {
     this.selectedStatus = status;
     this.currentPage    = 0;
-    this.isAdmin ? this.loadAllTickets() : this.loadUserTickets();
+    this.isAdmin ? this.loadAllTickets(this.activeView === 'dashboard') : this.loadUserTickets();
   }
 
   get totalPages(): number { return Math.ceil(this.totalTickets / this.pageSize); }
@@ -352,8 +375,8 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   setView(view: ActiveView): void {
     this.activeView = view;
-    if (view === 'tickets')     this.loadAllTickets();
-    if (view === 'dashboard')   { this.loadStats(); this.loadAllTickets(); }
+    if (view === 'tickets')     this.loadAllTickets(false);
+    if (view === 'dashboard')   { this.loadStats(); this.loadAllTickets(true); }
     if (view === 'mis-tickets') this.loadUserTickets();
   }
 

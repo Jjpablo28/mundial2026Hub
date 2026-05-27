@@ -99,7 +99,7 @@ public class SupportTicketService {
 
         activityLogService.log(agentId, "SUPPORT_TICKET_CREATED",
                 "Ticket #" + ticket.getId() + " creado. Tipo: " + dto.getTicketType()
-                + " para usuario ID " + dto.getTargetUserId());
+                + " para usuario ID " + AESUtil.decrypt(dto.getTargetUserName()));
 
         return toDTO(ticket);
     }
