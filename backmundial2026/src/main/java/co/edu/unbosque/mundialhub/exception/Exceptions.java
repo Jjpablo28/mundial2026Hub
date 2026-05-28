@@ -20,8 +20,8 @@ package co.edu.unbosque.mundialhub.exception;
  * </ul>
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
- * @version 2.0
+ * @author Juan Pablo Cuervo Rodriguez
+ * @version 1.0
  */
 public class Exceptions {
 

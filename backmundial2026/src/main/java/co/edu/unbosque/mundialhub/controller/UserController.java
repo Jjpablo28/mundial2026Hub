@@ -45,8 +45,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * roles con {@link Exceptions#containsRole}.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
- * @version 2.0
+ * @author Juan Pablo Cuervo Rodriguez
+ * @version 1.0
  * @see RestController
  * @see CrossOrigin
  * @see UserService

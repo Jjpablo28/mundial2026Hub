@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
  * interceptores Bearer JWT y los esquemas de respuestas de error estandarizados
  * para simplificar las pruebas e integración del equipo de frontend.
  * </p>
- * * @author TuNombre / Grupo de Desarrollo
+ * * @author Juan Pablo Cuervo Rodriguez
  * 
  * @version 1.0
  * @see Configuration

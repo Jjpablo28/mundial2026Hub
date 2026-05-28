@@ -9,7 +9,7 @@ package co.edu.unbosque.mundialhub.model;
  * nuevas estructuras y formatos competitivos de macro-torneos internacionales
  * (como las Copas del Mundo con formatos ampliados).
  * </p>
- * * @author TuNombre / Grupo de Desarrollo
+ * * @author Juan Pablo Cuervo Rodriguez
  * 
  * @version 1.0
  */

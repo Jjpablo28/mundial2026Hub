@@ -1,121 +1,83 @@
 package co.edu.unbosque.mundialhub.controller;
 
 import co.edu.unbosque.mundialhub.dto.QrDTO;
-import co.edu.unbosque.mundialhub.exception.Exceptions;
 import co.edu.unbosque.mundialhub.model.TradeSession;
-import co.edu.unbosque.mundialhub.repository.TradeSessionRepository;
 import co.edu.unbosque.mundialhub.service.TradeSessionService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Controlador REST convencional encargado de inicializar y emparejar
- * las sesiones de intercambio mediante peticiones HTTP.
+ * Controlador REST para la gestión de sesiones de intercambio.
+ *
+ * Endpoints de unión disponibles:
+ *  - POST /trade-session/join?sessionUuid=&userBId=       (UUID completo / escaneo QR)
+ *  - POST /trade-session/join-by-code?shortCode=&userBId= (código alfanumérico corto)
+ *  - POST /trade-session/join-by-email?email=&userBId=    (correo del Usuario A)
  */
 @RestController
 @RequestMapping("/trade-session")
-@CrossOrigin(origins = {
-    "http://localhost:8080",
-    "http://localhost:8081",
-    "http://localhost:8082",
-    "https://mundial2026hub.netlify.app"
-})
-@Tag(name = "Trade Session", description = "Endpoints HTTP para la gestión de sesiones de intercambio mediante QR")
+@CrossOrigin(origins = "*")
 public class TradeSessionController {
 
     @Autowired
     private TradeSessionService sessionService;
 
-    @Autowired
-    private TradeSessionRepository sessionRepo;
-
-    // ✅ Inyectamos el template de mensajería para notificar por WebSocket
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    // ── Crear sesión ─────────────────────────────────────────────────────────
 
     /**
-     * Crea una nueva sesión de intercambio bajo demanda para el Host (Usuario A).
+     * Crea una nueva sesión de intercambio para el Usuario A.
+     * Retorna el QR en Base64 + el shortCode alfanumérico.
      */
     @PostMapping("/create")
-    public ResponseEntity<?> createSession(@RequestParam Long userId) {
-        // ✅ Validar ID positivo
-        if (userId == null || userId <= 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("ID de usuario inválido.");
-        }
-        try {
-            QrDTO qrData = sessionService.createTradeSession(userId);
-            return ResponseEntity.ok(qrData);
-        } catch (Exceptions.ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Usuario no encontrado: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body("Error al crear la sesión de intercambio: " + e.getMessage());
-        }
+    public ResponseEntity<QrDTO> createSession(@RequestParam Long userId) {
+        QrDTO result = sessionService.createTradeSession(userId);
+        return ResponseEntity.ok(result);
     }
 
-    
+    // ── Unirse por UUID completo (escaneo QR o pegar URL) ────────────────────
 
     /**
-     * Endpoint HTTP que procesa la entrada del Invitado (Usuario B) a la sala segura.
+     * Une al Usuario B mediante el UUID completo extraído del QR.
+     * Retorna un String plano con el ID del Usuario A para que el Frontend
+     * pueda establecer el canal WebSocket correcto.
      */
     @PostMapping("/join")
-    public ResponseEntity<?> joinSession(@RequestParam String sessionUuid, @RequestParam Long userBId) {
-        Exceptions exValidator = new Exceptions();
+    public ResponseEntity<String> joinSession(
+            @RequestParam String sessionUuid,
+            @RequestParam Long userBId) {
 
-        // ✅ Validar UUID contra XSS/HTML injection
-        if (sessionUuid == null || sessionUuid.isBlank() || exValidator.containsHtmlSymbols(sessionUuid)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("UUID de sesión inválido o contiene caracteres no permitidos.");
-        }
+        TradeSession session = sessionService.joinByUuid(sessionUuid, userBId);
+        return ResponseEntity.ok("Unido exitosamente. Usuario A ID: " + session.getUserAId());
+    }
 
-        // ✅ Validar ID positivo
-        if (userBId == null || userBId <= 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("ID de usuario inválido.");
-        }
+    // ── Unirse por código alfanumérico corto ─────────────────────────────────
 
-        try {
-            TradeSession session = sessionRepo.findByUuid(sessionUuid)
-                    .orElseThrow(() -> new Exceptions.ResourceNotFoundException(
-                            "Sesión no encontrada con el UUID proporcionado."));
+    /**
+     * Une al Usuario B mediante el código de 6 caracteres mostrado junto al QR.
+     * Ideal para intercambios presenciales donde B no puede escanear.
+     */
+    @PostMapping("/join-by-code")
+    public ResponseEntity<String> joinByShortCode(
+            @RequestParam String shortCode,
+            @RequestParam Long userBId) {
 
-            if (session.getUserAId().equals(userBId)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Operación inválida: No puedes realizar un intercambio contigo mismo.");
-            }
+        TradeSession session = sessionService.joinByShortCode(shortCode, userBId);
+        return ResponseEntity.ok("Unido exitosamente. Usuario A ID: " + session.getUserAId());
+    }
 
-            session.setUserBId(userBId);
-            session.setStatus("NEGOTIATING");
-            sessionRepo.saveAndFlush(session);
+    // ── Unirse por email del Usuario A ───────────────────────────────────────
 
-            messagingTemplate.convertAndSendToUser(
-                    session.getUserAId().toString(),
-                    "/queue/trade-notifications",
-                    "JOINED:" + userBId
-            );
-            messagingTemplate.convertAndSendToUser(
-                    userBId.toString(),
-                    "/queue/trade-notifications",
-                    "JOINED:" + session.getUserAId()
-            );
+    /**
+     * Une al Usuario B buscando la sesión PENDING más reciente del correo indicado.
+     * Útil cuando el Usuario B conoce el email del anfitrión pero no tiene el QR.
+     */
+    @PostMapping("/join-by-email")
+    public ResponseEntity<String> joinByEmail(
+            @RequestParam String email,
+            @RequestParam Long userBId) {
 
-            return ResponseEntity.ok(
-                    "Te has unido exitosamente a la sesión de intercambio con el usuario ID: "
-                    + session.getUserAId()
-            );
-
-        } catch (Exceptions.ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body("Error al unirse a la sesión: " + e.getMessage());
-        }
+        TradeSession session = sessionService.joinByEmail(email, userBId);
+        return ResponseEntity.ok("Unido exitosamente. Usuario A ID: " + session.getUserAId());
     }
 }

@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  *   <li>CUSTOM          → Solo registra la nota sin acción automática</li>
  * </ul>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  */
 @Service

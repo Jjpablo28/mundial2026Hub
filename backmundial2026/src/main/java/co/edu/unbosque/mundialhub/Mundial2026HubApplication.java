@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Bean;
  * autoconfiguración del framework, el escaneo de componentes y la configuración
  * de beans globales necesarios para la suite del sistema VeltrixPass.
  * </p>
- * * @author TuNombre / Grupo de Desarrollo
+ * * @author Juan Pablo Cuervo Rodriguez
  * 
  * @version 1.0
  */

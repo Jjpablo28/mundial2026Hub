@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * servidor web empiece a recibir solicitudes HTTP del cliente.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see Configuration
  * @see CommandLineRunner

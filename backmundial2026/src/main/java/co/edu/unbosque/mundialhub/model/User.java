@@ -33,7 +33,7 @@ import org.springframework.security.core.userdetails.UserDetails;
  * roles jerárquicos.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see UserDetails
  * @see Entity

@@ -15,7 +15,7 @@ import co.edu.unbosque.mundialhub.model.Rarity;
  * sincronización con los clientes de la aplicación.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see Rarity
  * @see LocalDateTime

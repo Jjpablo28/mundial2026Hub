@@ -18,7 +18,7 @@ import co.edu.unbosque.mundialhub.model.User;
  * bajas en el catálogo.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see JpaRepository
  * @see Team

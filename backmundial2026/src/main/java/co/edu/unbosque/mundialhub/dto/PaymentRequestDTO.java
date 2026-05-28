@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * adquiridos y auditorías temporales de aprobación.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see BigDecimal
  * @see LocalDateTime

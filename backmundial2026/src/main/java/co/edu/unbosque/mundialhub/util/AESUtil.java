@@ -26,7 +26,7 @@ import java.security.NoSuchAlgorithmException;
  * SHA-256, etc.) utilizando Apache Commons Codec.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  */
 public class AESUtil {

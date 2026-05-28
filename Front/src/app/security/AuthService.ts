@@ -135,8 +135,9 @@ export class AuthService {
 
     if (esRutaPublica) return;
 
-    if (errorId === 403) this.router.navigate(['/forbidden']);
-    if (errorId === 401) this.router.navigate(['/login']);
+    // ✅ Solo redirigir si realmente no hay token válido, evita falsos 403 por token null temporal
+    if (errorId === 403 && !this.hasToken()) this.router.navigate(['/forbidden']);
+    if (errorId === 401) { this.removeToken(); this.router.navigate(['/login']); }
   }
 
   logout(): void {
@@ -147,7 +148,10 @@ export class AuthService {
     this.menuActivoSubject.next('dashboard'); // Resetea el menú al salir
   }
 
-  saveToken(token: string): void { localStorage.setItem(this.tokenKey, token); }
+  saveToken(token: string | null | undefined): void {
+    if (!token || typeof token !== 'string' || token.trim() === '') return; // ✅ nunca sobreescribe con null/undefined/vacío
+    localStorage.setItem(this.tokenKey, token);
+  }
   getToken(): string | null { return localStorage.getItem(this.tokenKey); }
   removeToken(): void { localStorage.removeItem(this.tokenKey); }
 

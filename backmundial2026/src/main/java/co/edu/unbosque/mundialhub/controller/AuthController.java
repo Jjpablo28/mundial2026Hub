@@ -50,7 +50,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * pasarelas de retransmisión HTTP hacia APIs externas para datos de la FIFA.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see RestController
  * @see CrossOrigin

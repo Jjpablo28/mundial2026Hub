@@ -22,7 +22,7 @@ import jakarta.persistence.Table;
  * encuadre logístico en los grupos del campeonato.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see Entity
  * @see Table

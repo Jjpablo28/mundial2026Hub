@@ -20,7 +20,7 @@ import co.edu.unbosque.mundialhub.repository.TeamRepository;
  * Servicio encargado de gestionar las selecciones o equipos de fútbol del sistema VeltrixPass,
  * controlando la asignación de grupos de la Copa del Mundo y validando que no existan duplicados
  * en nombres o siglas oficiales.
- * * @author TuNombre / Grupo de Desarrollo
+ * * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  */
 @Service

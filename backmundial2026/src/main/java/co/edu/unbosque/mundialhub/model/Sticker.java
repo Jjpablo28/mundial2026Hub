@@ -21,7 +21,7 @@ import jakarta.persistence.ManyToOne;
  * recurso multimedia asociado y su relación con una selección nacional (Team).
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see Entity
  * @see Rarity

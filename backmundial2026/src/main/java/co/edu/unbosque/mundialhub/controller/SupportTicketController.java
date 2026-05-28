@@ -26,7 +26,7 @@ import java.util.Map;
  * </ul>
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  */
 @RestController
@@ -43,9 +43,6 @@ public class SupportTicketController {
     @Autowired
     private SupportTicketService supportService;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // POST /support/tickets?agentId={id}
-    // ─────────────────────────────────────────────────────────────────────────
 
     /**
      * Crea un nuevo ticket de soporte en estado OPEN.
@@ -78,10 +75,6 @@ public class SupportTicketController {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // PUT /support/tickets/{id}/resolve?agentId={id}
-    // ─────────────────────────────────────────────────────────────────────────
-
     /**
      * Resuelve un ticket aplicando la acción de negocio automática sobre el usuario destino.
      *
@@ -111,9 +104,7 @@ public class SupportTicketController {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // PUT /support/tickets/{id}/reject?agentId={id}
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     /**
      * Rechaza un ticket sin ejecutar ninguna acción sobre el usuario.
@@ -141,9 +132,7 @@ public class SupportTicketController {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GET /support/tickets (paginado)
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     /**
      * Obtiene todos los tickets paginados, con filtro opcional por estado.
@@ -169,9 +158,7 @@ public class SupportTicketController {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GET /support/tickets/{id}
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     @GetMapping("/tickets/{id}")
     @Operation(summary = "Obtener un ticket por ID")
@@ -184,9 +171,6 @@ public class SupportTicketController {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GET /support/tickets/user/{userId}
-    // ─────────────────────────────────────────────────────────────────────────
 
     @GetMapping("/tickets/user/{userId}")
     @Operation(summary = "Obtener tickets de un usuario destino")
@@ -200,9 +184,6 @@ public class SupportTicketController {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GET /support/tickets/agent/{agentId}
-    // ─────────────────────────────────────────────────────────────────────────
 
     @GetMapping("/tickets/agent/{agentId}")
     @Operation(summary = "Obtener tickets gestionados por un agente")
@@ -216,9 +197,6 @@ public class SupportTicketController {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GET /support/stats
-    // ─────────────────────────────────────────────────────────────────────────
 
     /**
      * Retorna un resumen de estadísticas rápidas para el dashboard de soporte.

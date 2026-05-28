@@ -23,7 +23,7 @@ import jakarta.persistence.Table;
  * auditoría con el usuario comprador.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see Entity
  * @see Table

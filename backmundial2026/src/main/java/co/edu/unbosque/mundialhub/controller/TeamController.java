@@ -37,7 +37,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * tiempo real de la Copa del Mundo.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see RestController
  * @see CrossOrigin

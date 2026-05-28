@@ -11,7 +11,7 @@ package co.edu.unbosque.mundialhub.dto;
  * en los controladores de seguridad de la plataforma MundialHub.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  */
 public class LoguinRequestDTO {

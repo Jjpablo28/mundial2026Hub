@@ -15,7 +15,7 @@ import co.edu.unbosque.mundialhub.model.GroupName;
  * marcas de tiempo para el control de auditorías lógicas.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see GroupName
  * @see LocalDateTime

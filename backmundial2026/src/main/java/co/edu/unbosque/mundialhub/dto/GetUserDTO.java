@@ -14,7 +14,7 @@ import co.edu.unbosque.mundialhub.model.User.Role;
  * auditoría interna.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see Role
  */

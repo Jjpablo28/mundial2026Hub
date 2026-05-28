@@ -30,7 +30,7 @@ import jakarta.transaction.Transactional;
 /**
  * Servicio encargado de la gestión de usuarios, autenticación, cifrado de campos 
  * sensibles mediante AES y flujos de códigos de verificación de cuentas.
- * * @author TuNombre / Grupo de Desarrollo
+ * * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  */
 @Service

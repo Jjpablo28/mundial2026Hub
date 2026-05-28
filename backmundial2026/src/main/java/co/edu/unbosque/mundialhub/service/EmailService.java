@@ -16,7 +16,7 @@ import jakarta.mail.internet.MimeMessage;
  * dentro del sistema VeltrixPass.
  * * Centraliza la carga de plantillas y el envío de mensajes utilizando
  * {@link JavaMailSender}, aplicando validaciones de negocio previas.
- * * @author TuNombre / Grupo de Desarrollo
+ * * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  */
 @Service

@@ -25,7 +25,7 @@ import co.edu.unbosque.mundialhub.repository.UserStickerRepository;
  * Servicio encargado de gestionar los álbumes e inventarios individuales de los usuarios,
  * controlando la compra de sobres, apertura de paquetes con algoritmos de probabilidad
  * y el intercambio de láminas/cromos repetidos entre coleccionistas.
- * * @author TuNombre / Grupo de Desarrollo
+ * * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  */
 @Service

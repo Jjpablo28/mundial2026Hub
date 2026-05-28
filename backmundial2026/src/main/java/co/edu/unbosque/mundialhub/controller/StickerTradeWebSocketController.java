@@ -32,8 +32,8 @@ import co.edu.unbosque.mundialhub.service.TradeService;
  * de un usuario consigo mismo.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
- * @version 2.0
+ * @author Juan Pablo Cuervo Rodriguez
+ * @version 1.0
  * @see TradeService
  * @see SimpMessagingTemplate
  */

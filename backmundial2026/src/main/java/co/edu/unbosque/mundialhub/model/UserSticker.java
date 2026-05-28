@@ -22,7 +22,7 @@ import jakarta.persistence.UniqueConstraint;
  * base de datos.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see Entity
  * @see User

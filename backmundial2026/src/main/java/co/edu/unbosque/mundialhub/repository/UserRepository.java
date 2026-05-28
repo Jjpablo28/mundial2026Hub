@@ -19,7 +19,7 @@ import co.edu.unbosque.mundialhub.model.User;
  * expiración de tokens de verificación.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see JpaRepository
  * @see User

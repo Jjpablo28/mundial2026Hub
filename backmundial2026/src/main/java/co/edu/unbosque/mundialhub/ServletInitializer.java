@@ -14,7 +14,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
  * EE/Jakarta EE (como Apache Tomcat, WildFly o JBoss) al enlazar la aplicación
  * con el contexto del servidor web externo.
  * </p>
- * * @author TuNombre / Grupo de Desarrollo
+ * * @author Juan Pablo Cuervo Rodriguez
  * 
  * @version 1.0
  * @see SpringBootServletInitializer

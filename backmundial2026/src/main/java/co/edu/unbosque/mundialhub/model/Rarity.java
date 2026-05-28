@@ -9,7 +9,7 @@ package co.edu.unbosque.mundialhub.model;
  * mercados de intercambio.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  */
 public enum Rarity {

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * la marca de tiempo de su última adquisición.
  * </p>
  *
- * @author TuNombre / Grupo de Desarrollo
+ * @author Juan Pablo Cuervo Rodriguez
  * @version 1.0
  * @see LocalDateTime
  */
