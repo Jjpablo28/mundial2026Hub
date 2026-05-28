@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Objeto de Transferencia de Datos que mapea exactamente la respuesta
  * de la API externa de generación de códigos QR.
+ * Se agrega shortCode generado localmente en TradeSessionService.
  */
 public class QrDTO {
 
@@ -16,36 +17,26 @@ public class QrDTO {
     @SerializedName("qr_content")
     private String qrContent;
 
-    public QrDTO() {
-    }
+    /** Código alfanumérico corto de 6 caracteres (ej: "AB3X7Q"). */
+    private String shortCode;
+
+    public QrDTO() {}
 
     public QrDTO(String uuid, String qrBase64, String qrContent) {
-        this.uuid = uuid;
-        this.qrBase64 = qrBase64;
+        this.uuid      = uuid;
+        this.qrBase64  = qrBase64;
         this.qrContent = qrContent;
     }
 
-    public String getUuid() {
-        return uuid;
-    }
+    public String getUuid() { return uuid; }
+    public void setUuid(String uuid) { this.uuid = uuid; }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
+    public String getQrBase64() { return qrBase64; }
+    public void setQrBase64(String qrBase64) { this.qrBase64 = qrBase64; }
 
-    public String getQrBase64() {
-        return qrBase64;
-    }
+    public String getQrContent() { return qrContent; }
+    public void setQrContent(String qrContent) { this.qrContent = qrContent; }
 
-    public void setQrBase64(String qrBase64) {
-        this.qrBase64 = qrBase64;
-    }
-
-    public String getQrContent() {
-        return qrContent;
-    }
-
-    public void setQrContent(String qrContent) {
-        this.qrContent = qrContent;
-    }
+    public String getShortCode() { return shortCode; }
+    public void setShortCode(String shortCode) { this.shortCode = shortCode; }
 }
