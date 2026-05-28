@@ -697,10 +697,10 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	                String htmlTemplate = loadTemplate("/templates/locked-account-email.html");
 
 	                String body = htmlTemplate
-	                    .replace("{{MAX_ATTEMPTS}}", String.valueOf(User.MAX_FAILED_ATTEMPTS))
-	                    .replace("{{LOCKED_AT}}", LocalDateTime.now()
-	                        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
-	                    .replace("{{RESET_URL}}", "https://mundial2026hub.netlify.app/login");
+	                	    .replace("{{MAX_ATTEMPTS}}", String.valueOf(User.MAX_FAILED_ATTEMPTS))
+	                	    .replace("{{LOCKED_AT}}", LocalDateTime.now()
+	                	        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
+	                	    .replace("{{USER_ID}}", String.valueOf(user.getId())); // ← agregar esto
 
 	                emailService.sendEmailDefault(emailDecrypted, "Cuenta bloqueada — Mundial 2026 Hub", body);
 	            } catch (Exception ignored) {

@@ -17,8 +17,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 /**
@@ -48,10 +52,10 @@ public class SupportTicketService {
 
     @Autowired
     private ActivityLogService activityLogService;
+    
+	@Autowired
+	private EmailService emailService;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CREACIÓN
-    // ─────────────────────────────────────────────────────────────────────────
 
     /**
      * Crea un nuevo ticket de soporte en estado OPEN.
@@ -103,10 +107,21 @@ public class SupportTicketService {
 
         return toDTO(ticket);
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // RESOLUCIÓN — aplica la acción de negocio
-    // ─────────────────────────────────────────────────────────────────────────
+    
+	/**
+	 * Carga el contenido html de una plantilla desde los recursos del sistema.
+	 *
+	 * @param path Ruta del recurso a cargar.
+	 * @return El contenido textual de la plantilla.
+	 * @throws IOException Si ocurre una falla en el flujo de entrada/salida.
+	 */
+	private String loadTemplate(String path) throws IOException {
+		var inputStream = getClass().getResourceAsStream(path);
+		if (inputStream == null) {
+			throw new IOException("Plantilla no encontrada en ruta: " + path);
+		}
+		return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+	}
 
     /**
      * Resuelve un ticket aplicando automáticamente la acción correspondiente al usuario destino.
@@ -116,7 +131,7 @@ public class SupportTicketService {
      * @param agentId    ID del agente que resuelve.
      * @return El DTO actualizado del ticket.
      */
-    @Transactional
+	@Transactional
     public SupportTicketDTO resolveTicket(Long ticketId, String resolution, Long agentId) {
         SupportTicket ticket = findTicketOrThrow(ticketId);
 
@@ -128,42 +143,81 @@ public class SupportTicketService {
         }
 
         User targetUser = ticket.getTargetUser();
+        String userNameDecrypted = AESUtil.decrypt(targetUser.getUserName());
+        String emailDecrypted    = AESUtil.decrypt(targetUser.getEmail());
+        String resolvedAt        = LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
 
         switch (ticket.getTicketType()) {
 
             case ADD_PACKETS -> {
-                int cantidad = ticket.getQuantity() != null ? ticket.getQuantity() : 1;
+                int cantidad     = ticket.getQuantity() != null ? ticket.getQuantity() : 1;
                 int sobresActuales = targetUser.getPackets() != null ? targetUser.getPackets() : 0;
                 targetUser.setPackets(sobresActuales + cantidad);
                 userRepo.save(targetUser);
                 activityLogService.log(targetUser.getId().longValue(), "SUPPORT_ADD_PACKETS",
                         "Soporte acreditó " + cantidad + " sobre(s). Nuevo total: " + targetUser.getPackets());
+
+                sendTicketResolvedEmail(emailDecrypted,
+                        "¡Tus sobres han sido acreditados!",
+                        "/templates/ticket-resolved-add-packets.html",
+                        body -> body
+                            .replace("{{USER_NAME}}", userNameDecrypted)
+                            .replace("{{QUANTITY}}",  String.valueOf(cantidad))
+                            .replace("{{RESOLVED_AT}}", resolvedAt));
             }
 
             case ADD_TOKENS -> {
-                int tokens = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
+                int tokens       = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
                 int tokensActuales = targetUser.getTotalPoints() != null ? targetUser.getTotalPoints() : 0;
                 targetUser.setTotalPoints(tokensActuales + tokens);
                 userRepo.save(targetUser);
                 activityLogService.log(targetUser.getId().longValue(), "SUPPORT_ADD_TOKENS",
                         "Soporte acreditó " + tokens + " token(s). Nuevo saldo: " + targetUser.getTotalPoints());
+
+                sendTicketResolvedEmail(emailDecrypted,
+                        "¡Tus tokens han sido acreditados!",
+                        "/templates/ticket-resolved-tokens.html",
+                        body -> body
+                            .replace("{{USER_NAME}}",   userNameDecrypted)
+                            .replace("{{EMAIL_TITLE}}", "Tokens Acreditados")
+                            .replace("{{QUANTITY}}",    String.valueOf(tokens))
+                            .replace("{{RESOLVED_AT}}", resolvedAt));
             }
 
             case REFUND_TOKENS -> {
-                int tokens = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
+                int tokens       = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
                 int tokensActuales = targetUser.getTotalPoints() != null ? targetUser.getTotalPoints() : 0;
                 targetUser.setTotalPoints(tokensActuales + tokens);
                 userRepo.save(targetUser);
                 activityLogService.log(targetUser.getId().longValue(), "SUPPORT_REFUND",
                         "Soporte procesó reembolso de " + tokens + " token(s). Saldo: " + targetUser.getTotalPoints());
+
+                sendTicketResolvedEmail(emailDecrypted,
+                        "Tu reembolso ha sido procesado",
+                        "/templates/ticket-resolved-tokens.html",
+                        body -> body
+                            .replace("{{USER_NAME}}",   userNameDecrypted)
+                            .replace("{{EMAIL_TITLE}}", "Reembolso Procesado")
+                            .replace("{{QUANTITY}}",    String.valueOf(tokens))
+                            .replace("{{RESOLVED_AT}}", resolvedAt));
             }
 
             case UNLOCK_ACCOUNT -> {
                 targetUser.setEnabled(true);
                 targetUser.setAccountNonLocked(true);
+                targetUser.setFailedLoginAttempts(0);
+                targetUser.setLockedAt(null);
                 userRepo.save(targetUser);
                 activityLogService.log(targetUser.getId().longValue(), "SUPPORT_UNLOCK",
                         "Soporte desbloqueó la cuenta del usuario.");
+
+                sendTicketResolvedEmail(emailDecrypted,
+                        "Tu cuenta ha sido reactivada",
+                        "/templates/ticket-resolved-unlock.html",
+                        body -> body
+                            .replace("{{USER_NAME}}",   userNameDecrypted)
+                            .replace("{{RESOLVED_AT}}", resolvedAt));
             }
 
             case REVOKE_ACCOUNT -> {
@@ -172,22 +226,43 @@ public class SupportTicketService {
                 userRepo.save(targetUser);
                 activityLogService.log(targetUser.getId().longValue(), "SUPPORT_REVOKE",
                         "Soporte suspendió la cuenta del usuario.");
+
+                sendTicketResolvedEmail(emailDecrypted,
+                        "Tu cuenta ha sido suspendida",
+                        "/templates/ticket-resolved-revoke.html",
+                        body -> body
+                            .replace("{{USER_NAME}}",   userNameDecrypted)
+                            .replace("{{RESOLUTION}}",  resolution != null ? resolution : "Violación de términos de uso.")
+                            .replace("{{RESOLVED_AT}}", resolvedAt));
             }
 
             case RESET_VERIFICATION -> {
-                // Limpia el código para que el flujo de re-verificación funcione
                 targetUser.setCode(null);
                 targetUser.setVerificationExpires(null);
                 targetUser.setEnabled(false);
                 userRepo.save(targetUser);
                 activityLogService.log(targetUser.getId().longValue(), "SUPPORT_RESET_VERIFICATION",
                         "Soporte reinició el estado de verificación de la cuenta.");
+
+                sendTicketResolvedEmail(emailDecrypted,
+                        "Tu verificación ha sido reiniciada",
+                        "/templates/ticket-resolved-reset-verification.html",
+                        body -> body
+                            .replace("{{USER_NAME}}",   userNameDecrypted)
+                            .replace("{{RESOLVED_AT}}", resolvedAt));
             }
 
             case CUSTOM -> {
-                // Solo se registra la nota; ninguna acción automatizada
                 activityLogService.log(targetUser.getId().longValue(), "SUPPORT_CUSTOM",
                         "Acción manual de soporte aplicada: " + resolution);
+
+                sendTicketResolvedEmail(emailDecrypted,
+                        "Tu solicitud de soporte ha sido resuelta",
+                        "/templates/ticket-resolved-custom.html",
+                        body -> body
+                            .replace("{{USER_NAME}}",   userNameDecrypted)
+                            .replace("{{RESOLUTION}}",  resolution != null ? resolution : "Sin detalles adicionales.")
+                            .replace("{{RESOLVED_AT}}", resolvedAt));
             }
         }
 
@@ -202,9 +277,27 @@ public class SupportTicketService {
         return toDTO(ticket);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // RECHAZO
-    // ─────────────────────────────────────────────────────────────────────────
+    /**
+     * Carga una plantilla HTML, aplica los reemplazos mediante el mapper recibido
+     * y envía el correo. Los errores de correo se silencian para no interrumpir
+     * la transacción principal.
+     *
+     * @param to       Correo destino en texto plano (ya desencriptado).
+     * @param subject  Asunto del correo.
+     * @param template Ruta del recurso HTML (e.g. "/templates/ticket-resolved-unlock.html").
+     * @param mapper   Función que recibe el HTML crudo y devuelve el HTML con placeholders reemplazados.
+     */
+    private void sendTicketResolvedEmail(String to, String subject, String template,
+                                         UnaryOperator<String> mapper) {
+        try {
+            String html  = loadTemplate(template);
+            String body  = mapper.apply(html);
+            emailService.sendEmailDefault(to, subject, body);
+        } catch (Exception ignored) {
+            // El correo no debe interrumpir la resolución del ticket
+        }
+    }
+
 
     /**
      * Rechaza un ticket sin aplicar ninguna acción de negocio.
@@ -233,9 +326,7 @@ public class SupportTicketService {
         return toDTO(ticket);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // LECTURAS
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     @Transactional(readOnly = true)
     public List<SupportTicketDTO> findAll() {
@@ -277,9 +368,7 @@ public class SupportTicketService {
         return ticketRepo.countByStatus(status);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // HELPERS INTERNOS
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     private SupportTicket findTicketOrThrow(Long id) {
         return ticketRepo.findById(id)
