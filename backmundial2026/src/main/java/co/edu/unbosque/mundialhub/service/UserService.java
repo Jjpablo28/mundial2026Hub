@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -690,14 +691,16 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 	            // Notificación por correo — reutiliza el mecanismo de emailService
 	            try {
 	                String emailDecrypted = AESUtil.decrypt(user.getEmail());
-	                String body = "<p>Tu cuenta ha sido bloqueada temporalmente por superar el número "
-	                        + "máximo de intentos de inicio de sesión fallidos ("
-	                        + User.MAX_FAILED_ATTEMPTS + ").</p>"
-	                        + "<p>Si no fuiste tú, contacta a nuestro equipo de soporte de inmediato.</p>";
-	    			String htmlTemplate = loadTemplate("/templates/code-email.html");
+	             // En UserService → registerFailedLoginAttempt()
+	                String htmlTemplate = loadTemplate("/templates/locked-account-email.html");
 
-	                
-	                emailService.sendEmailDefault(userName, emailDecrypted, htmlTemplate);;
+	                String body = htmlTemplate
+	                    .replace("{{MAX_ATTEMPTS}}", String.valueOf(User.MAX_FAILED_ATTEMPTS))
+	                    .replace("{{LOCKED_AT}}", LocalDateTime.now()
+	                        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
+	                    .replace("{{RESET_URL}}", "https://mundial2026hub.netlify.app/login");
+
+	                emailService.sendEmailDefault(emailDecrypted, "Cuenta bloqueada — Mundial 2026 Hub", body);
 	            } catch (Exception ignored) {
 	                // El bloqueo ya se persistió; no propagar errores de correo
 	            }
