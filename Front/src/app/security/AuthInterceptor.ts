@@ -28,8 +28,10 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authRequest).pipe(
       catchError((error) => {
-        this.authService.redirectError(error.status);
-
+        // Solo redirigir si hay sesión activa — evita falsos 403 en rutas públicas
+        if (this.authService.hasToken()) {
+          this.authService.redirectError(error.status);
+        }
         return throwError(() => error);
       })
     );

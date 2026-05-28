@@ -127,8 +127,16 @@ export class AuthService {
   }
 
   redirectError(errorId: any) {
-    if (errorId == 403) this.router.navigate(['/forbidden']);
-    if (errorId == 401) this.router.navigate(['/login']);
+    const rutaActual = this.router.url;
+
+    // Rutas públicas que no deben disparar redirecciones
+    const rutasPublicas = ['/', '/login', '/register', '/verify', '/forbidden'];
+    const esRutaPublica = rutasPublicas.some(r => rutaActual.startsWith(r));
+
+    if (esRutaPublica) return;
+
+    if (errorId === 403) this.router.navigate(['/forbidden']);
+    if (errorId === 401) this.router.navigate(['/login']);
   }
 
   logout(): void {
