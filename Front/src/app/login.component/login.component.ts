@@ -65,12 +65,12 @@ export class LoginComponent {
         }, 1500); // espera que el usuario vea el popup antes de navegar
       },
       error: (err) => {
-        console.log('Error en login', err);
-        this.isLoading = false;
-        this.errorMessage = 'Credenciales incorrectas';
+        console.log(err);
+        this.errorMessage = err?.error?.message
+          ?? err?.error?.error
+          ?? 'Error al cambiar la contraseña.';
         this.showErrorPopup = true;
-  this.cdr.detectChanges();
-
+        this.cdr.detectChanges();
         setTimeout(() => {
           this.showErrorPopup = false;
           this.cdr.detectChanges();
@@ -104,7 +104,16 @@ export class LoginComponent {
           }, 5000);
         },
         error: (err) => {
-  console.log(err)
+          console.log(err);
+          this.errorMessage = err?.error?.message
+            ?? err?.error?.error
+            ?? 'Error al cambiar la contraseña.';
+          this.showErrorPopup = true;
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.showErrorPopup = false;
+            this.cdr.detectChanges();
+          }, 5000);
         }
       });
     } else {

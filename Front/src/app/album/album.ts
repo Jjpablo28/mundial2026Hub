@@ -145,7 +145,6 @@ export class Album implements OnInit {
 
     this.packError = '';
     this.packPhase = 'loading';
-    this.packCount = Math.max(0, this.packCount - 1);
 
     this.albumService.openPack().subscribe({
       next: (response) => {
@@ -153,12 +152,15 @@ export class Album implements OnInit {
         this.currentCardIndex = 0;
         this.mergeNewStickersIntoInventory(response.data);
         this.packPhase = 'revealed';
+        this.setPacks(); // ← agrega esto
         this.cdr.detectChanges();
       },
       error: (err) => {
-        const msg = err?.userMessage ?? 'No se pudo abrir el sobre. Intenta de nuevo en unos segundos.';
+        this.setPacks(); // ← agrega esto (en lugar de packCount++)
+        const msg = err?.error?.message?.includes('sobres disponibles')
+          ? 'No tienes sobres disponibles. ¡Compra más!'
+          : 'No se pudo abrir el sobre. Intenta de nuevo.';
         this.packError = msg;
-        this.packCount++;
         this.packPhase = 'idle';
         this.cdr.detectChanges();
       }
