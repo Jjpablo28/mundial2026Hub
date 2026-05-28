@@ -148,7 +148,6 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 	 * @throws Exceptions.ResourceNotFoundException Si el usuario no existe en el sistema.
 	 * @throws Exceptions.ValidationException       Si no hay cromos cargados en el sistema o si el usuario no tiene sobres.
 	 */
-	@Async
 	@Transactional
 	public List<UserStickerDTO> openPack(Long userId) {
 	    User user = userRepo.findById(userId)

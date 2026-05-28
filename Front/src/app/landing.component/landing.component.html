@@ -1,32 +1,106 @@
 <div class="landing-wrapper">
-  <section class="hero-section">
-    <div class="hero-content">
-      <h1 class="main-title">Bienvenido a Mundial 2026 HUB<span>.</span></h1>
-      <p class="main-description">
-        Vive la emoción del Mundial explorando estadísticas, jugadores y equipos en tiempo real. Analiza los grupos, participa en las pollas y asegura tus tiquetes para no perderte ningún partido.
-      </p>
+  <div class="noise"></div>
+  <div class="glow-orb orb1"></div>
+  <div class="glow-orb orb2"></div>
 
+  <section class="hero-section">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      Mundial 2026 · Colección Virtual
+    </div>
+    <div class="hero-content">
+      <h1 class="main-title">Tu álbum del <span>Mundial</span><br>vive aquí.</h1>
+      <p class="main-description">
+        Colecciona cromos, abre sobres, completa tu álbum y sigue cada partido del FIFA World Cup 2026 en tiempo real.
+      </p>
       <div class="action-buttons">
         <button class="btn-glow" routerLink="/login">Iniciar Sesión</button>
-        <button class="btn-outline" routerLink="/register">Crear Cuenta</button>
+        <button class="btn-outline" routerLink="/register">Crear Cuenta Gratis</button>
       </div>
     </div>
   </section>
 
-  <section class="stats-container">
-    <div class="stat-box">
-      <span class="stat-value">250k+</span>
-      <span class="stat-label">Peticiones Procesadas</span>
+  <!-- CAMPO EN VIVO -->
+  <div class="field-strip">
+    <svg class="field-lines" viewBox="0 0 600 120" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="120" fill="none" stroke="#E1FF57" stroke-width="1"/>
+      <line x1="300" y1="0" x2="300" y2="120" stroke="#E1FF57" stroke-width="1"/>
+      <circle cx="300" cy="60" r="30" fill="none" stroke="#E1FF57" stroke-width="1"/>
+      <rect x="0" y="30" width="60" height="60" fill="none" stroke="#E1FF57" stroke-width="1"/>
+      <rect x="540" y="30" width="60" height="60" fill="none" stroke="#E1FF57" stroke-width="1"/>
+      <rect x="0" y="45" width="20" height="30" fill="none" stroke="#E1FF57" stroke-width="1"/>
+      <rect x="580" y="45" width="20" height="30" fill="none" stroke="#E1FF57" stroke-width="1"/>
+    </svg>
+    <div class="teams-row">
+      <div class="team-flag">
+        <div class="flag-circle">🇧🇷</div>
+        <span class="flag-name">BRA</span>
+      </div>
+      <div class="vs-divider">
+        <div class="vs-score">2 · 1</div>
+        <div class="vs-live">En Vivo</div>
+      </div>
+      <div class="team-flag">
+        <div class="flag-circle">🇫🇷</div>
+        <span class="flag-name">FRA</span>
+      </div>
     </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-container">
+
     <div class="stat-box highlighted">
-      <span class="stat-value">99.9%</span>
-      <span class="stat-label">Seguridad JWT</span>
+      <span class="stat-value">48</span>
+      <span class="stat-label">Selecciones</span>
     </div>
     <div class="stat-box">
-      <span class="stat-value">15k</span>
-      <span class="stat-label">Usuarios Activos</span>
+      <span class="stat-value">516</span>
+      <span class="stat-label">Cromos Únicos</span>
+    </div>
+
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features-section">
+    <div class="section-label">Lo que encontrarás</div>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon">📦</div>
+        <div class="feat-title">Sobres Virtuales</div>
+        <div class="feat-desc">Abre sobres con 7 cromos aleatorios. El algoritmo usa tus puntos para aumentar las probabilidades de rareza.</div>
+        <span class="feat-tag">Probabilístico</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📋</div>
+        <div class="feat-title">Álbum Completo</div>
+        <div class="feat-desc">Visualiza tu colección organizada por selección y posición. Porteros, defensas, medios y delanteros.</div>
+        <span class="feat-tag">48 Equipos</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔄</div>
+        <div class="feat-title">Intercambios</div>
+        <div class="feat-desc">¿Tienes cromos repetidos? Intercámbialos con otros coleccionistas. Solo cedes copias extra.</div>
+        <span class="feat-tag">P2P</span>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📊</div>
+        <div class="feat-title">Stats en Tiempo Real</div>
+        <div class="feat-desc">Resultados, grupos, clasificaciones y datos de cada jugador del Mundial desde la plataforma.</div>
+        <span class="feat-tag">Live Data</span>
+      </div>
     </div>
   </section>
 
-  <div class="bg-blur-circle"></div>
+
+
+  <!-- CTA FINAL -->
+  <section class="cta-bottom">
+    <div class="cta-left">
+      <h3>Empieza tu colección hoy.</h3>
+      <p>Crea tu cuenta gratis y recibe sobres de bienvenida para comenzar.</p>
+    </div>
+    <button class="btn-dark" routerLink="/register">Crear Cuenta →</button>
+  </section>
+
 </div>
