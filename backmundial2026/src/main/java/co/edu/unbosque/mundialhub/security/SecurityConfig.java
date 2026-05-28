@@ -121,21 +121,21 @@ public class SecurityConfig {
                 auth.requestMatchers("/trade-session/**").authenticated();
 
                 // /support
+                auth.requestMatchers(HttpMethod.GET, "/support/tickets/user/*")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT", "ROLE_USER");
+                auth.requestMatchers(HttpMethod.GET, "/support/tickets/agent/*")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
+                auth.requestMatchers(HttpMethod.GET, "/support/stats")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
+                auth.requestMatchers(HttpMethod.GET, "/support/tickets/*")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
+                auth.requestMatchers(HttpMethod.GET, "/support/tickets")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
                 auth.requestMatchers(HttpMethod.POST, "/support/tickets")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
                 auth.requestMatchers(HttpMethod.PUT, "/support/tickets/*/resolve")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
                 auth.requestMatchers(HttpMethod.PUT, "/support/tickets/*/reject")
-                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
-                auth.requestMatchers(HttpMethod.GET, "/support/stats")
-                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
-                auth.requestMatchers(HttpMethod.GET, "/support/tickets/user/*")
-                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT", "ROLE_USER");
-                auth.requestMatchers(HttpMethod.GET, "/support/tickets/agent/*")
-                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
-                auth.requestMatchers(HttpMethod.GET, "/support/tickets/*")
-                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
-                auth.requestMatchers(HttpMethod.GET, "/support/tickets")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
 
                 // /activity-logs
