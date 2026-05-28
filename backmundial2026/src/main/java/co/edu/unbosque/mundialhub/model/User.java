@@ -140,7 +140,7 @@ public class User implements UserDetails {
 	private LocalDateTime lockedAt;
 
 	/** Número máximo de intentos fallidos antes de deshabilitar la cuenta. */
-	public static final int MAX_FAILED_ATTEMPTS = 4;
+	public static final Integer MAX_FAILED_ATTEMPTS = 4;
 
 	// ── Constructor por defecto ───────────────────────────────────────────────
 
