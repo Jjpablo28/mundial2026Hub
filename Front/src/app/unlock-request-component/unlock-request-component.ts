@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { SupportService } from '../support-component/support.service';
 
@@ -8,6 +8,7 @@ import { SupportService } from '../support-component/support.service';
   templateUrl: 'unlock-request-component.html',
   styleUrl: 'unlock-request-component.scss'
 })
+
 export class UnlockRequestComponent implements OnInit {
 
   state: 'loading' | 'success' | 'error' = 'loading';
@@ -15,7 +16,8 @@ export class UnlockRequestComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private supportService: SupportService
+    private supportService: SupportService,
+    private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -24,6 +26,7 @@ export class UnlockRequestComponent implements OnInit {
     if (!userId) {
       this.state    = 'error';
       this.errorMsg = 'Enlace inválido o expirado.';
+      this.cd.detectChanges();
       return;
     }
 
@@ -33,12 +36,16 @@ export class UnlockRequestComponent implements OnInit {
         ticketType:   'UNLOCK_ACCOUNT',
         notes:        'Solicitud de desbloqueo generada desde correo de cuenta bloqueada.'
       },
-      1 // agentId del sistema — ajusta si tienes un ID de sistema definido
+      1
     ).subscribe({
-      next:  () => this.state = 'success',
+      next: () => {
+        this.state = 'success';
+        this.cd.detectChanges();
+      },
       error: (err) => {
         this.state    = 'error';
         this.errorMsg = err?.error?.message || 'No se pudo enviar la solicitud. Intenta de nuevo más tarde.';
+        this.cd.detectChanges();
       }
     });
   }
