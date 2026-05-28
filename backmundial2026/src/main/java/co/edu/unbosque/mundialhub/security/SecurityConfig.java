@@ -124,7 +124,7 @@ public class SecurityConfig {
                 auth.requestMatchers(HttpMethod.GET, "/support/tickets/user/*")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT", "ROLE_USER");
                 auth.requestMatchers(HttpMethod.GET, "/support/tickets/agent/*")
-                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT","ROLE_USER");
                 auth.requestMatchers(HttpMethod.GET, "/support/stats")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
                 auth.requestMatchers(HttpMethod.GET, "/support/tickets/*")
@@ -132,7 +132,7 @@ public class SecurityConfig {
                 auth.requestMatchers(HttpMethod.GET, "/support/tickets")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
                 auth.requestMatchers(HttpMethod.POST, "/support/tickets")
-                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT","ROLE_USER");
                 auth.requestMatchers(HttpMethod.PUT, "/support/tickets/*/resolve")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
                 auth.requestMatchers(HttpMethod.PUT, "/support/tickets/*/reject")
