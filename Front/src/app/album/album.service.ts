@@ -133,6 +133,21 @@ export class AlbumService {
   public openPack(): Observable<OpenPackResponse> {
     return this.http
       .post<OpenPackResponse>(`${this.baseUrl}/open-pack/${this.userId}`, {})
-      .pipe(retryWithBackoff(3, 800)) as Observable<OpenPackResponse>;
+      .pipe(
+        // ❌ Quita el retry — cada reintento agrava el lock
+        // retryWithBackoff(3, 800)
+
+        // ✅ Solo propaga el error limpiamente
+        catchError(err => {
+          const msg = err?.error?.message ?? '';
+          if (msg.includes('Lock wait timeout')) {
+            return throwError(() => ({
+              ...err,
+              userMessage: 'El servidor está ocupado. Espera unos segundos e intenta de nuevo.'
+            }));
+          }
+          return throwError(() => err);
+        })
+      ) as Observable<OpenPackResponse>;
   }
 }

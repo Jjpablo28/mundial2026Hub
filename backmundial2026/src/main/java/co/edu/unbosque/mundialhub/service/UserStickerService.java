@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -147,6 +148,7 @@ public class UserStickerService implements CRUDOperation<UserStickerDTO, UserSti
 	 * @throws Exceptions.ResourceNotFoundException Si el usuario no existe en el sistema.
 	 * @throws Exceptions.ValidationException       Si no hay cromos cargados en el sistema o si el usuario no tiene sobres.
 	 */
+	@Async
 	@Transactional
 	public List<UserStickerDTO> openPack(Long userId) {
 	    User user = userRepo.findById(userId)
