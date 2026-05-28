@@ -188,3 +188,39 @@ $text-muted:  #888888;
     }
   }
 }
+.log-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid $border-mid;
+  background: $bg-input;
+  color: $text-muted;
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  i { font-size: 11px; }
+
+  &:hover {
+    border-color: $accent;
+    color: $accent;
+  }
+
+  &.active {
+    background: $accent;
+    border-color: $accent;
+    color: #000;
+  }
+}

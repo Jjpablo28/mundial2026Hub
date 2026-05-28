@@ -1,0 +1,10 @@
+co.edu.unbosque.mundialhub
+co.edu.unbosque.mundialhub.configuration
+co.edu.unbosque.mundialhub.controller
+co.edu.unbosque.mundialhub.dto
+co.edu.unbosque.mundialhub.exception
+co.edu.unbosque.mundialhub.model
+co.edu.unbosque.mundialhub.repository
+co.edu.unbosque.mundialhub.security
+co.edu.unbosque.mundialhub.service
+co.edu.unbosque.mundialhub.util
