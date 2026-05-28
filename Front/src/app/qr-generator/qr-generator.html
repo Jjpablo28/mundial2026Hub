@@ -26,9 +26,14 @@
           <div class="qr-image-wrapper">
             <img [src]="'data:image/png;base64,' + qrCode" alt="Código QR MundialHub">
           </div>
-          <p class="qr-uuid-display">
-            ID DE SESIÓN: <span>{{ qrData?.uuid }}</span>
-          </p>
+
+          <!-- Código corto destacado -->
+          <div class="short-code-box">
+            <p class="short-code-label">CÓDIGO DE ACCESO</p>
+            <span class="short-code-value">{{ shortCodeDisplay }}</span>
+            <p class="short-code-hint">Tu contraparte puede usar este código o tu correo para unirse</p>
+          </div>
+
           <div class="qr-waiting-status">
             <div class="spinner-mini"></div>
             <p>Esperando a tu contraparte...</p>
@@ -44,19 +49,69 @@
     <div class="trade-card-panel">
       <h2 class="qr-title">Opción 2: Conectarse a una Mesa Existente</h2>
       <p class="qr-description">
-        Ingresa el ID de la sesión de tu contraparte para unirte de inmediato a su mesa de negociación.
+        Elige cómo quieres unirte a la mesa de tu contraparte.
       </p>
 
+      <!-- Selector de modo -->
+      <div class="join-mode-tabs">
+        <button
+          class="tab-btn"
+          [class.active]="joinMode === 'code'"
+          (click)="setJoinMode('code')">
+          🔑 Código
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="joinMode === 'email'"
+          (click)="setJoinMode('email')">
+          ✉️ Correo
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="joinMode === 'uuid'"
+          (click)="setJoinMode('uuid')">
+          🔗 ID Sesión
+        </button>
+      </div>
+
       <div class="connect-form">
-        <input
-          type="text"
-          name="sessionUuidInput"
-          [value]="sessionUuidInput"
-          (input)="sessionUuidInput = $any($event.target).value"
-          placeholder="Pega el ID de sesión aquí..."
-          class="input-box"
-          [disabled]="uniendose"
-        />
+
+        <!-- Modo: Código alfanumérico -->
+        <div *ngIf="joinMode === 'code'">
+          <p class="join-mode-hint">Ingresa el código de 6 caracteres que te dio tu contraparte (ej: AB3X7Q)</p>
+          <input
+            type="text"
+            [(ngModel)]="shortCodeInput"
+            placeholder="Ej: AB3X7Q"
+            class="input-box input-code"
+            maxlength="6"
+            [disabled]="uniendose"
+          />
+        </div>
+
+        <!-- Modo: Correo del Usuario A -->
+        <div *ngIf="joinMode === 'email'">
+          <p class="join-mode-hint">Ingresa el correo de quien generó la sala</p>
+          <input
+            type="email"
+            [(ngModel)]="emailInput"
+            placeholder="correo@ejemplo.com"
+            class="input-box"
+            [disabled]="uniendose"
+          />
+        </div>
+
+        <!-- Modo: UUID completo -->
+        <div *ngIf="joinMode === 'uuid'">
+          <p class="join-mode-hint">Pega el ID de sesión completo</p>
+          <input
+            type="text"
+            [(ngModel)]="sessionUuidInput"
+            placeholder="Pega el ID de sesión aquí..."
+            class="input-box"
+            [disabled]="uniendose"
+          />
+        </div>
 
         <button
           (click)="unirseAIntercambio()"
@@ -96,14 +151,15 @@
         </div>
 
         <div class="scan-result" *ngIf="scannedUuid && !escaneando">
-          ✅ <span>{{ scannedUuid }}</span>
+          ✅ QR detectado — <span>{{ scannedUuid }}</span>
         </div>
 
       </div>
     </div>
 
   </div>
-  <!-- ✅ Popup de error -->
+
+  <!-- Popup de error -->
   <div class="custom-popup" *ngIf="showError">
     <div class="popup-content border-error">
       <i class="fas fa-exclamation-circle error-icon"></i>

@@ -25,22 +25,6 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
-/**
- * Servicio central de soporte. Gestiona el ciclo de vida de los tickets y aplica
- * automáticamente las acciones de negocio al momento de resolverlos:
- * <ul>
- *   <li>ADD_PACKETS   → Suma sobres al usuario objetivo</li>
- *   <li>ADD_TOKENS    → Acredita tokens/puntos</li>
- *   <li>REFUND_TOKENS → Devuelve tokens por reembolso</li>
- *   <li>UNLOCK_ACCOUNT  → Habilita la cuenta del usuario</li>
- *   <li>REVOKE_ACCOUNT  → Deshabilita la cuenta del usuario</li>
- *   <li>RESET_VERIFICATION → Limpia el estado de verificación para que el usuario pueda re-verificar</li>
- *   <li>CUSTOM          → Solo registra la nota sin acción automática</li>
- * </ul>
- *
- * @author Juan Pablo Cuervo Rodriguez
- * @version 1.0
- */
 @Service
 public class SupportTicketService {
 
@@ -52,30 +36,19 @@ public class SupportTicketService {
 
     @Autowired
     private ActivityLogService activityLogService;
-    
-	@Autowired
-	private EmailService emailService;
+
+    @Autowired
+    private EmailService emailService;
 
 
-    /**
-     * Crea un nuevo ticket de soporte en estado OPEN.
-     * El agente es identificado por su ID; el usuario destino por targetUserId.
-     *
-     * @param dto     DTO con los datos del ticket.
-     * @param agentId ID del agente autenticado (extraído del JWT en el controlador).
-     * @return El DTO del ticket guardado.
-     */
     @Transactional
     public SupportTicketDTO createTicket(SupportTicketDTO dto, Long agentId) {
-        // Validaciones mínimas
         if (dto.getTargetUserId() == null) {
             throw new Exceptions.ValidationException("El ID del usuario objetivo es obligatorio.");
         }
         if (dto.getTicketType() == null) {
             throw new Exceptions.ValidationException("El tipo de ticket es obligatorio.");
         }
-
-        // Tipos que requieren cantidad
         if ((dto.getTicketType() == TicketType.ADD_PACKETS
                 || dto.getTicketType() == TicketType.ADD_TOKENS
                 || dto.getTicketType() == TicketType.REFUND_TOKENS)
@@ -102,36 +75,21 @@ public class SupportTicketService {
         ticketRepo.save(ticket);
 
         activityLogService.log(agentId, "SUPPORT_TICKET_CREATED",
-        	    "Ticket #" + ticket.getId() + " creado. Tipo: " + dto.getTicketType()
-        	    + " para usuario ID " + safeDecrypt(targetUser.getUserName()));
+                "Ticket #" + ticket.getId() + " creado. Tipo: " + dto.getTicketType()
+                + " para usuario ID " + safeDecrypt(targetUser.getUserName()));
 
         return toDTO(ticket);
     }
-    
-	/**
-	 * Carga el contenido html de una plantilla desde los recursos del sistema.
-	 *
-	 * @param path Ruta del recurso a cargar.
-	 * @return El contenido textual de la plantilla.
-	 * @throws IOException Si ocurre una falla en el flujo de entrada/salida.
-	 */
-	private String loadTemplate(String path) throws IOException {
-		var inputStream = getClass().getResourceAsStream(path);
-		if (inputStream == null) {
-			throw new IOException("Plantilla no encontrada en ruta: " + path);
-		}
-		return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-	}
 
-    /**
-     * Resuelve un ticket aplicando automáticamente la acción correspondiente al usuario destino.
-     *
-     * @param ticketId   ID del ticket a resolver.
-     * @param resolution Texto de resolución escrito por el agente.
-     * @param agentId    ID del agente que resuelve.
-     * @return El DTO actualizado del ticket.
-     */
-	@Transactional
+    private String loadTemplate(String path) throws IOException {
+        var inputStream = getClass().getResourceAsStream(path);
+        if (inputStream == null) {
+            throw new IOException("Plantilla no encontrada en ruta: " + path);
+        }
+        return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    @Transactional
     public SupportTicketDTO resolveTicket(Long ticketId, String resolution, Long agentId) {
         SupportTicket ticket = findTicketOrThrow(ticketId);
 
@@ -143,15 +101,21 @@ public class SupportTicketService {
         }
 
         User targetUser = ticket.getTargetUser();
-        String userNameDecrypted = AESUtil.decrypt(targetUser.getUserName());
-        String emailDecrypted    = AESUtil.decrypt(targetUser.getEmail());
-        String resolvedAt        = LocalDateTime.now()
+
+        // ── FIX: usar safeDecrypt en lugar de AESUtil.decrypt directo ──────────
+        // AESUtil.decrypt() lanza "Null input buffer" si el campo es null o blank.
+        // safeDecrypt() maneja ese caso devolviendo "Desconocido" sin explotar.
+        String userNameDecrypted = safeDecrypt(targetUser.getUserName());
+        String emailDecrypted    = safeDecrypt(targetUser.getEmail());
+        // ────────────────────────────────────────────────────────────────────────
+
+        String resolvedAt = LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
 
         switch (ticket.getTicketType()) {
 
             case ADD_PACKETS -> {
-                int cantidad     = ticket.getQuantity() != null ? ticket.getQuantity() : 1;
+                int cantidad      = ticket.getQuantity() != null ? ticket.getQuantity() : 1;
                 int sobresActuales = targetUser.getPackets() != null ? targetUser.getPackets() : 0;
                 targetUser.setPackets(sobresActuales + cantidad);
                 userRepo.save(targetUser);
@@ -162,13 +126,13 @@ public class SupportTicketService {
                         "¡Tus sobres han sido acreditados!",
                         "/templates/ticket-resolved-add-packets.html",
                         body -> body
-                            .replace("{{USER_NAME}}", userNameDecrypted)
-                            .replace("{{QUANTITY}}",  String.valueOf(cantidad))
+                            .replace("{{USER_NAME}}",   userNameDecrypted)
+                            .replace("{{QUANTITY}}",    String.valueOf(cantidad))
                             .replace("{{RESOLVED_AT}}", resolvedAt));
             }
 
             case ADD_TOKENS -> {
-                int tokens       = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
+                int tokens        = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
                 int tokensActuales = targetUser.getTotalPoints() != null ? targetUser.getTotalPoints() : 0;
                 targetUser.setTotalPoints(tokensActuales + tokens);
                 userRepo.save(targetUser);
@@ -186,7 +150,7 @@ public class SupportTicketService {
             }
 
             case REFUND_TOKENS -> {
-                int tokens       = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
+                int tokens        = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
                 int tokensActuales = targetUser.getTotalPoints() != null ? targetUser.getTotalPoints() : 0;
                 targetUser.setTotalPoints(tokensActuales + tokens);
                 userRepo.save(targetUser);
@@ -277,36 +241,17 @@ public class SupportTicketService {
         return toDTO(ticket);
     }
 
-    /**
-     * Carga una plantilla HTML, aplica los reemplazos mediante el mapper recibido
-     * y envía el correo. Los errores de correo se silencian para no interrumpir
-     * la transacción principal.
-     *
-     * @param to       Correo destino en texto plano (ya desencriptado).
-     * @param subject  Asunto del correo.
-     * @param template Ruta del recurso HTML (e.g. "/templates/ticket-resolved-unlock.html").
-     * @param mapper   Función que recibe el HTML crudo y devuelve el HTML con placeholders reemplazados.
-     */
     private void sendTicketResolvedEmail(String to, String subject, String template,
                                          UnaryOperator<String> mapper) {
         try {
-            String html  = loadTemplate(template);
-            String body  = mapper.apply(html);
+            String html = loadTemplate(template);
+            String body = mapper.apply(html);
             emailService.sendEmailDefault(to, subject, body);
         } catch (Exception ignored) {
             // El correo no debe interrumpir la resolución del ticket
         }
     }
 
-
-    /**
-     * Rechaza un ticket sin aplicar ninguna acción de negocio.
-     *
-     * @param ticketId   ID del ticket a rechazar.
-     * @param resolution Motivo del rechazo.
-     * @param agentId    ID del agente que rechaza.
-     * @return El DTO actualizado.
-     */
     @Transactional
     public SupportTicketDTO rejectTicket(Long ticketId, String resolution, Long agentId) {
         SupportTicket ticket = findTicketOrThrow(ticketId);
@@ -325,8 +270,6 @@ public class SupportTicketService {
 
         return toDTO(ticket);
     }
-
-
 
     @Transactional(readOnly = true)
     public List<SupportTicketDTO> findAll() {
@@ -368,16 +311,11 @@ public class SupportTicketService {
         return ticketRepo.countByStatus(status);
     }
 
-
-
     private SupportTicket findTicketOrThrow(Long id) {
         return ticketRepo.findById(id)
                 .orElseThrow(() -> new Exceptions.ResourceNotFoundException("Ticket no encontrado con ID: " + id));
     }
 
-    /**
-     * Mapea la entidad al DTO, desencriptando los nombres de usuario para la UI.
-     */
     private SupportTicketDTO toDTO(SupportTicket entity) {
         SupportTicketDTO dto = new SupportTicketDTO();
         dto.setId(entity.getId());

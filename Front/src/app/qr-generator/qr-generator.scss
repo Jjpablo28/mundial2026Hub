@@ -302,7 +302,25 @@ $error:       #FF4D4D;
     &:disabled { opacity: 0.5; cursor: not-allowed; }
   }
 }
+.short-code-box {
+  text-align: center;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(225, 255, 87, 0.08);
+  border: 2px solid #E1FF57;
+  border-radius: 12px;
+}
+.short-code-label { font-size: 0.7rem; letter-spacing: 2px; color: #aaa; margin: 0; }
+.short-code-value { font-size: 2.5rem; font-weight: 900; color: #E1FF57; letter-spacing: 8px; }
+.short-code-hint  { font-size: 0.75rem; color: #aaa; margin: 0.5rem 0 0; }
 
+.join-mode-tabs   { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.tab-btn          { flex: 1; padding: 0.5rem; border: 1px solid #444; border-radius: 8px;
+  background: transparent; color: #aaa; cursor: pointer; }
+.tab-btn.active   { border-color: #E1FF57; color: #E1FF57; background: rgba(225,255,87,0.08); }
+.join-mode-hint   { font-size: 0.8rem; color: #aaa; margin-bottom: 0.5rem; }
+.input-code       { text-transform: uppercase; letter-spacing: 6px; font-size: 1.3rem;
+  text-align: center; }
 // ===================================================
 //  KEYFRAMES
 // ===================================================
