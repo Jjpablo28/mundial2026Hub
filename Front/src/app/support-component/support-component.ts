@@ -50,6 +50,8 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   // ─── Datos compartidos ────────────────────────────────────────────────────
   tickets: SupportTicketDTO[] = [];
+  filteredTickets: SupportTicketDTO[] = [];   // resultado del filtro de búsqueda
+  searchQuery = '';
   totalTickets = 0;
   currentPage  = 0;
   readonly pageSize = 10;
@@ -211,6 +213,7 @@ export class SupportComponent implements OnInit, OnDestroy {
           this.totalTickets = page.totalElements;
           if (forDashboard) this.isDashboardLoading = false;
           else this.isLoading = false;
+          this.runSearch();
           this.cdr.markForCheck();
         },
         error: () => {
@@ -260,7 +263,7 @@ export class SupportComponent implements OnInit, OnDestroy {
       quantity:     this.needsQuantity(this.createForm.value.ticketType)
         ? this.createForm.value.quantity
         : null,
-      notes: (this.createForm.value.notes ?? '').trim() || undefined,
+      notes: this.createForm.value.notes || undefined,
     };
 
     this.supportService.createTicket(payload, agentId)
@@ -289,15 +292,15 @@ export class SupportComponent implements OnInit, OnDestroy {
 
     const ticketType = USER_TYPE_MAP[this.selectedUserType] ?? 'CUSTOM';
     const payload: CreateTicketPayload = {
-      targetUserId: this.currentUserId!,   // el ticket es para el propio usuario
+      targetUserId: this.currentUserId!,
       ticketType,
       quantity: this.selectedUserTypeNeedsQty
         ? this.userRequestForm.value.quantity
         : null,
-      notes: (this.userRequestForm.value.description ?? '').trim() || undefined,
+      notes: this.userRequestForm.value.description,
     };
 
-    // USER: agentId = propio usuario (el backend lo requiere, no acepta 0)
+    // El usuario se registra como agente de su propio ticket
     this.supportService.createTicket(payload, this.currentUserId!)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -368,6 +371,34 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.isAdmin ? this.loadAllTickets(this.activeView === 'dashboard') : this.loadUserTickets();
   }
 
+  // ─── Búsqueda local ──────────────────────────────────────────────────────
+  onSearchChange(query: string): void {
+    this.searchQuery = query;
+    this.runSearch();
+  }
+
+  clearSearch(): void {
+    this.searchQuery    = '';
+    this.filteredTickets = [];
+  }
+
+  private runSearch(): void {
+    if (!this.searchQuery.trim()) {
+      this.filteredTickets = [];
+      return;
+    }
+    const q = this.searchQuery.toLowerCase().trim();
+    this.filteredTickets = this.tickets.filter(t =>
+      (t.targetUserName  && t.targetUserName.toLowerCase().includes(q))  ||
+      (t.agentUserName   && t.agentUserName.toLowerCase().includes(q))   ||
+      (t.notes           && t.notes.toLowerCase().includes(q))           ||
+      (t.resolution      && t.resolution.toLowerCase().includes(q))      ||
+      (t.id              && t.id.toString().includes(q))                 ||
+      this.getTicketTypeLabel(t.ticketType).toLowerCase().includes(q)    ||
+      this.getStatusLabel(t.status!).toLowerCase().includes(q)
+    );
+  }
+
   get totalPages(): number { return Math.ceil(this.totalTickets / this.pageSize); }
   get pages(): number[]    { return Array.from({ length: this.totalPages }, (_, i) => i); }
 
@@ -393,6 +424,17 @@ export class SupportComponent implements OnInit, OnDestroy {
       IN_PROGRESS: 'badge--progress',
       RESOLVED:    'badge--resolved',
       REJECTED:    'badge--rejected',
+    };
+    return map[status] ?? '';
+  }
+
+  // Clase BEM para el borde lateral del ticket-item (espejo de log-item)
+  getTicketItemClass(status: TicketStatus): string {
+    const map: Record<TicketStatus, string> = {
+      OPEN:        'ticket-item--open',
+      IN_PROGRESS: 'ticket-item--progress',
+      RESOLVED:    'ticket-item--resolved',
+      REJECTED:    'ticket-item--rejected',
     };
     return map[status] ?? '';
   }

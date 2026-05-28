@@ -4,62 +4,57 @@
      ════════════════════════════════════════════════════════════════════ -->
 <div class="support-shell">
 
-  <!-- ══════════════════════════════════════════════════════════════════
-       TOPBAR — Menú horizontal sticky arriba
-       ══════════════════════════════════════════════════════════════════ -->
+
   <nav class="topbar">
     <div class="topbar__brand">
       <i class="ti ti-headset topbar__brand-icon"></i>
       <span class="topbar__brand-text">Soporte</span>
     </div>
 
-    <!-- NAV ADMIN/SOPORTE -->
     <ng-container *ngIf="isAdmin">
-      <span class="topbar__section">General</span>
+      <div class="topbar__nav">
+        <button class="topbar__item"
+                [class.topbar__item--active]="activeView === 'dashboard'"
+                (click)="setView('dashboard')">
+          <i class="ti ti-layout-dashboard topbar__item-icon"></i>
+          <span>Dashboard</span>
+        </button>
 
-      <button class="topbar__item"
-              [class.topbar__item--active]="activeView === 'dashboard'"
-              (click)="setView('dashboard')">
-        <i class="ti ti-layout-dashboard topbar__item-icon"></i>
-        <span>Dashboard</span>
-      </button>
+        <button class="topbar__item"
+                [class.topbar__item--active]="activeView === 'tickets'"
+                (click)="setView('tickets')">
+          <i class="ti ti-list-details topbar__item-icon"></i>
+          <span>Tickets</span>
+          <span class="topbar__badge" *ngIf="stats.open > 0">{{ stats.open }}</span>
+        </button>
+      </div>
 
-      <button class="topbar__item"
-              [class.topbar__item--active]="activeView === 'tickets'"
-              (click)="setView('tickets')">
-        <i class="ti ti-list-details topbar__item-icon"></i>
-        <span>Tickets</span>
-        <span class="topbar__badge" *ngIf="stats.open > 0">{{ stats.open }}</span>
-      </button>
-
-      <div class="topbar__divider"></div>
-      <span class="topbar__section">Acciones</span>
-
-      <button class="topbar__item topbar__item--cta"
-              [class.topbar__item--active]="activeView === 'create'"
-              (click)="setView('create')">
-        <i class="ti ti-plus topbar__item-icon"></i>
-        <span>Nuevo Ticket</span>
-      </button>
+      <div class="topbar__end">
+        <button class="topbar__item topbar__item--cta"
+                [class.topbar__item--active]="activeView === 'create'"
+                (click)="setView('create')">
+          <i class="ti ti-plus topbar__item-icon"></i>
+          <span>Nuevo Ticket</span>
+        </button>
+      </div>
     </ng-container>
 
-    <!-- NAV USUARIO NORMAL -->
     <ng-container *ngIf="!isAdmin">
-      <span class="topbar__section">Mi cuenta</span>
+      <div class="topbar__nav">
+        <button class="topbar__item"
+                [class.topbar__item--active]="activeView === 'mis-tickets'"
+                (click)="setView('mis-tickets')">
+          <i class="ti ti-clipboard-list topbar__item-icon"></i>
+          <span>Mis Tickets</span>
+        </button>
 
-      <button class="topbar__item"
-              [class.topbar__item--active]="activeView === 'mis-tickets'"
-              (click)="setView('mis-tickets')">
-        <i class="ti ti-clipboard-list topbar__item-icon"></i>
-        <span>Mis Tickets</span>
-      </button>
-
-      <button class="topbar__item"
-              [class.topbar__item--active]="activeView === 'solicitar'"
-              (click)="setView('solicitar')">
-        <i class="ti ti-send topbar__item-icon"></i>
-        <span>Solicitar ayuda</span>
-      </button>
+        <button class="topbar__item"
+                [class.topbar__item--active]="activeView === 'solicitar'"
+                (click)="setView('solicitar')">
+          <i class="ti ti-plus topbar__item-icon"></i>
+          <span>Nueva solicitud</span>
+        </button>
+      </div>
     </ng-container>
   </nav>
 
@@ -274,42 +269,37 @@
         </button>
       </div>
 
-      <!-- Tabla usuario (sin columna Agente ni Acciones) -->
-      <div *ngIf="!isLoading && tickets.length > 0" class="table-wrapper">
-        <table class="tickets-table">
-          <thead>
-          <tr>
-            <th>#ID</th>
-            <th>Tipo de solicitud</th>
-            <th>Cantidad</th>
-            <th>Estado</th>
-            <th>Notas</th>
-            <th>Resolución</th>
-            <th>Fecha</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr *ngFor="let ticket of tickets" class="tickets-table__row">
-            <td class="td-id">#{{ ticket.id }}</td>
-            <td>
-              <span class="type-tag">
-                <i class="ti {{ getTicketTypeIcon(ticket.ticketType) }}"></i>
-                {{ getTicketTypeLabel(ticket.ticketType) }}
+      <!-- Lista estilo log-item para usuario -->
+      <div *ngIf="!isLoading && tickets.length > 0" class="ticket-list">
+        <div *ngFor="let ticket of tickets"
+             class="ticket-item"
+             [ngClass]="getTicketItemClass(ticket.status!)">
+          <div class="ticket-item__icon">
+            <i class="ti {{ getTicketTypeIcon(ticket.ticketType) }}"></i>
+          </div>
+          <div class="ticket-item__body">
+            <div class="ticket-item__meta">
+              <span class="ticket-item__id">#{{ ticket.id }}</span>
+              <span class="ticket-item__type">{{ getTicketTypeLabel(ticket.ticketType) }}</span>
+              <span class="badge" [ngClass]="getStatusClass(ticket.status!)">{{ getStatusLabel(ticket.status!) }}</span>
+              <span class="ticket-item__qty" *ngIf="ticket.quantity">
+                <i class="ti ti-hash"></i>{{ ticket.quantity }}
               </span>
-            </td>
-            <td class="td-qty">{{ ticket.quantity ?? '—' }}</td>
-            <td>
-              <span class="badge" [ngClass]="getStatusClass(ticket.status!)">
-                {{ getStatusLabel(ticket.status!) }}
+              <span class="ticket-item__date">{{ ticket.createdAt | date:'dd MMM yyyy · HH:mm' }}</span>
+            </div>
+            <p class="ticket-item__detail" *ngIf="ticket.notes">{{ ticket.notes }}</p>
+            <div class="ticket-item__footer" *ngIf="ticket.resolution">
+              <span class="ticket-item__resolution">
+                <i class="ti ti-message-circle"></i> {{ ticket.resolution }}
               </span>
-            </td>
-            <td class="td-notes">{{ ticket.notes || '—' }}</td>
-            <td class="td-notes">{{ ticket.resolution || 'Pendiente de revisión' }}</td>
-            <td class="td-date">{{ ticket.createdAt | date:'dd/MM/yy HH:mm' }}</td>
-          </tr>
-          </tbody>
-        </table>
+            </div>
+            <div class="ticket-item__footer" *ngIf="!ticket.resolution">
+              <span class="ticket-item__resolution ticket-item__resolution--pending">Pendiente de revisión</span>
+            </div>
+          </div>
+        </div>
       </div>
+
 
       <ng-container *ngTemplateOutlet="pagination"></ng-container>
     </section>
@@ -451,22 +441,47 @@
      TEMPLATES COMPARTIDOS (admin y user los reutilizan)
      ════════════════════════════════════════════════════════════════════ -->
 
-<!-- Barra de filtros -->
+<!-- Barra de búsqueda + filtros -->
 <ng-template #filterBar>
-  <div class="filter-bar">
-    <button *ngFor="let f of STATUS_FILTERS"
-            class="filter-btn"
-            [class.filter-btn--active]="selectedStatus === f.value"
-            (click)="applyFilter(f.value)">
-      {{ f.label }}
-    </button>
+  <div class="search-filter-bar">
+    <!-- Campo de búsqueda -->
+    <div class="search-field">
+      <i class="ti ti-search search-field__icon"></i>
+      <input
+        class="search-field__input"
+        type="text"
+        placeholder="Buscar por usuario, tipo, notas…"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange($event)" />
+      <button class="search-field__clear" *ngIf="searchQuery" (click)="clearSearch()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <!-- Filtros de estado -->
+    <div class="filter-chips">
+      <button *ngFor="let f of STATUS_FILTERS"
+              class="filter-btn"
+              [class.filter-btn--active]="selectedStatus === f.value"
+              (click)="applyFilter(f.value)">
+        {{ f.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Resumen de resultados cuando hay búsqueda activa -->
+  <div class="search-summary" *ngIf="searchQuery">
+    <i class="ti ti-filter"></i>
+    <span>{{ filteredTickets.length }} resultado{{ filteredTickets.length !== 1 ? 's' : '' }} para
+      <strong>"{{ searchQuery }}"</strong></span>
+    <button class="search-summary__clear" (click)="clearSearch()">Limpiar</button>
   </div>
 </ng-template>
 
 <!-- Tabla de tickets (showActions solo para admin) -->
 <ng-template #ticketsTable let-showActions="showActions" let-overrideLoading="overrideLoading">
 
-  <!-- El loading se controla por overrideLoading (dashboard) o isLoading (otras vistas) -->
+  <!-- Loading -->
   <ng-container *ngIf="overrideLoading === true || (overrideLoading === undefined && isLoading)">
     <div class="loading-state">
       <div class="spinner"></div>
@@ -475,70 +490,64 @@
   </ng-container>
 
   <ng-container *ngIf="overrideLoading !== true && !(overrideLoading === undefined && isLoading)">
+
     <div *ngIf="tickets.length === 0" class="empty-state">
       <i class="ti ti-ticket empty-state__icon"></i>
       <p>No hay tickets para mostrar</p>
     </div>
 
-    <div *ngIf="tickets.length > 0" class="table-wrapper">
-      <table class="tickets-table">
-        <thead>
-        <tr>
-          <th>#ID</th>
-          <th>Usuario</th>
-          <th>Agente</th>
-          <th>Tipo</th>
-          <th>Cant.</th>
-          <th>Estado</th>
-          <th>Notas</th>
-          <th>Creado</th>
-          <th *ngIf="showActions">Acciones</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr *ngFor="let ticket of tickets" class="tickets-table__row">
-          <td class="td-id">#{{ ticket.id }}</td>
-          <td>
-            <div class="user-cell">
-              <span class="user-cell__name">{{ ticket.targetUserName || '–' }}</span>
-              <span class="user-cell__id">ID {{ ticket.targetUserId }}</span>
-            </div>
-          </td>
-          <td class="td-agent">{{ ticket.agentUserName || '–' }}</td>
-          <td>
-            <span class="type-tag">
-              <i class="ti {{ getTicketTypeIcon(ticket.ticketType) }}"></i>
-              {{ getTicketTypeLabel(ticket.ticketType) }}
+    <!-- Lista estilo log-item -->
+    <div *ngIf="tickets.length > 0" class="ticket-list">
+      <div *ngFor="let ticket of (searchQuery ? filteredTickets : tickets)"
+           class="ticket-item"
+           [ngClass]="getTicketItemClass(ticket.status!)">
+
+        <!-- Ícono de tipo -->
+        <div class="ticket-item__icon">
+          <i class="ti {{ getTicketTypeIcon(ticket.ticketType) }}"></i>
+        </div>
+
+        <!-- Cuerpo principal -->
+        <div class="ticket-item__body">
+          <div class="ticket-item__meta">
+            <span class="ticket-item__id">#{{ ticket.id }}</span>
+            <span class="ticket-item__user">{{ ticket.targetUserName || ('ID ' + ticket.targetUserId) }}</span>
+            <span class="ticket-item__type">{{ getTicketTypeLabel(ticket.ticketType) }}</span>
+            <span class="badge" [ngClass]="getStatusClass(ticket.status!)">{{ getStatusLabel(ticket.status!) }}</span>
+            <span class="ticket-item__qty" *ngIf="ticket.quantity">
+              <i class="ti ti-hash"></i>{{ ticket.quantity }}
             </span>
-          </td>
-          <td class="td-qty">{{ ticket.quantity ?? '–' }}</td>
-          <td>
-            <span class="badge" [ngClass]="getStatusClass(ticket.status!)">
-              {{ getStatusLabel(ticket.status!) }}
+            <span class="ticket-item__date">{{ ticket.createdAt | date:'dd MMM yyyy · HH:mm' }}</span>
+          </div>
+          <p class="ticket-item__detail" *ngIf="ticket.notes">{{ ticket.notes }}</p>
+          <div class="ticket-item__footer" *ngIf="showActions && (ticket.agentUserName || ticket.resolution)">
+            <span *ngIf="ticket.agentUserName" class="ticket-item__agent">
+              <i class="ti ti-user"></i> {{ ticket.agentUserName }}
             </span>
-          </td>
-          <td class="td-notes">{{ ticket.notes || '–' }}</td>
-          <td class="td-date">{{ ticket.createdAt | date:'dd/MM/yy HH:mm' }}</td>
-          <td *ngIf="showActions">
-            <div class="action-btns"
-                 *ngIf="ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS'; else processed">
-              <button class="btn btn--resolve" (click)="openActionModal(ticket, 'resolve')">
-                <i class="ti ti-check"></i> Resolver
-              </button>
-              <button class="btn btn--reject" (click)="openActionModal(ticket, 'reject')">
-                <i class="ti ti-x"></i> Rechazar
-              </button>
-            </div>
-            <ng-template #processed>
-              <span class="processed-label">Procesado</span>
-            </ng-template>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+            <span *ngIf="ticket.resolution" class="ticket-item__resolution">{{ ticket.resolution }}</span>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="ticket-item__actions" *ngIf="showActions">
+          <ng-container *ngIf="ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS'; else processedBadge">
+            <button class="btn btn--resolve" (click)="openActionModal(ticket, 'resolve')">
+              <i class="ti ti-check"></i><span class="btn-label"> Resolver</span>
+            </button>
+            <button class="btn btn--reject" (click)="openActionModal(ticket, 'reject')">
+              <i class="ti ti-x"></i><span class="btn-label"> Rechazar</span>
+            </button>
+          </ng-container>
+          <ng-template #processedBadge>
+            <span class="processed-label">Procesado</span>
+          </ng-template>
+        </div>
+
+      </div>
     </div>
   </ng-container>
 </ng-template>
+
 
 <!-- Paginación -->
 <ng-template #pagination>

@@ -131,8 +131,9 @@ public class DatabaseInitializer {
 	 */
 	private void createPlayers() {
 		if (stickerRepo.count() > 0) {
-		    System.out.println("Los jugadores ya están precargados en la base de datos. Hay " + stickerRepo.count() + " Jugadores");
-		    return;
+			System.out.println("Los jugadores ya están precargados en la base de datos. Hay " + stickerRepo.count()
+					+ " Jugadores");
+			return;
 		}
 
 		List<Integer> teams = Arrays.asList(12, 31, 1569, 15, 13, 5529, 9, 27, 8, 26, 25, 16, 2384, 6, 2, 10, 7, 3, 1,
@@ -339,7 +340,8 @@ public class DatabaseInitializer {
 			log.info("El usuario '{}' ya existe, omitiendo creación.", username);
 		} else {
 			User newUser = new User(null, encryptedUsername, null, null, passwordEncoder.encode("1234567890"), null,
-					null, null, null, null, null, null, null, null, null, null, null, null, true, true, true, true);
+					null, null, null, null, null, null, null, null, null, null, null, null, null, true, true, true,
+					true, 0, null);
 			newUser.setRole(role);
 			newUser.setEnabled(true);
 			newUser.setAccountNonExpired(true);

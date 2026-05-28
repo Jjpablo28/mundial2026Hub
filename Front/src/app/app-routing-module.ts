@@ -26,7 +26,7 @@ const routes: Routes = [
   { path: 'payment', component: PaymentComponent },
   { path: 'qr', component: QrGenerator },
   { path: 'websocket', component: TradeScreen },
-  { path: 'soporte', component: SupportComponent },
+  { path: 'admin/soporte', component: SupportComponent },
   {path:'admin/usuarios',component: UserAdminComponent, canActivate: [AuthGuard], data: { rolesPermitidos: ['ADMIN'] }}
 ];
 

@@ -244,48 +244,93 @@ public class AuthController {
 	 * @return Una estructura {@link AuthResponse} con la firma del token web
 	 *         firmado y el rol de acceso.
 	 */
-	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody LoguinRequestDTO loginRequest) {
-	    try {
-	        String identifier = loginRequest.getIdentifier();
-
-	        Optional<User> userOpt = identifier.contains("@")
-	                ? userRepo.findByEmail(AESUtil.encrypt(identifier))
-	                : userRepo.findByUserName(AESUtil.encrypt(identifier));
-
-	        if (userOpt.isEmpty()) {
-	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-	                    .body("Nombre de usuario o contraseña inválidos o usuario no encontrado");
+	  @PostMapping("/login")
+	    public ResponseEntity<?> login(@RequestBody LoguinRequestDTO loginRequest) {
+	        try {
+	            String identifier = loginRequest.getIdentifier();
+	 
+	            Optional<User> userOpt = identifier.contains("@")
+	                    ? userRepo.findByEmail(AESUtil.encrypt(identifier))
+	                    : userRepo.findByUserName(AESUtil.encrypt(identifier));
+	 
+	            if (userOpt.isEmpty()) {
+	                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	                        .body("Nombre de usuario o contraseña inválidos o usuario no encontrado");
+	            }
+	 
+	            User userFound = userOpt.get();
+	 
+	            // ← NUEVO: cuenta bloqueada por intentos fallidos
+	            if (!userFound.isEnabled() && userFound.getLockedAt() != null) {
+	                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+	                        .body(Map.of(
+	                                "message", "Tu cuenta ha sido bloqueada por demasiados intentos fallidos. "
+	                                         + "Contacta a soporte para reactivarla.",
+	                                "success", false,
+	                                "lockedAt", userFound.getLockedAt().toString()
+	                        ));
+	            }
+	 
+	            // ← NUEVO: cuenta deshabilitada por otra razón (aún no verificada)
+	            if (!userFound.isEnabled()) {
+	                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+	                        .body(Map.of(
+	                                "message", "La cuenta aún no ha sido verificada. Revisa tu correo.",
+	                                "success", false
+	                        ));
+	            }
+	 
+	            try {
+	                Authentication authentication = authenticationManager.authenticate(
+	                        new UsernamePasswordAuthenticationToken(
+	                                userFound.getUserName(), loginRequest.getPassword()));
+	 
+	                UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+	 
+	                // ← NUEVO: login correcto → resetear contador
+	                String userNameDecrypted = userFound.getUsername() != null
+	                        ? AESUtil.decrypt(userFound.getUsername()) : null;
+	                userService.resetFailedLoginAttempts(userNameDecrypted);
+	 
+	                String emailDecrypted = userFound.getEmail() != null
+	                        ? AESUtil.decrypt(userFound.getEmail()) : null;
+	 
+	                String jwt = jwtUtil.generateToken(userDetails, userNameDecrypted,
+	                        userFound.getId(), emailDecrypted);
+	 
+	                userFound.setLastLogin(LocalDateTime.now());
+	                userRepo.save(userFound);
+	 
+	                String role = null;
+	                if (userDetails instanceof User) {
+	                    role = ((User) userDetails).getRole().name();
+	                }
+	 
+	                return ResponseEntity.ok(new AuthResponse(jwt, role));
+	 
+	            } catch (AuthenticationException e) {
+	                // ← NUEVO: login incorrecto → incrementar contador
+	                String userNameDecrypted = userFound.getUsername() != null
+	                        ? AESUtil.decrypt(userFound.getUsername()) : null;
+	                userService.registerFailedLoginAttempt(userNameDecrypted);
+	 
+	                // ← MODIFICADO: mensaje indica cuántos intentos le quedan
+	                int remaining = User.MAX_FAILED_ATTEMPTS
+	                        - (userFound.getFailedLoginAttempts() + 1);
+	                String msg = remaining > 0
+	                        ? "Credenciales inválidas. Te quedan " + remaining + " intento(s) antes de que tu cuenta sea bloqueada."
+	                        : "Credenciales inválidas. Tu cuenta ha sido bloqueada. Contacta a soporte.";
+	 
+	                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+	                        .body(Map.of("message", msg, "success", false));
+	            }
+	 
+	        } catch (Exception e) {
+	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                    .body(Map.of("message", "Error interno del servidor: " + e.getMessage(), "success", false));
 	        }
-
-	        User userFound = userOpt.get();
-
-	        Authentication authentication = authenticationManager.authenticate(
-	                new UsernamePasswordAuthenticationToken(userFound.getUserName(), loginRequest.getPassword()));
-
-	        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-	        String userNameDecrypted = userFound.getUsername() != null ? AESUtil.decrypt(userFound.getUsername())
-	                : null;
-	        String emailDecrypted = userFound.getEmail() != null ? AESUtil.decrypt(userFound.getEmail()) : null;
-
-	        String jwt = jwtUtil.generateToken(userDetails, userNameDecrypted, userFound.getId(), emailDecrypted);
-
-	        userFound.setLastLogin(LocalDateTime.now());
-	        userRepo.save(userFound);
-
-	        String role = null;
-	        if (userDetails instanceof User) {
-	            role = ((User) userDetails).getRole().name();
-	        }
-
-	        return ResponseEntity.ok(new AuthResponse(jwt, role));
-
-	    } catch (AuthenticationException e) {
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-	                .body("Nombre de usuario o contraseña inválidos o usuario no encontrado");
 	    }
-	}
+	 
 
 	/**
 	 * Verifica la existencia de una dirección de correo específica dentro de la

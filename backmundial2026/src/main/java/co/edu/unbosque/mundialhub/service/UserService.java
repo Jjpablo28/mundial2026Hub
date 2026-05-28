@@ -672,6 +672,62 @@ public class UserService implements CRUDOperation<UserDTO, User> {
 
 		sendConfirmationCode(AESUtil.decrypt(user.getEmail()), user.getCode());
 	}
+	
+	  @Transactional
+	    public void registerFailedLoginAttempt(String userName) {
+	        Optional<User> opt = userRepo.findByUserName(AESUtil.encrypt(userName));
+	        if (opt.isEmpty()) return;
+	 
+	        User user = opt.get();
+	        int attempts = user.getFailedLoginAttempts() + 1;
+	        user.setFailedLoginAttempts(attempts);
+	 
+	        if (attempts >= User.MAX_FAILED_ATTEMPTS) {
+	            user.setEnabled(false);
+	            user.setLockedAt(LocalDateTime.now());
+	            userRepo.save(user);
+	 
+	            // Notificación por correo — reutiliza el mecanismo de emailService
+	            try {
+	                String emailDecrypted = AESUtil.decrypt(user.getEmail());
+	                String body = "<p>Tu cuenta ha sido bloqueada temporalmente por superar el número "
+	                        + "máximo de intentos de inicio de sesión fallidos ("
+	                        + User.MAX_FAILED_ATTEMPTS + ").</p>"
+	                        + "<p>Si no fuiste tú, contacta a nuestro equipo de soporte de inmediato.</p>";
+	    			String htmlTemplate = loadTemplate("/templates/code-email.html");
+
+	                
+	                emailService.sendEmailDefault(userName, emailDecrypted, htmlTemplate);;
+	            } catch (Exception ignored) {
+	                // El bloqueo ya se persistió; no propagar errores de correo
+	            }
+	        } else {
+	            userRepo.save(user);
+	        }
+	    }
+	 
+	    /**
+	     * Resetea el contador de intentos fallidos de inicio de sesión del usuario
+	     * tras un login exitoso.
+	     * <p>
+	     * Pone {@code failedLoginAttempts} a 0 y {@code lockedAt} a {@code null}.
+	     * Debe llamarse inmediatamente después de que la autenticación sea exitosa.
+	     * </p>
+	     *
+	     * @param userName Nombre de usuario (sin cifrar) que acaba de autenticarse.
+	     */
+	    @Transactional
+	    public void resetFailedLoginAttempts(String userName) {
+	        Optional<User> opt = userRepo.findByUserName(AESUtil.encrypt(userName));
+	        if (opt.isEmpty()) return;
+	 
+	        User user = opt.get();
+	        if (user.getFailedLoginAttempts() > 0 || user.getLockedAt() != null) {
+	            user.setFailedLoginAttempts(0);
+	            user.setLockedAt(null);
+	            userRepo.save(user);
+	        }
+	    }
 
 	public String decryptUser(String user) {
 		if (user != null) {
