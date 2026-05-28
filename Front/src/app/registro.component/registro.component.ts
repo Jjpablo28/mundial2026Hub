@@ -1,10 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RegistroService } from './registro.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../security/AuthService';
-
 
 @Component({
   selector: 'app-registro',
@@ -27,7 +26,6 @@ export class RegistroComponent implements OnInit {
   showErrorPopup: boolean = false;
   errorMessage: string = '';
 
-
   showSuccessPopup: boolean = false;
   successMessage: string = '';
 
@@ -39,47 +37,46 @@ export class RegistroComponent implements OnInit {
     private registroService: RegistroService,
     private router: Router,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef  // ← agregar
+    private cdr: ChangeDetectorRef
   ) {}
-
 
   ngOnInit(): void {
     this.loadCountries();
-    this.loadTeams()
-
+    this.loadTeams();
   }
 
   loadCountries() {
     this.registroService.getCountries().subscribe(res => {
       this.countries = res;
+      this.cdr.detectChanges(); // Asegura que los países se pinten en la interfaz al llegar de GeoNames
     });
   }
+
   onCountryChange(country: string) {
     if (!country) return;
 
     this.cities = [];
+    this.city = ''; // Limpia la ciudad previamente seleccionada si cambia el país
 
     this.registroService.getCitiesByCountry(country)
       .subscribe(cities => {
         this.cities = cities;
+        this.cdr.detectChanges(); // Asegura que las ciudades se listen inmediatamente en el selector
       });
   }
-  loadTeams(){
+
+  loadTeams() {
     this.registroService.getTeams().subscribe(res => {
       this.teams = res;
+      this.cdr.detectChanges();
     });
   }
 
   formatIdentifier() {
-
     // Si parece email, lo pasa a minúsculas
-
     if (this.email.includes('@')) {
-
       this.email = this.email.toLowerCase();
-
     }
-
   }
 
   isPasswordValid(password: string): boolean {
@@ -94,7 +91,7 @@ export class RegistroComponent implements OnInit {
   }
 
   register() {
-    this.isLoading = true; // Activamos el loader al iniciar
+    this.isLoading = true;
 
     const body = {
       userName: this.userName,
@@ -106,7 +103,7 @@ export class RegistroComponent implements OnInit {
       password: this.password
     };
 
-    this.registroService.register(body,'TEMPORAL').subscribe({
+    this.registroService.register(body, 'TEMPORAL').subscribe({
       next: (response) => {
         console.log('Registro exitoso', response);
         sessionStorage.setItem('_v_id', btoa(this.email));
@@ -135,6 +132,7 @@ export class RegistroComponent implements OnInit {
       }
     });
   }
+
   hasLower  = (p: string) => /[a-z]/.test(p ?? '');
   hasUpper  = (p: string) => /[A-Z]/.test(p ?? '');
   hasDigit  = (p: string) => /[0-9]/.test(p ?? '');
