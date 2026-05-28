@@ -1,11 +1,13 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {AlbumService, Player, UserStickerResponse} from './album.service';
-import {AuthService} from '../security/AuthService';
-import {HomeComponentService} from '../home.component/home.component.service';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AlbumService, Player, UserStickerResponse } from './album.service';
+import { AuthService } from '../security/AuthService';
+import { HomeComponentService } from '../home.component/home.component.service';
 
 type View = 'packs' | 'album';
-type PackPhase = 'idle' | 'shaking' | 'opening' | 'revealed';
+
+
+type PackPhase = 'idle' | 'loading' | 'revealed';
 
 @Component({
   selector: 'app-album',
@@ -16,39 +18,39 @@ type PackPhase = 'idle' | 'shaking' | 'opening' | 'revealed';
 export class Album implements OnInit {
 
   public currentView: View = 'packs';
-
-  // ===== ÁLBUM =====
   public currentTeamId: number = 22;
 
-  // ✅ Inventario global: se carga UNA vez al iniciar, cubre todos los equipos
   private globalInventory: UserStickerResponse[] = [];
-  public isLoadingInventory: boolean = false;
+  public isLoadingInventory = false;
 
-  // ===== SOBRES =====
-  public packCount: number = 0;
+  public packCount = 0;
   public packPhase: PackPhase = 'idle';
   public newStickers: UserStickerResponse[] = [];
-  public currentCardIndex: number = 0;
-  public packError: string = '';
-
+  public currentCardIndex = 0;
+  public packError = '';
 
   public teamIds: number[] = [];
   private teamNamesMap: Record<number, string> = {};
-
-
   public allTeamPlayers: Player[] = [];
-  private stickerMap: Map<number, Player> = new Map();
+  private stickerMap = new Map<number, Player>();
 
-  constructor(private albumService: AlbumService,
-              private authService: AuthService,
-              private cdr: ChangeDetectorRef,
-              private homeService: HomeComponentService) {
+  constructor(
+    private albumService: AlbumService,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef,
+    private homeService: HomeComponentService
+  ) {}
+
+
+
+  ngOnInit(): void {
+
+    this.loadAllStickers();
+    this.loadTeams();
+    this.loadGlobalInventory();
+    this.setPacks();
   }
 
-
-  // ===========================
-  // INVENTARIO GLOBAL
-  // ===========================
 
   private loadAllStickers(): void {
     this.albumService.getAllStickers().subscribe({
@@ -56,8 +58,8 @@ export class Album implements OnInit {
         this.allTeamPlayers = players;
         this.stickerMap = new Map(players.map(p => [p.id, p]));
 
-        // ✅ Extrae teamIds únicos desde la API (sin hardcodear)
-        this.teamIds = [...new Set(players.map(p => p.teamId))].sort((a, b) => a - b);
+        const fromPlayers = [...new Set(players.map(p => p.teamId))].sort((a, b) => a - b);
+        if (this.teamIds.length === 0) this.teamIds = fromPlayers;
       },
       error: (err) => console.error('Error cargando stickers:', err)
     });
@@ -67,24 +69,10 @@ export class Album implements OnInit {
     this.albumService.getAllTeams().subscribe({
       next: (teams) => {
         this.teamIds = teams.map(t => t.id);
-        teams.forEach(t => {
-          this.teamNamesMap[t.id] = t.name;
-        });
+        teams.forEach(t => (this.teamNamesMap[t.id] = t.name));
       },
       error: (err) => console.error('Error cargando equipos:', err)
     });
-  }
-
-  ngOnInit(): void {
-    this.loadAllStickers();
-    this.loadGlobalInventory();
-    this.loadTeams();
-    this.setPacks()// ← agrega esta línea
-  }
-
-// Helper para enriquecer un sticker del sobre con su Player data
-  public getStickerPlayer(stickerId: number): Player | undefined {
-    return this.stickerMap.get(stickerId);
   }
 
   private loadGlobalInventory(): void {
@@ -93,48 +81,43 @@ export class Album implements OnInit {
       next: (data) => {
         this.globalInventory = data;
         this.isLoadingInventory = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('Error cargando inventario global:', err);
+        console.error('Error cargando inventario:', err);
         this.isLoadingInventory = false;
       }
     });
   }
 
-  // ===========================
-  // ÁLBUM
-  // ===========================
+  public setPacks(): void {
+    const id = this.authService.getUserId();
+    this.homeService.getUserById(id).subscribe({
+      next: (data) => {
+        this.packCount = data.packets;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error obteniendo sobres:', err)
+    });
+  }
 
-  // ✅ Ya no hace HTTP — solo cambia el equipo activo y filtra el master list
   public loadTeamStickers(teamId: number): void {
     this.currentTeamId = teamId;
     this.currentView = 'album';
   }
 
-  public setPacks() {
-    let id: number | null = this.authService.getUserId();
-
-    this.homeService.getUserById(id).subscribe({
-      next: (data) => {
-        this.packCount = data.packets;
-        this.cdr.detectChanges();
-
-        console.log(this.packCount)
-      },
-      error: (err) => {
-
-      }
-    })
+  public getStickerPlayer(stickerId: number): Player | undefined {
+    return this.stickerMap.get(stickerId);
   }
 
-  // ✅ Busca en el inventario global (cubre todos los equipos)
   public getStickerQuantity(playerStickerId: number): number {
-    const record = this.globalInventory.find(item => item.stickerId === playerStickerId);
-    return record ? record.quantity : 0;
+    return this.globalInventory.find(i => i.stickerId === playerStickerId)?.quantity ?? 0;
   }
 
   public getPlayersByPosition(position: string): Player[] {
-    return this.allTeamPlayers.filter(p => p.position === position && p.teamId === this.currentTeamId);
+    return this.allTeamPlayers.filter(
+      p => p.position === position && p.teamId === this.currentTeamId
+    );
   }
 
   public getTeamName(teamId: number): string {
@@ -142,9 +125,9 @@ export class Album implements OnInit {
   }
 
   public getCollectedCount(): number {
-    return this.allTeamPlayers
-      .filter(p => p.teamId === this.currentTeamId && this.getStickerQuantity(p.id) > 0)
-      .length;
+    return this.allTeamPlayers.filter(
+      p => p.teamId === this.currentTeamId && this.getStickerQuantity(p.id) > 0
+    ).length;
   }
 
   public getProgressPercent(): number {
@@ -152,41 +135,52 @@ export class Album implements OnInit {
     return total > 0 ? Math.round((this.getCollectedCount() / total) * 100) : 0;
   }
 
-  // ===========================
-  // SOBRES
-  // ===========================
 
   public onPackClick(): void {
     if (this.packPhase !== 'idle') return;
+
     if (this.packCount <= 0) {
       this.packError = 'No tienes sobres disponibles. ¡Compra más!';
       return;
     }
+
     this.packError = '';
-    this.packPhase = 'shaking';
+    this.packPhase = 'loading';
 
-    setTimeout(() => {
-      this.packPhase = 'opening';
-      this.albumService.openPack().subscribe({
-        next: (response) => {
-          this.newStickers = response.data;
-          this.currentCardIndex = 0;
-          this.packCount = Math.max(0, this.packCount - 1);
+    // Descuenta optimistamente para feedback inmediato
+    this.packCount = Math.max(0, this.packCount - 1);
 
-          // ✅ Refrescar inventario global para que el álbum refleje los nuevos cromos
-          this.loadGlobalInventory();
+    this.albumService.openPack().subscribe({
+      next: (response) => {
+        this.newStickers = response.data;
+        this.currentCardIndex = 0;
 
-          setTimeout(() => {
-            this.packPhase = 'revealed';
-          }, 700);
-        },
-        error: (err) => {
-          console.error('Error abriendo sobre:', err);
-          this.packError = 'No se pudo abrir el sobre. Intenta de nuevo.';
-          this.packPhase = 'idle';
-        }
-      });
-    }, 600);
+        this.mergeNewStickersIntoInventory(response.data);
+
+        this.packPhase = 'revealed';
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error abriendo sobre (tras reintentos):', err);
+        this.packError = 'No se pudo abrir el sobre. Intenta de nuevo.';
+        // Devuelve el sobre si falló definitivamente
+        this.packCount++;
+        this.packPhase = 'idle';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+
+  private mergeNewStickersIntoInventory(newItems: UserStickerResponse[]): void {
+    for (const item of newItems) {
+      const existing = this.globalInventory.find(i => i.stickerId === item.stickerId);
+      if (existing) {
+        existing.quantity = item.quantity; // el servidor devuelve la cantidad total actualizada
+      } else {
+        this.globalInventory.push({ ...item });
+      }
+    }
   }
 
   public resetPack(): void {
@@ -204,18 +198,17 @@ export class Album implements OnInit {
     if (this.currentCardIndex > 0) this.currentCardIndex--;
   }
 
+
+
   public buyPack(): void {
     this.albumService.buyPack().subscribe({
       next: (data) => {
         if (data.success) {
-          // ✅ Refresca desde el servidor en vez de confiar en data.cantity
           this.setPacks();
           this.authService.cargarDatosIniciales();
         }
       },
-      error: (err) => {
-        console.error('Error comprando sobre:', err);
-      }
+      error: (err) => console.error('Error comprando sobre:', err)
     });
   }
 }

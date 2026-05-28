@@ -945,6 +945,8 @@ $font-body:    'Segoe UI', system-ui, sans-serif;
   }
 }
 
+
+
 // ============================================================
 // ANIMACIONES
 // ============================================================
@@ -989,4 +991,93 @@ $font-body:    'Segoe UI', system-ui, sans-serif;
 @keyframes shimmer-legendary {
   0%,100% { opacity: 0; }
   50%     { opacity: 1; }
+}
+// ── Pega esto al FINAL de tu album.scss existente ──
+
+.pack-envelope {
+  cursor: default;
+  transition: transform 0.2s ease, filter 0.2s ease;
+
+  &.clickable {
+    cursor: pointer;
+    &:hover { transform: scale(1.03) translateY(-4px); filter: brightness(1.08); }
+    &:active { transform: scale(0.97); }
+  }
+
+  &.loading {
+    animation: pack-shake 0.45s ease infinite alternate, pack-glow 1s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  &.revealed {
+    animation: pack-explode 0.4s ease forwards;
+    pointer-events: none;
+  }
+}
+
+@keyframes pack-shake {
+  0%   { transform: rotate(-5deg) scale(1.02); }
+  100% { transform: rotate(5deg) scale(1.05); }
+}
+
+@keyframes pack-glow {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 8px rgba(255,215,0,0.4)); }
+  50%       { filter: brightness(1.2) drop-shadow(0 0 20px rgba(255,215,0,0.9)); }
+}
+
+@keyframes pack-explode {
+  0%   { transform: scale(1);   opacity: 1; }
+  60%  { transform: scale(1.3); opacity: 0.6; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+.pack-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.pack-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.results-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 0;
+}
+
+.skeleton-card {
+  height: 80px;
+  border-radius: 12px;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.06) 25%,
+    rgba(255,255,255,0.14) 50%,
+    rgba(255,255,255,0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.result-card.active {
+  animation: card-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes card-pop {
+  from { transform: scale(0.85) translateY(20px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
 }

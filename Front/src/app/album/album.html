@@ -4,8 +4,6 @@
   <div class="album-header">
     <div class="album-header-left">
       <div class="album-title-block">
-
-
         <div>
           <h1 class="album-title">Álbum Mundial</h1>
           <p class="album-subtitle">2026 · Colección Virtual</p>
@@ -31,7 +29,6 @@
       <span>Mi Álbum</span>
     </button>
 
-    <!-- Selector de equipo visible solo en vista álbum -->
     <div class="team-selector" *ngIf="currentView === 'album'">
       <button
         class="team-chip"
@@ -45,7 +42,6 @@
 
   <!-- ===== VISTA: SOBRES ===== -->
   <div class="packs-view animate-fade-in" *ngIf="currentView === 'packs'">
-
     <div class="packs-split">
 
       <!-- Columna izquierda: sobre animado -->
@@ -57,7 +53,18 @@
         <p class="split-desc">Cada sobre contiene 7 cromos aleatorios de cualquier selección del mundial.</p>
 
         <div class="pack-stage">
-          <div class="pack-envelope" [ngClass]="packPhase" (click)="onPackClick()">
+          <!--
+            packPhase ahora tiene 3 estados: idle | loading | revealed
+            La clase CSS maneja toda la animación; el click dispara la petición
+            HTTP de inmediato sin esperas intermedias.
+          -->
+          <div
+            class="pack-envelope"
+            [ngClass]="packPhase"
+            (click)="onPackClick()"
+            [class.clickable]="packPhase === 'idle' && packCount > 0"
+            [attr.aria-busy]="packPhase === 'loading'">
+
             <div class="envelope-body">
               <div class="envelope-shine"></div>
               <div class="pack-visual">
@@ -65,12 +72,20 @@
                 <div class="pack-stars">
                   <span>★</span><span>★</span><span>★</span>
                 </div>
+
+                <!-- Idle: invita a abrir -->
                 <p class="pack-hint" *ngIf="packPhase === 'idle'">
-                  {{ packCount > 0 ? 'Toca para abrir' : 'Sin sobres disponibles' }}
+                  {{ packCount > 0 ? '¡Toca para abrir!' : 'Sin sobres disponibles' }}
                 </p>
-                <p class="pack-hint loading" *ngIf="packPhase === 'opening'">Abriendo...</p>
+
+                <!-- Loading: spinner + texto, sin bloquear la UI -->
+                <div class="pack-loading-state" *ngIf="packPhase === 'loading'">
+                  <div class="pack-spinner"></div>
+                  <p class="pack-hint loading">Abriendo...</p>
+                </div>
               </div>
             </div>
+
             <div class="envelope-flap">
               <div class="flap-inner"></div>
             </div>
@@ -93,12 +108,17 @@
         </div>
 
         <!-- Estado vacío -->
-        <div class="results-empty" *ngIf="packPhase !== 'revealed'">
+        <div class="results-empty" *ngIf="packPhase === 'idle'">
           <div class="empty-icon">🎴</div>
           <p>Abre un sobre para ver tus nuevos cromos aquí</p>
         </div>
 
-        <!-- Carrusel -->
+        <!-- Skeleton mientras carga -->
+        <div class="results-skeleton" *ngIf="packPhase === 'loading'">
+          <div class="skeleton-card" *ngFor="let i of [1,2,3]"></div>
+        </div>
+
+        <!-- Carrusel de resultados -->
         <div class="results-carousel" *ngIf="packPhase === 'revealed'">
           <div class="carousel-nav">
             <button class="nav-btn" (click)="prevCard()" [disabled]="currentCardIndex === 0">‹</button>
@@ -126,8 +146,7 @@
                     <div class="result-player-pos">{{ player.position }}</div>
                     <span class="result-rarity-badge rarity-{{ player.rarity }}">{{ player.rarity | titlecase }}</span>
                   </ng-container>
-                  <ng-template #fallback>
-                  </ng-template>
+                  <ng-template #fallback></ng-template>
                 </div>
 
                 <div class="result-footer">
