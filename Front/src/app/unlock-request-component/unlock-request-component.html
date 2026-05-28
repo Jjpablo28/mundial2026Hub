@@ -1,0 +1,20 @@
+<div class="unlock-wrapper">
+
+  <ng-container *ngIf="state === 'loading'">
+    <i class="bi bi-arrow-repeat spin"></i>
+    <p class="unlock-msg">Enviando solicitud...</p>
+  </ng-container>
+
+  <ng-container *ngIf="state === 'success'">
+    <i class="bi bi-check-circle"></i>
+    <h2 class="unlock-title">Solicitud enviada</h2>
+    <p class="unlock-msg">Pronto nos comunicaremos contigo para resolver el acceso a tu cuenta.</p>
+  </ng-container>
+
+  <ng-container *ngIf="state === 'error'">
+    <i class="bi bi-x-circle"></i>
+    <h2 class="unlock-title">Algo salió mal</h2>
+    <p class="unlock-msg">{{ errorMsg }}</p>
+  </ng-container>
+
+</div>

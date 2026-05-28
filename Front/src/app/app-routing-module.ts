@@ -13,6 +13,7 @@ import {TradeScreen} from './trade-screen/trade-screen';
 import {GuestGuard} from './security/guest.guard';
 import {UserAdminComponent} from './user-admin.component/user-admin.component';
 import {SupportComponent} from './support-component/support-component';
+import {UnlockRequestComponent} from './unlock-request-component/unlock-request-component';
 
 
 const routes: Routes = [
@@ -27,7 +28,8 @@ const routes: Routes = [
   { path: 'qr', component: QrGenerator },
   { path: 'websocket', component: TradeScreen },
   { path: 'admin/soporte', component: SupportComponent },
-  {path:'admin/usuarios',component: UserAdminComponent, canActivate: [AuthGuard], data: { rolesPermitidos: ['ADMIN'] }}
+  {path:'admin/usuarios',component: UserAdminComponent, canActivate: [AuthGuard], data: { rolesPermitidos: ['ADMIN'] }},
+  { path: 'support/unlock', component: UnlockRequestComponent }
 ];
 
 @NgModule({

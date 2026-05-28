@@ -32,6 +32,7 @@ import { TradeScreen } from './trade-screen/trade-screen';
 import { ActivityLogComponent } from './activity-log-component/activity-log-component';
 import { UserAdminComponent } from './user-admin.component/user-admin.component';
 import { SupportComponent } from './support-component/support-component';
+import { UnlockRequestComponent } from './unlock-request-component/unlock-request-component';
 
 export function initializeApp(authService: AuthService) {
   return () => authService.cargarDatosIniciales();
@@ -56,6 +57,7 @@ export function initializeApp(authService: AuthService) {
     ActivityLogComponent,
     UserAdminComponent,
     SupportComponent,
+    UnlockRequestComponent,
   ],
   imports: [
     BrowserModule,
