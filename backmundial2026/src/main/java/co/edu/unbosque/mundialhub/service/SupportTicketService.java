@@ -40,6 +40,14 @@ public class SupportTicketService {
     @Autowired
     private EmailService emailService;
 
+    // ─── Log seguro: nunca interrumpe la operación principal ─────────────────
+    private void logSafe(Long userId, String event, String detail) {
+        try {
+            activityLogService.log(userId, event, detail);
+        } catch (Exception e) {
+            System.err.println("[SupportTicket] Log omitido por error: " + e.getMessage());
+        }
+    }
 
     @Transactional
     public SupportTicketDTO createTicket(SupportTicketDTO dto, Long agentId) {
@@ -74,7 +82,7 @@ public class SupportTicketService {
 
         ticketRepo.save(ticket);
 
-        activityLogService.log(agentId, "SUPPORT_TICKET_CREATED",
+        logSafe(agentId, "SUPPORT_TICKET_CREATED",
                 "Ticket #" + ticket.getId() + " creado. Tipo: " + dto.getTicketType()
                 + " para usuario ID " + safeDecrypt(targetUser.getUserName()));
 
@@ -101,13 +109,8 @@ public class SupportTicketService {
         }
 
         User targetUser = ticket.getTargetUser();
-
-        // ── FIX: usar safeDecrypt en lugar de AESUtil.decrypt directo ──────────
-        // AESUtil.decrypt() lanza "Null input buffer" si el campo es null o blank.
-        // safeDecrypt() maneja ese caso devolviendo "Desconocido" sin explotar.
         String userNameDecrypted = safeDecrypt(targetUser.getUserName());
         String emailDecrypted    = safeDecrypt(targetUser.getEmail());
-        // ────────────────────────────────────────────────────────────────────────
 
         String resolvedAt = LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
@@ -115,11 +118,11 @@ public class SupportTicketService {
         switch (ticket.getTicketType()) {
 
             case ADD_PACKETS -> {
-                int cantidad      = ticket.getQuantity() != null ? ticket.getQuantity() : 1;
+                int cantidad       = ticket.getQuantity() != null ? ticket.getQuantity() : 1;
                 int sobresActuales = targetUser.getPackets() != null ? targetUser.getPackets() : 0;
                 targetUser.setPackets(sobresActuales + cantidad);
                 userRepo.save(targetUser);
-                activityLogService.log(targetUser.getId().longValue(), "SUPPORT_ADD_PACKETS",
+                logSafe(targetUser.getId().longValue(), "SUPPORT_ADD_PACKETS",
                         "Soporte acreditó " + cantidad + " sobre(s). Nuevo total: " + targetUser.getPackets());
 
                 sendTicketResolvedEmail(emailDecrypted,
@@ -132,11 +135,11 @@ public class SupportTicketService {
             }
 
             case ADD_TOKENS -> {
-                int tokens        = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
+                int tokens         = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
                 int tokensActuales = targetUser.getTotalPoints() != null ? targetUser.getTotalPoints() : 0;
                 targetUser.setTotalPoints(tokensActuales + tokens);
                 userRepo.save(targetUser);
-                activityLogService.log(targetUser.getId().longValue(), "SUPPORT_ADD_TOKENS",
+                logSafe(targetUser.getId().longValue(), "SUPPORT_ADD_TOKENS",
                         "Soporte acreditó " + tokens + " token(s). Nuevo saldo: " + targetUser.getTotalPoints());
 
                 sendTicketResolvedEmail(emailDecrypted,
@@ -150,11 +153,11 @@ public class SupportTicketService {
             }
 
             case REFUND_TOKENS -> {
-                int tokens        = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
+                int tokens         = ticket.getQuantity() != null ? ticket.getQuantity() : 0;
                 int tokensActuales = targetUser.getTotalPoints() != null ? targetUser.getTotalPoints() : 0;
                 targetUser.setTotalPoints(tokensActuales + tokens);
                 userRepo.save(targetUser);
-                activityLogService.log(targetUser.getId().longValue(), "SUPPORT_REFUND",
+                logSafe(targetUser.getId().longValue(), "SUPPORT_REFUND",
                         "Soporte procesó reembolso de " + tokens + " token(s). Saldo: " + targetUser.getTotalPoints());
 
                 sendTicketResolvedEmail(emailDecrypted,
@@ -173,7 +176,7 @@ public class SupportTicketService {
                 targetUser.setFailedLoginAttempts(0);
                 targetUser.setLockedAt(null);
                 userRepo.save(targetUser);
-                activityLogService.log(targetUser.getId().longValue(), "SUPPORT_UNLOCK",
+                logSafe(targetUser.getId().longValue(), "SUPPORT_UNLOCK",
                         "Soporte desbloqueó la cuenta del usuario.");
 
                 sendTicketResolvedEmail(emailDecrypted,
@@ -188,7 +191,7 @@ public class SupportTicketService {
                 targetUser.setEnabled(false);
                 targetUser.setAccountNonLocked(false);
                 userRepo.save(targetUser);
-                activityLogService.log(targetUser.getId().longValue(), "SUPPORT_REVOKE",
+                logSafe(targetUser.getId().longValue(), "SUPPORT_REVOKE",
                         "Soporte suspendió la cuenta del usuario.");
 
                 sendTicketResolvedEmail(emailDecrypted,
@@ -205,7 +208,7 @@ public class SupportTicketService {
                 targetUser.setVerificationExpires(null);
                 targetUser.setEnabled(false);
                 userRepo.save(targetUser);
-                activityLogService.log(targetUser.getId().longValue(), "SUPPORT_RESET_VERIFICATION",
+                logSafe(targetUser.getId().longValue(), "SUPPORT_RESET_VERIFICATION",
                         "Soporte reinició el estado de verificación de la cuenta.");
 
                 sendTicketResolvedEmail(emailDecrypted,
@@ -217,7 +220,7 @@ public class SupportTicketService {
             }
 
             case CUSTOM -> {
-                activityLogService.log(targetUser.getId().longValue(), "SUPPORT_CUSTOM",
+                logSafe(targetUser.getId().longValue(), "SUPPORT_CUSTOM",
                         "Acción manual de soporte aplicada: " + resolution);
 
                 sendTicketResolvedEmail(emailDecrypted,
@@ -235,14 +238,14 @@ public class SupportTicketService {
         ticket.setResolvedAt(LocalDateTime.now());
         ticketRepo.save(ticket);
 
-        activityLogService.log(agentId, "SUPPORT_TICKET_RESOLVED",
+        logSafe(agentId, "SUPPORT_TICKET_RESOLVED",
                 "Ticket #" + ticketId + " resuelto por agente ID " + agentId);
 
         return toDTO(ticket);
     }
 
     private void sendTicketResolvedEmail(String to, String subject, String template,
-                                         UnaryOperator<String> mapper) {
+                                          UnaryOperator<String> mapper) {
         try {
             String html = loadTemplate(template);
             String body = mapper.apply(html);
@@ -265,7 +268,7 @@ public class SupportTicketService {
         ticket.setResolvedAt(LocalDateTime.now());
         ticketRepo.save(ticket);
 
-        activityLogService.log(agentId, "SUPPORT_TICKET_REJECTED",
+        logSafe(agentId, "SUPPORT_TICKET_REJECTED",
                 "Ticket #" + ticketId + " rechazado. Motivo: " + resolution);
 
         return toDTO(ticket);

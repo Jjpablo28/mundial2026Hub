@@ -139,8 +139,12 @@ public class SecurityConfig {
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT");
 
                 // /activity-logs
-                auth.requestMatchers("/activity-logs/**").hasAuthority("ROLE_ADMIN");
-
+                auth.requestMatchers(HttpMethod.GET, "/activity-logs/user/*/paged")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT", "ROLE_USER");
+                auth.requestMatchers(HttpMethod.GET, "/activity-logs/user/*")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPPORT", "ROLE_USER");
+                auth.requestMatchers("/activity-logs/**")
+                        .hasAuthority("ROLE_ADMIN");
                 // /payments
                 auth.requestMatchers("/payments/**").authenticated();
 
