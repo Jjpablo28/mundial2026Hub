@@ -297,8 +297,8 @@ export class SupportComponent implements OnInit, OnDestroy {
       notes: (this.userRequestForm.value.description ?? '').trim() || undefined,
     };
 
-    // agentId = 0 indica que aún no hay agente asignado (ticket abierto por el propio usuario)
-    this.supportService.createTicket(payload, 0)
+    // USER: agentId = propio usuario (el backend lo requiere, no acepta 0)
+    this.supportService.createTicket(payload, this.currentUserId!)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
